@@ -978,6 +978,7 @@ function gather(){
     hcPremEdit: blank('hcPrem')? null : num('hcPrem'),
     hcInfl: num('hcInfl')/100, oopMed0: num('oopMed'), oopPre0: num('oopPre'), medPremInfl: num('medPremInfl')/100,
     ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100,
+    preRetMAGI: num('salary') + (married? num('sSalary') : 0), // household MAGI while working ≈ combined wages (today's $)
     endAge: (eaN && eaN>=ageNow)? eaN : leDefault(ageNow, $('sex').value),
     sex: $('sex').value, sexSpouse: $('sexSpouse').value,
     endAgeSpouse: married? ((esN && esN>=sageNow)? esN : leDefault(sageNow, $('sexSpouse').value)) : null
@@ -1261,6 +1262,13 @@ function simulateCore(st, startBalances, startAge, startSage, reserveByT){
   const rows=[];
   let pretax=startBalances.pretax, roth=startBalances.roth, savPrin=startBalances.savPrin, savGain=startBalances.savGain, hsa=startBalances.hsa||0;
   const magiHist=[];
+  // The IRMAA 2-year MAGI lookback reaches before the simulation start in the first two years. Those are working
+  // years, so seed them with the household's wages (inflation-projected to that calendar year) instead of $0 —
+  // otherwise a 64+ retiree's first two Medicare years would skip IRMAA that their final salary actually triggers.
+  {
+    const tStart = startAge - st.ageNow;
+    for(const tL of [tStart-2, tStart-1]) magiHist[tL] = (st.preRetMAGI||0) * Math.pow(1+st.infl, tL);
+  }
   st.pretax0_atRetire = pretax;
   // Horizon runs to whoever lives longer. In primary-age terms, the spouse reaches their plan-to age at
   // primaryAge = endAgeSpouse + (ageNow - sageNow).
