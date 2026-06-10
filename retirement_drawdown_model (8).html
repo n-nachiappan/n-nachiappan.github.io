@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Retirement Drawdown — Target-Income Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f3eee2; --paper2:#faf6ec; --card:#fbf8f0; --ink:#211e18; --ink2:#565142;
+  --rule:#ddd4c0; --rule2:#cabfa4; --green:#2f6b4a; --green2:#3f865d; --greenbg:#e4eee4;
+  --brass:#9a7b2e; --brass2:#b8932f; --red:#a63c2b; --redbg:#f3e2dc; --blue:#2f5d83; --bluebg:#e2eaf1;
+  --yellow:#9c7c14; --yellowbg:#f4ecd2;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Hanken Grotesk',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 22px 80px;}
+a{color:var(--green);text-decoration:none;border-bottom:1px solid var(--rule2);}
+a:hover{color:var(--green2);}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.12;margin:0;}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
+
+/* masthead */
+.masthead{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:10px;}
+h1.title{font-size:clamp(34px,6vw,56px);font-weight:700;letter-spacing:-.015em;}
+h1.title em{font-style:italic;font-weight:600;color:var(--green);}
+.dek{font-family:'Fraunces',serif;font-style:italic;font-size:clamp(15px,2.2vw,19px);color:var(--ink2);max-width:none;margin-top:12px;line-height:1.45;}
+.byline{font-size:12.5px;color:var(--ink2);margin-top:14px;font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;}
+.avatar{width:62px;height:62px;border-radius:50%;object-fit:cover;flex:0 0 auto;border:1px solid var(--rule2);}
+.avatar-link{display:block;flex:0 0 auto;border:none;line-height:0;}
+
+/* verdict banner */
+.verdict{margin:26px 0 6px;border:1px solid var(--rule2);border-radius:10px;padding:20px 22px;background:var(--card);position:relative;overflow:hidden;}
+.verdict::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--ink2);}
+.verdict.green::before{background:var(--green);} .verdict.yellow::before{background:var(--brass2);} .verdict.red::before{background:var(--red);}
+.verdict-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
+.v-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px;border-radius:20px;font-weight:600;}
+.green .v-badge{background:var(--greenbg);color:var(--green);} .yellow .v-badge{background:var(--yellowbg);color:var(--yellow);} .red .v-badge{background:var(--redbg);color:var(--red);}
+.v-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;}
+.v-body{margin-top:12px;color:var(--ink2);font-size:14.5px;max-width:760px;}
+.v-body b{color:var(--ink);}
+.v-stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);}
+.v-estate{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--paper2);border:1px solid var(--rule);font-size:13.5px;line-height:1.5;}
+.v-estate.warn{background:rgba(168,54,42,.07);border-color:var(--red);}
+.v-estate .et{font-weight:600;color:var(--red);}
+.v-actions{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.v-actions-note{font-size:12px;color:var(--ink2);flex:1 1 240px;min-width:200px;line-height:1.45;}
+.preset-bar{margin:22px 0 6px;padding:14px 16px;border:1px solid var(--rule2);border-radius:10px;background:var(--card);}
+.preset-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.preset-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);}
+.preset-hint{margin-top:9px;font-size:12.5px;color:var(--ink2);line-height:1.5;}
+.adv-section{margin-top:8px;}
+.adv-toggle{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--rule);padding:18px 2px 14px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);}
+.adv-toggle:hover{color:var(--green);}
+.adv-tri{display:inline-block;transition:transform .15s ease;color:var(--green);font-size:11px;}
+.adv-toggle[aria-expanded="true"] .adv-tri{transform:rotate(90deg);}
+.adv-note{font-family:'Hanken Grotesk',system-ui,sans-serif;text-transform:none;letter-spacing:0;font-size:12px;color:var(--ink2);font-weight:400;margin-left:auto;text-align:right;}
+.adv-wrap[hidden]{display:none;}
+.adv-wrap{margin-top:4px;}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-14px);background:var(--green);color:#fff;padding:11px 20px;border-radius:9px;font-size:13.5px;font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,.20);z-index:9999;opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;max-width:90vw;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.v-stat .n{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;}
+.v-stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);margin-top:2px;}
+.green .v-stat .n{color:var(--green);} .yellow .v-stat .n{color:var(--yellow);} .red .v-stat .n{color:var(--red);}
+
+/* savings plan */
+.savings-plan{margin:14px 0 6px;border:1px solid var(--rule2);border-radius:10px;padding:18px 20px;background:var(--paper2);}
+.sp-head{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:12px;}
+.sp-sub{font-size:12.5px;color:var(--ink2);margin:14px 0 8px;font-weight:600;}
+.sp-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+.sp-table td,.sp-table th{padding:7px 8px;text-align:left;border-bottom:1px solid var(--rule);}
+.sp-table th{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);font-weight:600;}
+.sp-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.sp-tag{font-size:11.5px;color:var(--ink2);}
+.sp-table tr.sp-gap td{color:var(--brass);font-weight:600;}
+.sp-table tr.sp-total td{border-top:2px solid var(--rule2);border-bottom:none;font-weight:700;color:var(--green);font-size:14px;}
+.sp-note{font-size:11.5px;color:var(--ink2);margin-top:12px;line-height:1.45;}
+td.hsa-med{color:var(--red);}
+td.conv{color:var(--green);font-weight:600;}
+.hsa-tag{font-size:8.5px;letter-spacing:.05em;color:var(--red);border:1px solid var(--red);border-radius:3px;padding:0 3px;margin-left:5px;vertical-align:1px;font-family:'IBM Plex Mono',monospace;}
+.ledger-legend{font-size:11px;color:var(--ink2);margin-top:8px;}
+.ledger-legend .hsa-tag{cursor:default;}
+
+/* sections */
+.sec-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:34px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--rule);}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+.panel h3{font-size:18px;margin-bottom:4px;}
+.panel .sub{font-size:12.5px;color:var(--ink2);margin-bottom:14px;}
+.grid{display:grid;gap:14px 18px;}
+.g2{grid-template-columns:1fr 1fr;} .g3{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink);}
+.field .hint{font-size:11.5px;color:var(--ink2);line-height:1.35;}
+input[type=number],input[type=text],select{font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 11px;border:1px solid var(--rule2);border-radius:7px;background:var(--paper2);color:var(--ink);width:100%;}
+input:focus,select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--greenbg);}
+.inwrap{position:relative;}
+.inwrap .pre{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink2);font-family:'IBM Plex Mono',monospace;font-size:14px;pointer-events:none;}
+.inwrap .pre + input{padding-left:24px;}
+.inwrap .suf{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--ink2);font-family:'IBM Plex Mono',monospace;font-size:13px;pointer-events:none;}
+.seg{display:flex;border:1px solid var(--rule2);border-radius:7px;overflow:hidden;}
+.seg button{flex:1;background:var(--paper2);border:none;padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;cursor:pointer;color:var(--ink2);border-right:1px solid var(--rule2);}
+.seg button:last-child{border-right:none;}
+.seg button.on{background:var(--green);color:var(--paper2);font-weight:600;}
+.tog{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink);cursor:pointer;}
+.tog input{width:auto;}
+.computed{font-size:11.5px;color:var(--brass);font-family:'IBM Plex Mono',monospace;}
+.disabledblock{opacity:.45;pointer-events:none;}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);margin:36px 0 0;flex-wrap:wrap;}
+.tab{background:none;border:none;padding:11px 16px 9px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.04em;cursor:pointer;color:var(--ink2);border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab.on{color:var(--ink);border-bottom-color:var(--green);font-weight:600;}
+.tabpane{display:none;padding-top:20px;} .tabpane.on{display:block;}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap;}
+th{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);font-weight:600;border-bottom:1px solid var(--rule2);position:sticky;top:0;background:var(--paper);}
+td:first-child,th:first-child{text-align:left;}
+.tablescroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;}
+tr.depleted td{color:var(--red);}
+tr.r55 td{background:var(--yellowbg);} tr.sepp td{background:var(--redbg);}
+tr.rmd td:nth-child(4){color:var(--brass);font-weight:600;}
+.editcell{background:var(--paper2);border:1px solid var(--rule2);border-radius:4px;padding:3px 5px;width:92px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;}
+.wage-col-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px;}
+
+/* hero cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:760px){.cards{grid-template-columns:1fr 1fr;}}
+.hcard{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:15px 16px 16px;position:relative;overflow:hidden;box-shadow:0 1px 0 rgba(22,30,24,.04), 0 12px 28px -22px rgba(31,92,61,.55);}
+.hcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ink2);}
+.hcard.green::before{background:var(--green);} .hcard.brass::before{background:var(--brass2);} .hcard.blue::before{background:var(--blue);} .hcard.red::before{background:var(--red);}
+.hcard .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);font-family:'IBM Plex Mono',monospace;}
+.hcard .n{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:600;line-height:1.04;margin-top:8px;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums;}
+.hcard.green .n{color:var(--green);} .hcard.brass .n{color:var(--brass);} .hcard.blue .n{color:var(--blue);} .hcard.red .n{color:var(--red);}
+.hcard .d{font-size:11px;color:var(--ink2);margin-top:5px;}
+
+.btn{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border:1px solid var(--rule2);border-radius:7px;background:var(--paper2);color:var(--ink);cursor:pointer;}
+.btn:hover{border-color:var(--green);color:var(--green);}
+.toolbar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;flex-wrap:wrap;}
+.legend{font-size:11.5px;color:var(--ink2);margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;}
+.chip{display:inline-flex;align-items:center;gap:6px;}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid var(--rule2);}
+
+/* method */
+.method{margin-top:46px;border-top:2px solid var(--ink);padding-top:22px;}
+.method h2{font-size:24px;margin-bottom:14px;}
+.method p{font-size:13.5px;color:var(--ink2);max-width:none;margin:0 0 13px;line-height:1.6;}
+.method p b{color:var(--ink);}
+.method .src{font-size:11.5px;color:var(--ink2);margin-top:18px;border-top:1px solid var(--rule);padding-top:12px;}
+canvas{max-width:100%;}
+.note-inline{font-size:11.5px;color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div>
+      <div class="kicker">An Interactive Retirement Model</div>
+      <h1 class="title">The Retirement <em>Drawdown</em></h1>
+      <p class="dek">Start from the income you want to live on — then watch it funded, year by year, from a waterfall of retirement accounts, Social Security and personal savings, net of taxes, Medicare, out-of-pocket medical costs and pre-65 health premiums. A readiness verdict tells you where you stand.</p>
+      <div class="byline">By <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener">Nachiappan</a> in collaboration with Claude · A hypothetical, educational model — not financial advice.</div>
+    </div>
+    <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener" class="avatar-link"><img class="avatar" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCACgAKADASIAAhEBAxEB/8QAHQABAAEFAQEBAAAAAAAAAAAAAAgDBAUGBwIBCf/EAEEQAAIBAwIDBgIJAgMGBwAAAAECAwAEEQUhBhIxBxMiQVFxYYEIFDJCUpGhscEVM3LR8RZDYoKS8CMkU2NzouH/xAAaAQACAwEBAAAAAAAAAAAAAAAABQIDBAEG/8QALREAAgIBAwMCBQMFAAAAAAAAAAECAxEEEiEFMVEUIjJBYXGhBhMVI0JikcH/2gAMAwEAAhEDEQA/AJU0pSgBSlKAFKUoAUpVK6uoLK3kubqaOCCJS7ySMFVFHUknoKAKtK4Lxr9KzStLllteGNN/qboxUXVw5jhPxVR4mHvy1yHW/pA9oWszyEa5JZxOTiKyRY1UegYAt/8AapKDOZRNilQh0Dt9484SulZNZl1OHILW2osZlb2JPMvyNSI7KfpBaD2ilbC8RNH1gnC20soZJz/7bHG//Cd/TNDi0CZ1alKVE6KUpQApSlAClKUAKUpQApSlAClKUAKiv9J7tTub3WZeC9PlMdlZcpvOU/35iOYKf+FQRt5t7CpUE4GTtX573F5LxHxlqeqXJMrXF3LOxbfq5x+mKHJRTkyUIOclFfMxul6FrOpuJ7bTrmaM9GC7H2rYbbs44ku1Pd6XIg65kYL+5rp/AuO9iiaMMuPyrqgtbeWNSEA26Y2pf66yTe3A1n0+qvG7JFuTss1uJv8AzKKnx581idV4UvdKj7wMHCHfyIqTev2lvHbSSuuMCuP8TKkpZVXwkGow1du73FktDTKDcUdD+ip2hatqt1e8M6jc3l5FFF30LzyGTusHBAJ3AOenT0xUkqgP2f8AEc/BnaBpV/ZFhKLuOORQcB43YKyn3B/ap8CmkucMSYxwKUpUQFKUoAUpSgBSlKAFKUoAUpSgDzJgRtzdMHO2a/P/AEhGRLqWGEyOZXKjGCRzHHyqemuWKano19ZSKWS4t5IyAxUnKkdRuPlUMNA01YdQvrG4XEmO6jJH2ckNjHlnr71TfJKOGatJF7sxLrRuI9f063R4LCCUr1AkAI9966twt2hS6hZSi7tkSaJCzx+a4HXPpWkaRwNLFHEk8OI0ZiX70KrgnPi2ycfKstoXDMUF1qn++je0aKNgxBCY6npvn9BS611xWYPDGdStnLFiyilrXaPcapK1tbaNcXUDD+7EuFBrn2q6o7XhguLSW1Y/Z5xsa2e34elSwAEtxlP7T24D4HkSvXfzrFHh68tjLd3i3S2UYypmyufXr/3vVkK6++SErbo+3GEafpGnNc8eaPCjANPf24B9CZVFfoEKgDw99cuOJtLnso0N1bTxPEXXm5n5wV5x57+QxU/VzyjOM+eKZJ+1LwKbF7t3k+0pSulYpSlAClKUAKUpQApSlAClKUADUQNX1JOH+0fWVlOES9lQEjGAGOP0xUv6jD9IvSo9P48S9kT/AMLUbRJObHV0JVh745apvhvg0zTpbNliZfXfHKana8tu8aQrGcknxOQOij+awuldo/D66HqbzSyW90iiJIpvtDPXOOv/AO1zN9H1Ca8ZrCWOSFRkKzEHB649azVh2Yalf2puo1gl5zyhluEAjPXLcxBAxWFaSD7sZLV2f2xNk0Djmya5VrKJ7iFQvefWE5CT58tVe0PiPTb/AE8rFHGGxhcDB/SuZ6jouo2Vw6W8tu5Q7tHJnf0yNjXq4ie1RIrucSzKvM2DkAnoKktJHKcWclrJ8qceTpP0cNDh1TjkPNbrLHbRG6y33WQgKfzYflUtK5T9Hng6x0jgix102oXUtSjd3lJOe6LkoMdBsAa6tTFLAonLIpSldIClKUAKUpQApSlAClKUAKUpQArlf0jeGIta4Al1Twrc6Q4uEY+aEhXX9Qf+Wulajq2n6RD3+oXttZxdOeeQID8zXF+2jtc0LU+HNQ4X0dm1Ce7CRvcR/wBlAGDMAfvHC42GN+tD4WX2Ow5korucL4YuIbwGymk7soco2cHHpW2Po7LC2dZeNSOhVWz8yK5ffWNxYuJ4e87s7hkO6/D2r4muXYXDX0n/ADVkde55izarHD2yRs+rwxaQrTtdG4kOy822PlWN4N0KXjjjLTdFM3IL64CSSZ+ynVseyg4+Na889zfzcoeS4fO3oK3Ls5li4S4u0bW78sYrW6R5BGMkLuDj12NXQSh3fJTLdPLSJv2NnBp1lBZ2sYit7eNYo0HRVUYA/IVWqz0nWdO1yzF3pl7b3luTy95C4YA+hx0O/SryrTOKUpQApSlAClKUAKUpQApVtqepWmj2E9/fTpBbQKXkkboB/n8Kjrxh238TatcTwaTOumWZbEYiA70jO2XPQ+2Kupolb8JVbdGvud31vjjhvh1imqa1Z20g6xGTmk/6Rk/pXLdf+kJLLNcW/D+nxiNTyx3NwSWYfi5NsfM/KuLqZLmV52Z2LnmZ36sx65NfLYsnekdQxHzpjXooR5lyYLNXJ9uDK8R61q/FV39c1m+e7kXwoTsqeeFHQDPpWMigQS8sueV9w34G9DVcKwTlY9SNqqGNGJAGQcZRtsnFXW0Qsrdb7Mqp1E6rFZHui5h4eiveZEcIzbjIyK8P2fzOGLLZuvoW5f4rxa3klnIGil5cbcknkazf+2TCMB7FGfbxBjj5V5m3pWrhL+niSPUV9Y0lkc2LD+xgY+EBa5B7pDn7MYJ/WqM2mxQkvNgKuyJ5saytzxDdXCnkMEBbrgFmxWLXmZHkkcl+pLefsPKtOl6Ta3m94XhGfVdZpUdunjl+WZPhzirXOEGebSr6S07xwXi2KMR+JTsdvnXbODO27TtTthFxByWF0pwZUBMT/E9Sv7VH+6ZRDEAxzzDNVV8JZebORjp1p3PTVyWMCKGonF5yTFs7221C3S5tJ454XGVkjYMp+YqtUPdG1/WdKVk0zUru1HXljmZRkdNhXT+C+364RY7biW1DxKMG8i2ZQPNl8/cYrBZopx5jybIaqMuHwdzpVjouuadxFp0eo6XdJc2sn2XX1HUEHcH4Gr6sjWOGak8ilKVwBSlCQASdhQBwjt34skvdXi4ctpuWCzCyzgfflIyAf8KkH3b4VyK4RnUgOp5tuu3zrJ67qZ1rXtS1J38d1cSSg58ixwPyxVgfuqWBJG/vT+mChBREl0902z7aZkjBfYsA7AeuNxt8Qao264Lt1HeMd/SkU0SwSZ5sgsPD6Hfz9KrQ8qqArc4HiO3XNWIqZUVSuOZs58/9KqPiQHCg+hPrtuRXxQ/XxKvwFfWik5Nscp2HN5+1dInwIWyjbddl33rysMS7YUHyHLvivaryKpGDnGMDrXiaVooOQE94w5VGM7mg6j5GBI3MoygJVQtehAVQKF5c9fP/AFr33ChcAAcgAOfOvRCqvNkknoB71w7koTxluVSRjmBIA2IFeo4/vZGMe3yqo0ayydMYBJyKqAOARkAY8hnaglktbRFLRsq4DBuUdcD1NUrOwXU5eQ8v1SJvGSdpnH3f8I8/U+1VeWR7OJIiEkmXlDnqoxu3psP1IrIW7BECsVRQAqqPSovngmng6z2D38Vpc6tpDTOXmK3USFsqABytj0P2a7FUYeDtZfROLNJvlPhNwscmD9xzytn/AKv0qTwpTrIbbM+RnpZZhjwKUpWQ0CrHXbn6nol/c/8Ao20sn5ITV9WG40kWLg/XHYgAWE+5/wDjaurucfYiEqSIquhHeABgDjxgjpXxbyN0UjlAY8uD6+h9DVOy7yICKTwvDtzHzHl/l8qqXVn3nNLGyCY4DAr4XHoR6/GvQiJla0s7vUrsWtlay3UsqMqpbjmJwM7j4DO9Zm24R4jjhjcaNqGHUNn6s2+3wFWPBesNpfE+l3rjkENyiuSdyrHlIPyJ3qR+iSsmmQoWJaIGMn/CxH8VVObjyiD74OBLwzr25fSdSPqptX8I/KqMmkX1spaaxvF5QcloHH7ipKLIwH2iPnX0yt+I/nVfqX4O7SL7SRojRk4brhyMg/nVtNIzXMK5XA8RA36DzqT01hYzt3k1jaSSA553hUn8yKsrvh7RdTuy97pNjO0agKzQjIz8RUlqPocxgjypZ0B5VOQdxvXpF5gEwQ3NsM1IqHhzQ0UKmjacANgPq6f5V8l4X0CVeWTRdOZc5/sKP2FHqV4O7SPHKVLZViR+IftVveXK2rCFd5HBwPPpUgpOAuFp35m0S1Uj8HMv7GtI4y7OeGZJri6gSbTWsYDMZIXLLsC26N18vMda7G5S4QNqPc5hasHaRxkquIo9s5A6kfP9qry3UNmpMrd2u24Jy59PU1YIy2ljCWYycqgLGpyZHPl+dVY7Zo+S5n5ZbtvCoX7MQ/Cuf1Y1ZktSPbXoaRZ55GsraNg3M32mOdtvL2qY9tKk9vFLHIJEdAyuvRgRnNQzm0d7y5iSZ++kZumdk+C/E+ZO/tUweH7F9M0LTrGU5ktraOJt87qoB/al2t+TGGl+eC/pSlYDWK03thuja9mmvspPNJbdyMdfGwX+a3KuVfSL4hTSOCobJyqLf3Kq8jdERPGT75Cj51ZUszSIWPEWyP8AGneRhpDzMBuB5iq/9pQAq/Aj+at7CVtQAa1ildT0ZsKCPnisqmj6pInMllzqDkBZVyP1pm9dQnhzX+xetBqZLcq3j7GF1JHRDcQkCVQRkefw+RrvvC/HmhXOlxyT6pbRzN45IwxJRmAYqcD1JrheqQzWytHcRzQORssoIJHw9as+FHLWEjvKWDzMdvPGB0+VaYKN3Z8fQV6yU6Fua5Xkkoe0DhlNv6mp9o3P8VVXjXQJsKupRIW2HeKyfuK4BPd+Dw7+f+tXf1nv4IOU5z5g1N6KHkwLqFmOUiQkOp2MkXejULRkzgMJlx+9VbdlkMkiMHUn7SnI/MVwLHdRAAdOp8zXqyvZIoJBFLIvM2eVGI/aoej8Mn/IeYnf+/jQENIgPoWAr0sgfoQT8DXAbm4ICx/eO5PWvEdyYPFzMuPU4qL0f1JrqH+JIFnZV9PlXBO3biK7s9XtdKtZZEF0OeTk2OMAD3+A9d6xOqcX3tjGzQX80JXYMszZz7ZrDQyXHGfEFhd6lcNMLZSzSSnPLjoM+mDn5VTfD01crG+yN2gl6u+FaXd/8MxovBlhoFimu65dTuSnOIHkJZx6/Drge9XXEPGB1aS2RbdLSzto+WKIRhWOcZLHoegH79av44YJrltTuFMkMIEdrA5zz488f9/Ks7FPrmoaXKkWlaVbKnQyyswxjrgDavOU69xn+5JZf34R7a/p0XD9uDwvtyzl89zJqziG1cQ43cOcSE+QA6YPrUx+H78apoWn33MGNxbxyEj1KjP65qNN5Ek+i3Sz22jJPauLhZgWWQL9llQ48WTjYnz2runZDcm77PdJkPkJU6ekrD+KZzvV9as+ecCh6Z6ex1vsbjSlKzkxUa/pi2upSHhSVSx0zvpo3ABwJjykZ91DY9jUlK1ztG0211TgXXYLu1huVWxnkRZUDBXVCVYehBAINGcARA4fv+7RFBxg7Vu9lq4jiLc2APL41zDT5WidUPvitttGle3GAfs4BFJra1k9PTZmCRf8Zasl7o0kSYZyMKvmG8iPnWt2ehXFjYJB9elEoySQgAyevyq7vtF1BZIriM86cykg56g5xX2e/uYn7yeymYDqdmx8qu0+osoWKpYyZNVo6NS83xzjsV7LQ726hCtcNJtv4AMk/Gq9xperaRCgjEdxHESyiQ8rYyB5fGrWDiq2tmhiabvFfJZRlWBHSszBxtDcyDCKhIx+IKcYwfWtkOo6tPO4W29H0LW1QRYyavdoO7u7MByf9xIH/SqltqtujKJXZATkh0Iq5+vrKQl1Iiqm4C4/M488dM1kdLtLW7cO3NIHVmBc74A64rZDrd0PiSYss/TGmn8DcfyYX+sW9xMWR0KqcHDCrXU9Zj7lwsyE4wQDV3dcPifVe5ha3mjZObcjAJPQ5869ns9UsWMCMWPRQMgfxV38+vnD8mdfpRJ8Wfg0ucpdSKGuESNPV92bzrY+GrnT7C1ZZzIzDBwqlgSTudvTas/a8BW9v4niRQOpznPyrJR6PYWTAtCSi7A+Z/Kl2u6n6iO3bhDvpvSFpJb92X9jFR61p13OjysG5MhYZDyKMeZ9azsv9EbT5LqbWp7q4YeGBJCiL5bKu/79KoXVvpMqHnijVcYC486xd3DZabbvJAkfTAxjPvSyLXgdvPkxmux6O9gktrpKWUtuNpCzF5Tn7WCTgjb3qUPZvpdxo3AmiWN5EIrmO0QyoD0dvE3zyaiDFeTa5rNlYJlhNcxRe4ZwP5qcKgKoUDAGwFM6MqGGJda4ufB9pSlXGQ//2Q==" alt="Nachiappan"></a>
+  </div>
+
+  <!-- VERDICT -->
+  <div id="verdict" class="verdict green">
+    <div class="verdict-head">
+      <span class="v-badge" id="vBadge">—</span>
+      <span class="v-title" id="vTitle">Calculating…</span>
+    </div>
+    <div class="v-body" id="vBody"></div>
+    <div class="v-stats" id="vStats"></div>
+    <div class="v-estate" id="vClaim" style="display:none;"></div>
+    <div class="v-estate" id="vTax" style="display:none;"></div>
+    <div class="v-estate" id="vEstate" style="display:none;"></div>
+    <div class="v-actions">
+      <button class="btn" id="exportBtn">↓ Export scenario (CSV)</button>
+      <button class="btn" id="importBtn">↑ Import scenario</button>
+      <input type="file" id="importFile" accept=".csv,text/csv,.txt" style="display:none">
+      <span class="v-actions-note">Saves every input and all output tables in one CSV. Re-import a saved file to restore your inputs; or open it in Excel / Google Sheets to work with the tables.</span>
+    </div>
+  </div>
+
+  <div id="savingsPlan" class="savings-plan" style="display:none;"></div>
+
+  <div class="preset-bar">
+    <div class="preset-head">
+      <span class="preset-label">Assumption preset</span>
+      <div class="seg" id="presetSeg">
+        <button data-v="conservative">Conservative</button>
+        <button data-v="average" class="on">Average</button>
+        <button data-v="lenient">Lenient</button>
+      </div>
+    </div>
+    <div class="preset-hint" id="presetHint">Middle-of-the-road: 6% return, 2.5% inflation, average medical-cost trends, and mean life expectancy. Sets returns, inflation, medical trends, out-of-pocket costs and planning age together — you can still fine-tune any field below.</div>
+  </div>
+
+  <!-- PRIMARY INPUTS -->
+  <div class="sec-label">1 · The essentials</div>
+  <div class="panel">
+    <h3>You &amp; your household</h3>
+    <div class="sub">We compute your birth year from your age. Enter a spouse age to switch the whole model to <b>married filing jointly</b> — Social Security, Medicare and taxes all adjust automatically.</div>
+    <div class="grid g3">
+      <div class="field"><label>Your age now</label>
+        <div class="inwrap"><input type="number" id="age" value="60" min="25" max="90"><span class="suf" id="byBirth">b. 1966</span></div>
+      </div>
+      <div class="field"><label>Spouse age now <span class="hint">— leave blank if single</span></label>
+        <input type="number" id="sage" placeholder="—" min="25" max="100">
+      </div>
+      <div class="field"><label>Retirement age</label>
+        <input type="number" id="rage" value="60" min="40" max="80">
+        <div class="hint" id="rageHint">Retiring now.</div>
+      </div>
+      <div class="field" style="grid-column:1/-1;"><label>Target annual income <span class="hint">— what you want to spend, after federal tax, Medicare &amp; health premiums (today's dollars)</span></label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="target" value="90,000"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>What you've saved</h3>
+    <div class="sub">Enter actual dollar balances. Pre-tax and Roth are tracked separately (taxes differ), and your taxable brokerage splits into already-taxed principal and unrealized capital gains.</div>
+    <div class="grid g2">
+      <div class="field"><label>Pre-tax retirement (401k / Traditional IRA)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="pretax" value="900,000"></div>
+        <div class="hint" id="rmdHint">Withdrawals taxed as ordinary income; RMDs apply from 73.</div>
+      </div>
+      <div class="field"><label>Roth retirement (Roth 401k / Roth IRA)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="roth" value="150,000"></div>
+        <div class="hint">Qualified withdrawals are tax-free; no RMDs.</div>
+      </div>
+      <div class="field"><label>Personal savings — principal (already taxed)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savPrin" value="150,000"></div>
+        <div class="hint">Brokerage / cash basis — spendable with no tax.</div>
+      </div>
+      <div class="field"><label>Personal savings — unrealized capital gains</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savGain" value="100,000"></div>
+        <div class="hint">Realized proportionally on withdrawal, taxed at long-term rates.</div>
+      </div>
+      <div class="field"><label>Health Savings Account (HSA)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hsa" value="0"></div>
+        <div class="hint">Pays Medicare premiums tax-free from 65; any leftover is then an ordinary-income account.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Other income in retirement</h3>
+    <div class="sub">Pensions, annuities, rental or part-time income, dividends — anything beyond Social Security and your accounts. Split out the portion that is qualified dividends or long-term capital gains (taxed at preferential rates).</div>
+    <div class="grid g2">
+      <div class="field"><label>Other taxable income (per year)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="other" value="0"></div>
+      </div>
+      <div class="field"><label>…of which qualified dividends / LTCG</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="otherQual" value="0"></div>
+        <div class="hint">The remainder is taxed as ordinary income.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SS + TAX + ADVANCED -->
+  <div class="sec-label">2 · Social Security, taxes &amp; assumptions</div>
+
+  <div class="panel">
+    <h3>Social Security</h3>
+    <div class="sub">We estimate your benefit from a career earnings record. Years worked run from your career-start age to your retirement age. <b>Claiming ages are optimized for you</b> (see the verdict) and can be overridden in <b>Advanced assumptions</b>. Expand the earnings records below to type your actual SSA wages for precision.</div>
+    <div class="grid g3">
+      <div class="field"><label>Current / final salary</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="salary" value="120,000"></div>
+        <div class="hint">Seeds the earnings record (back-projected by wage growth).</div>
+      </div>
+      <div class="field"><label>Career start age</label>
+        <input type="number" id="careerStart" value="22" min="16" max="40">
+        <div class="hint">First year of earnings — when your work history begins.</div>
+      </div>
+      <div class="field"><label>Est. benefit at full retirement age <span class="computed" id="piaShow"></span></label>
+        <input type="text" inputmode="numeric" class="money" id="piaOverride" placeholder="auto">
+        <div class="hint">Optional override of the computed PIA (monthly, today's $).</div>
+      </div>
+    </div>
+    <div id="spouseSS" style="margin-top:16px;display:none;">
+      <div class="wage-col-label" style="margin-bottom:8px;">Spouse's earnings &amp; benefit</div>
+      <div class="grid g3">
+        <div class="field"><label>Spouse current / final salary</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="sSalary" value="80,000"></div>
+          <div class="hint">Seeds the spouse's earnings record (back-projected by wage growth).</div>
+        </div>
+        <div class="field"><label>Spouse career start age</label>
+          <input type="number" id="sCareerStart" value="22" min="16" max="40">
+          <div class="hint">First year of the spouse's earnings history.</div>
+        </div>
+        <div class="field"><label>Spouse est. benefit at full retirement age <span class="computed" id="sPiaShow"></span></label>
+          <input type="text" inputmode="numeric" class="money" id="sPiaOverride" placeholder="auto">
+          <div class="hint">Optional override of the spouse's computed PIA (monthly, today's $). The spouse automatically receives the larger of this own benefit or 50% of the higher earner's — no need to choose.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earnings records (expandable, sub-tabbed You / Spouse) -->
+    <div class="adv-section" id="ssRecSection">
+      <button class="adv-toggle" id="ssRecToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>Earnings records — edit your &amp; your spouse's wages</span><span class="adv-note">Optional — type actual SSA wages for a precise benefit.</span></button>
+      <div id="ssRecWrap" class="adv-wrap" hidden>
+        <div style="font-size:13px;color:var(--ink2);margin:4px 0 12px;">Estimated earnings record (capped at the Social Security wage base). Edit any year; figures index to wage growth, feed the AIME → PIA benefit formula, and update everything. <button class="btn" id="ssReset" style="margin-left:8px;">Reset wages</button></div>
+        <div class="tabs" id="ssRecTabs" style="margin:0;"></div>
+        <div id="wageWrap" style="padding-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Taxes</h3>
+    <div class="sub" id="filingSub">Filing status: <b id="filingShow">Single</b> (set automatically by whether a spouse age is entered). Federal brackets, standard deduction, taxable-Social-Security, long-term capital-gains rates and the Net Investment Income Tax are all modeled. <b>Bracket/IRMAA smoothing and Roth conversions are auto-optimized</b> (see the verdict) and can be overridden under <b>Advanced</b>.</div>
+    <div class="grid g2">
+      <div class="field"><label>State income tax</label>
+        <select id="stateMode">
+          <option value="none">No state income tax (AK, FL, NH, NV, SD, TN, TX, WA, WY)</option>
+          <optgroup label="Progressive brackets">
+            <option value="al">Alabama</option>
+            <option value="ar">Arkansas</option>
+            <option value="ca">California</option>
+            <option value="ct">Connecticut</option>
+            <option value="de">Delaware</option>
+            <option value="dc">District of Columbia</option>
+            <option value="hi">Hawaii</option>
+            <option value="ks">Kansas</option>
+            <option value="me">Maine</option>
+            <option value="md">Maryland</option>
+            <option value="mn">Minnesota</option>
+            <option value="mo">Missouri</option>
+            <option value="mt">Montana</option>
+            <option value="ne">Nebraska</option>
+            <option value="nj">New Jersey</option>
+            <option value="nm">New Mexico</option>
+            <option value="ny">New York</option>
+            <option value="nd">North Dakota</option>
+            <option value="oh">Ohio</option>
+            <option value="ok">Oklahoma</option>
+            <option value="or">Oregon</option>
+            <option value="ri">Rhode Island</option>
+            <option value="sc">South Carolina</option>
+            <option value="vt">Vermont</option>
+            <option value="va">Virginia</option>
+            <option value="wv">West Virginia</option>
+            <option value="wi">Wisconsin</option>
+          </optgroup>
+          <optgroup label="Flat rate">
+            <option value="az">Arizona (2.5%)</option>
+            <option value="co">Colorado (4.4%)</option>
+            <option value="ga">Georgia (5.39%)</option>
+            <option value="ia">Iowa (3.8%)</option>
+            <option value="id">Idaho (5.7%)</option>
+            <option value="il">Illinois (4.95%)</option>
+            <option value="in">Indiana (3.0%)</option>
+            <option value="ky">Kentucky (4.0%)</option>
+            <option value="la">Louisiana (3.0%)</option>
+            <option value="ma">Massachusetts (5.0%)</option>
+            <option value="mi">Michigan (4.25%)</option>
+            <option value="ms">Mississippi (4.4%)</option>
+            <option value="nc">North Carolina (4.25%)</option>
+            <option value="pa">Pennsylvania (3.07%)</option>
+            <option value="ut">Utah (4.55%)</option>
+          </optgroup>
+          <option value="flat">Other — enter a flat rate</option>
+        </select>
+        <div class="hint" id="stateHint">Social Security is treated as exempt in every state shown (only nine states tax it, mostly via income limits). Capital gains are taxed as ordinary income.</div>
+      </div>
+      <div class="field" id="flatRateField" style="display:none;"><label>Flat state rate</label>
+        <div class="inwrap"><input type="number" id="stateRate" value="0" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+        <div class="hint">For a state not listed (e.g. NY, NJ, OH): enter its approximate effective rate. Applied to all income including Social Security.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adv-section">
+    <button class="adv-toggle" id="advToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>Advanced — optimized claiming &amp; tax strategy, plus return, inflation, healthcare &amp; longevity</span><span class="adv-note">Claiming ages and tax options are auto-optimized; expand to review or override.</span></button>
+    <div id="advWrap" class="adv-wrap" hidden>
+  <div class="panel" id="stratPanel">
+    <h3>Withdrawal strategy</h3>
+    <div class="sub">By default the model solves each year's withdrawals to hit your <b>target income</b>. Switch to a plain percentage rule to use a fixed withdrawal rate instead.</div>
+    <div class="grid g2">
+      <div class="field"><label>Strategy</label>
+        <div class="seg" id="stratSeg">
+          <button data-v="target" class="on">Target income</button>
+          <button data-v="pct">Plain rule</button>
+        </div>
+        <div class="hint" id="stratHint">Solve withdrawals to deliver the target income above.</div>
+      </div>
+      <div class="field"><label>Plan withdrawal rate <span class="hint">— used in “Plain rule” mode</span></label>
+        <div class="inwrap"><input type="number" id="wrate" value="4" step="0.1" min="1" max="12"><span class="suf">%</span></div>
+        <div class="hint">Year 1 = rate × starting balance, then grown by inflation. The classic “4% rule.”</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="claimPanel">
+    <h3>Social Security claiming ages <span class="computed" id="claimOptShow"></span></h3>
+    <div class="sub">By default these are set to the <b>optimal claiming strategy</b> — the ages that maximize total household benefits in today's dollars given your life expectancy (the higher earner is also weighed for the survivor benefit). Override either age below; click <b>Use optimal</b> to restore.</div>
+    <div class="grid g3">
+      <div class="field"><label>Claiming age — you</label>
+        <input type="number" id="claim" value="67" min="62" max="70">
+        <div class="hint" id="claimHint">62–70. FRA is 67; delaying adds ~8%/yr to age 70.</div>
+      </div>
+      <div class="field" id="sclaimWrap" style="display:none;"><label>Claiming age — spouse</label>
+        <input type="number" id="sclaim" value="67" min="62" max="70">
+        <div class="hint" id="sclaimHint">62–70. A spousal benefit can't begin until the other spouse has filed.</div>
+      </div>
+      <div class="field"><label>&nbsp;</label>
+        <button class="btn" id="claimOptBtn" type="button">↺ Use optimal ages</button>
+        <div class="hint">Re-applies the optimized claiming ages.</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="taxStratPanel">
+    <h3>Tax strategy <span class="computed" id="taxOptShow"></span></h3>
+    <div class="sub">By default these are set to the <b>tax-optimal combination</b> — the smoothing and Roth-conversion settings that minimize total lifetime taxes (income tax, IRMAA surcharges and the tax your heirs would owe) measured in today's dollars. Override either below; click <b>Use optimal</b> to restore.</div>
+    <div class="grid g3">
+      <div class="field"><label>Tax-bracket &amp; IRMAA smoothing</label>
+        <select id="smooth">
+          <option value="off">Off — drain pre-tax fully first</option>
+          <option value="on">On — cap pre-tax, top up from Roth / savings</option>
+        </select>
+        <div class="hint">When on, pre-tax draws are held under the first IRMAA cliff and the 24% bracket where possible, using already-taxed savings then Roth for the rest. Pre-tax is still drained first, just capped.</div>
+      </div>
+      <div class="field"><label>Roth conversions — fill the bracket</label>
+        <select id="rothConv">
+          <option value="off">Off</option>
+          <option value="12">Fill up to top of 12% bracket</option>
+          <option value="22">Fill up to top of 22% bracket</option>
+          <option value="24">Fill up to top of 24% bracket</option>
+        </select>
+        <div class="hint">In low-income years, convert pre-tax → Roth up to the chosen bracket top. Builds Roth for later (tax-free, no RMDs, doesn't raise IRMAA when drawn). Conversion tax is paid from taxable savings.</div>
+      </div>
+      <div class="field"><label>&nbsp;</label>
+        <button class="btn" id="taxOptBtn" type="button">↺ Use optimal tax strategy</button>
+        <div class="hint">Re-applies the tax-minimizing combination.</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="healthPanel">
+    <h3>Health care: premiums &amp; out-of-pocket</h3>
+    <div class="sub">Retiring before Medicare (65) means buying ACA coverage; we estimate an unsubsidized premium from your age(s) — early retirees with sizeable assets usually land above the subsidy cliff. From 65, Medicare carries its own premiums (modeled in the Taxes/IRMAA logic) plus real out-of-pocket costs. All of these grow at the medical trend you set, which runs well above general inflation.</div>
+    <div class="grid g3">
+      <div class="field"><label>Pre-65 annual household premium <span class="computed" id="hcAuto"></span></label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hcPrem" placeholder="auto"></div>
+        <div class="hint">ACA premium; computed from age &amp; household size, override for your plan. Cannot be paid from an HSA tax-free.</div>
+      </div>
+      <div class="field"><label>Pre-65 out-of-pocket, per person</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopPre" value="5,000"></div>
+        <div class="hint">Deductibles, copays &amp; coinsurance on a marketplace plan (avg. deductible ~$3,800, OOP max $10,600; KFF 2026). Paid from HSA first.</div>
+      </div>
+      <div class="field"><label>Out-of-pocket medical, per person (65+)</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopMed" value="4,000"></div>
+        <div class="hint">Cost-sharing, dental/vision/hearing &amp; uncovered care beyond Part B/D premiums (KFF: ~$6,460/yr incl. premiums). Paid from HSA first.</div>
+      </div>
+      <div class="field"><label>Healthcare cost inflation</label>
+        <div class="inwrap"><input type="number" id="hcInfl" value="6.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+        <div class="hint">Drives ACA premiums &amp; out-of-pocket. Recent commercial trend ~7.5%/yr (PwC).</div>
+      </div>
+      <div class="field"><label>Medicare premium inflation</label>
+        <div class="inwrap"><input type="number" id="medPremInfl" value="5.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+        <div class="hint">Drives Part B/D premiums. Part B has grown ~4.5%/yr over 20 yrs, ~5.8% recently (CMS); Trustees project ~5.5%.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Market &amp; horizon assumptions</h3>
+    <div class="grid g3">
+      <div class="field"><label>Expected annual return</label>
+        <div class="inwrap"><input type="number" id="ret" value="6" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+        <div class="hint">Nominal, blended across accounts.</div>
+      </div>
+      <div class="field"><label>General inflation</label>
+        <div class="inwrap"><input type="number" id="infl" value="2.5" step="0.25" min="0" max="10"><span class="suf">%</span></div>
+        <div class="hint">Grows your target, SS COLA &amp; brackets.</div>
+      </div>
+      <div class="field"><label>Plan to age — you</label>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select id="sex"><option value="m">Male</option><option value="f">Female</option></select>
+          <input type="number" id="endAge" value="82" min="70" max="105" style="width:72px;">
+        </div>
+        <div class="hint">Defaults to SSA life-table life expectancy for your age &amp; sex; editable (≈50% live longer — consider 90+ to be safe).</div>
+      </div>
+    </div>
+    <div id="spouseHorizon" class="field" style="display:none;margin-top:10px;max-width:360px;"><label>Plan to age — spouse</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="sexSpouse"><option value="f">Female</option><option value="m">Male</option></select>
+        <input type="number" id="endAgeSpouse" value="85" min="70" max="105" style="width:72px;">
+      </div>
+      <div class="hint">The projection runs until whoever lives longer. After the first spouse passes (at the earlier plan-to age), the survivor files as <b>single</b>, keeps only the <b>larger</b> Social Security benefit, and has <b>one-person</b> Medicare &amp; out-of-pocket costs.</div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-t="t1">Accounts over time</button>
+    <button class="tab" data-t="t2">Social Security summary</button>
+    <button class="tab" data-t="t3">Income &amp; tax ledger</button>
+  </div>
+
+  <div id="t1" class="tabpane on">
+    <div class="cards" id="cards1"></div>
+    <canvas id="chart1" height="320"></canvas>
+    <div id="estateBox" style="display:none;margin-top:22px;"></div>
+    <div class="toolbar"><button class="btn" id="csv1">Download CSV</button></div>
+    <div class="tablescroll"><table id="tbl1"></table></div>
+    <div class="legend">
+      <span class="chip"><span class="sw" style="background:var(--yellowbg)"></span> Rule of 55 (flexible 401k, 55–59½)</span>
+      <span class="chip"><span class="sw" style="background:var(--redbg)"></span> 72(t) SEPP (fixed, retire under 55)</span>
+      <span class="chip"><span class="sw" style="background:var(--paper)"></span> § = early-withdrawal rule · ‡ = forced RMD</span>
+    </div>
+  </div>
+
+  <div id="t2" class="tabpane">
+    <div class="cards" id="cards2"></div>
+    <div id="ssDetail"></div>
+    <div class="legend" style="margin-top:14px;"><span class="chip">Lifetime figures are summed across the plan. <b>Nominal</b> = future dollars actually received (with COLA); <b>today's $</b> = the same benefits expressed in today's purchasing power. Edit your earnings records under the Social Security input section above.</span></div>
+  </div>
+
+  <div id="t3" class="tabpane">
+    <div class="cards" id="cards3"></div>
+    <div class="toolbar"><button class="btn" id="csv3">Download CSV</button></div>
+    <div class="tablescroll"><table id="tbl3"></table></div>
+    <div class="legend"><span class="chip">All figures nominal (future dollars). Spendable = total income − federal tax − state tax − Medicare − out-of-pocket medical − pre-65 premiums.</span><span id="hsaLegend"></span></div>
+  </div>
+
+  <!-- METHOD -->
+  <div class="method" id="method"></div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ============================ DATA TABLES ============================ */
+const NOW = 2026;
+
+// 2025 federal ordinary-income brackets (used as the base schedule; indexed by inflation each year)
+const ORD = {
+  single:[[0,.10],[11925,.12],[48475,.22],[103350,.24],[197300,.32],[250525,.35],[626350,.37]],
+  mfj:   [[0,.10],[23850,.12],[96950,.22],[206700,.24],[394600,.32],[501050,.35],[751600,.37]]
+};
+const STDDED = {single:15750, mfj:31500};
+const ADD65  = {single:2000, mfj:1600}; // additional standard deduction per person 65+
+// 2025 long-term capital-gains brackets (taxable-income thresholds)
+const LTCG = {
+  single:[[0,0],[48350,.15],[533400,.20]],
+  mfj:   [[0,0],[96700,.15],[600050,.20]]
+};
+const NIIT_THRESH = {single:200000, mfj:250000};
+const NIIT_RATE = .038;
+
+// Inheritance / estate (after the last surviving spouse). Federal estate-tax exemption: OBBBA set it to $15M per
+// person beginning 2026, inflation-indexed; a couple gets ~2x via portability. Excess is taxed at the top 40% rate.
+// Heirs assumed in the 22% ordinary bracket on inherited pre-tax (10-year rule) and HSA (immediately taxable);
+// Roth is tax-free and taxable brokerage gets a stepped-up basis (no capital-gains tax).
+const ESTATE_EXEMPTION = 15000000, ESTATE_RATE = 0.40, HEIR_BRACKET = 0.22;
+
+// California FTB 2025 brackets (income earned 2025); mfj thresholds = 2x single. SS is NOT taxed by CA;
+// capital gains are taxed as ordinary income. Top adds a 1% Mental Health surcharge over $1,000,000.
+const CA_BRACKETS = {
+  single:[[0,.01],[11079,.02],[26264,.04],[41452,.06],[57542,.08],[72724,.093],[371479,.103],[445771,.113],[742956,.123]],
+  mfj:   [[0,.01],[22158,.02],[52528,.04],[82904,.06],[115084,.08],[145448,.093],[742958,.103],[891542,.113],[1485912,.123]]
+};
+const CA_STDDED = {single:5706, mfj:11412};
+const CA_MH_THRESH = 1000000, CA_MH_RATE = .01;
+
+// Other states (2025), from Tax Foundation "State Individual Income Tax Rates and Brackets, 2025".
+// Each state carries either a flat `rate` or graduated `brackets` ([thresholdStart, rate], CPI-indexed by inflFactor),
+// its 2025 standard deduction / personal exemption (`std`, single/mfj), and an optional capital-gains inclusion
+// fraction (`ltcgInclude`, default 1 = taxed as ordinary). Social Security is treated as exempt in every state
+// (only nine tax it, mostly via income limits). Per-state retirement-income (IRA/401k/pension) exclusions are in
+// retExclPP(); income-tested exclusions (NJ, CT) are handled in stateTaxAmount. Local/county income taxes (e.g. MD,
+// OH, NY, KY) and credit-based deductions are not modeled. State names appear in the dropdown.
+const STATES = {
+  // ---- Flat-rate states ----
+  az:{name:'Arizona', rate:0.025, std:{single:15000,mfj:30000}},
+  co:{name:'Colorado', rate:0.044, std:{single:15000,mfj:30000}},
+  ga:{name:'Georgia', rate:0.0539, std:{single:12000,mfj:24000}},
+  ia:{name:'Iowa', rate:0.038, std:{single:0,mfj:0}},
+  id:{name:'Idaho', rate:0.05695, std:{single:15000,mfj:30000}},
+  il:{name:'Illinois', rate:0.0495, std:{single:2850,mfj:5700}},
+  in:{name:'Indiana', rate:0.03, std:{single:1000,mfj:2000}},
+  ky:{name:'Kentucky', rate:0.04, std:{single:3270,mfj:6540}},
+  la:{name:'Louisiana', rate:0.03, std:{single:12500,mfj:25000}},
+  ma:{name:'Massachusetts', rate:0.05, surtaxOver:1083150, surtaxRate:0.04, std:{single:4400,mfj:8800}},
+  mi:{name:'Michigan', rate:0.0425, std:{single:5800,mfj:11600}},
+  ms:{name:'Mississippi', rate:0.044, std:{single:8300,mfj:16600}},
+  nc:{name:'North Carolina', rate:0.0425, std:{single:12750,mfj:25500}},
+  pa:{name:'Pennsylvania', rate:0.0307, std:{single:0,mfj:0}},
+  ut:{name:'Utah', rate:0.0455, std:{single:15000,mfj:30000}},
+  // ---- Graduated-rate states ----
+  al:{name:'Alabama', brackets:{single:[[0,.02],[500,.04],[3000,.05]], mfj:[[0,.02],[1000,.04],[6000,.05]]}, std:{single:3000,mfj:8500}},
+  ar:{name:'Arkansas', brackets:{single:[[0,.02],[4500,.039]], mfj:[[0,.02],[4500,.039]]}, std:{single:2410,mfj:4820}, ltcgInclude:0.50},
+  ct:{name:'Connecticut', brackets:{single:[[0,.02],[10000,.045],[50000,.055],[100000,.06],[200000,.065],[250000,.069],[500000,.0699]], mfj:[[0,.02],[20000,.045],[100000,.055],[200000,.06],[400000,.065],[500000,.069],[1000000,.0699]]}, std:{single:15000,mfj:24000}},
+  de:{name:'Delaware', brackets:{single:[[0,0],[2000,.022],[5000,.039],[10000,.048],[20000,.052],[25000,.0555],[60000,.066]], mfj:[[0,0],[2000,.022],[5000,.039],[10000,.048],[20000,.052],[25000,.0555],[60000,.066]]}, std:{single:3250,mfj:6500}},
+  dc:{name:'District of Columbia', brackets:{single:[[0,.04],[10000,.06],[40000,.065],[60000,.085],[250000,.0925],[500000,.0975],[1000000,.1075]], mfj:[[0,.04],[10000,.06],[40000,.065],[60000,.085],[250000,.0925],[500000,.0975],[1000000,.1075]]}, std:{single:15000,mfj:30000}},
+  hi:{name:'Hawaii', brackets:{single:[[0,.014],[9600,.032],[14400,.055],[19200,.064],[24000,.068],[36000,.072],[48000,.076],[125000,.079],[175000,.0825],[225000,.09],[275000,.10],[325000,.11]], mfj:[[0,.014],[19200,.032],[28800,.055],[38400,.064],[48000,.068],[72000,.072],[96000,.076],[250000,.079],[350000,.0825],[450000,.09],[550000,.10],[650000,.11]]}, std:{single:4400,mfj:8800}},
+  ks:{name:'Kansas', brackets:{single:[[0,.052],[23000,.0558]], mfj:[[0,.052],[46000,.0558]]}, std:{single:12765,mfj:26560}},
+  me:{name:'Maine', brackets:{single:[[0,.058],[26800,.0675],[63450,.0715]], mfj:[[0,.058],[53600,.0675],[126900,.0715]]}, std:{single:20150,mfj:40300}},
+  md:{name:'Maryland', brackets:{single:[[0,.02],[1000,.03],[2000,.04],[3000,.0475],[100000,.05],[125000,.0525],[150000,.055],[250000,.0575]], mfj:[[0,.02],[1000,.03],[2000,.04],[3000,.0475],[150000,.05],[175000,.0525],[225000,.055],[300000,.0575]]}, std:{single:2700,mfj:5450}},
+  mn:{name:'Minnesota', brackets:{single:[[0,.0535],[32570,.068],[106990,.0785],[198630,.0985]], mfj:[[0,.0535],[47620,.068],[189180,.0785],[330410,.0985]]}, std:{single:14950,mfj:29900}},
+  mo:{name:'Missouri', brackets:{single:[[0,0],[1313,.02],[2626,.025],[3939,.03],[5252,.035],[6565,.04],[7878,.045],[9191,.047]], mfj:[[0,0],[1313,.02],[2626,.025],[3939,.03],[5252,.035],[6565,.04],[7878,.045],[9191,.047]]}, std:{single:15000,mfj:30000}, ltcgInclude:0},
+  mt:{name:'Montana', brackets:{single:[[0,.047],[21100,.059]], mfj:[[0,.047],[42200,.059]]}, std:{single:15000,mfj:30000}},
+  ne:{name:'Nebraska', brackets:{single:[[0,.0246],[4030,.0351],[24120,.0501],[38870,.052]], mfj:[[0,.0246],[8040,.0351],[48250,.0501],[77730,.052]]}, std:{single:8600,mfj:17200}},
+  nj:{name:'New Jersey', brackets:{single:[[0,.014],[20000,.0175],[35000,.035],[40000,.05525],[75000,.0637],[500000,.0897],[1000000,.1075]], mfj:[[0,.014],[20000,.0175],[50000,.0245],[70000,.035],[80000,.05525],[150000,.0637],[500000,.0897],[1000000,.1075]]}, std:{single:1000,mfj:2000}},
+  nm:{name:'New Mexico', brackets:{single:[[0,.015],[5500,.032],[16500,.043],[33500,.047],[66500,.049],[210000,.059]], mfj:[[0,.015],[8000,.032],[25000,.043],[50000,.047],[100000,.049],[315000,.059]]}, std:{single:15000,mfj:30000}, ltcgInclude:0.60},
+  ny:{name:'New York', brackets:{single:[[0,.04],[8500,.045],[11700,.0525],[13900,.055],[80650,.06],[215400,.0685],[1077550,.0965],[5000000,.103],[25000000,.109]], mfj:[[0,.04],[17150,.045],[23600,.0525],[27900,.055],[161550,.06],[323200,.0685],[2155350,.0965],[5000000,.103],[25000000,.109]]}, std:{single:8000,mfj:16050}},
+  nd:{name:'North Dakota', brackets:{single:[[0,0],[48475,.0195],[244825,.025]], mfj:[[0,0],[80975,.0195],[298075,.025]]}, std:{single:15000,mfj:30000}, ltcgInclude:0.60},
+  oh:{name:'Ohio', brackets:{single:[[0,0],[26050,.0275],[100000,.035]], mfj:[[0,0],[26050,.0275],[100000,.035]]}, std:{single:2400,mfj:4800}},
+  ok:{name:'Oklahoma', brackets:{single:[[0,.0025],[1000,.0075],[2500,.0175],[3750,.0275],[4900,.0375],[7200,.0475]], mfj:[[0,.0025],[2000,.0075],[5000,.0175],[7500,.0275],[9800,.0375],[14400,.0475]]}, std:{single:6350,mfj:12700}},
+  or:{name:'Oregon', brackets:{single:[[0,.0475],[4400,.0675],[11050,.0875],[125000,.099]], mfj:[[0,.0475],[8800,.0675],[22100,.0875],[250000,.099]]}, std:{single:2800,mfj:5600}},
+  ri:{name:'Rhode Island', brackets:{single:[[0,.0375],[79900,.0475],[181650,.0599]], mfj:[[0,.0375],[79900,.0475],[181650,.0599]]}, std:{single:10900,mfj:21800}},
+  sc:{name:'South Carolina', brackets:{single:[[0,0],[3560,.03],[17830,.062]], mfj:[[0,0],[3560,.03],[17830,.062]]}, std:{single:15000,mfj:30000}, ltcgInclude:0.56},
+  vt:{name:'Vermont', brackets:{single:[[0,.0335],[47900,.066],[116000,.076],[242000,.0875]], mfj:[[0,.0335],[79950,.066],[193300,.076],[294600,.0875]]}, std:{single:7400,mfj:14850}},
+  va:{name:'Virginia', brackets:{single:[[0,.02],[3000,.03],[5000,.05],[17000,.0575]], mfj:[[0,.02],[3000,.03],[5000,.05],[17000,.0575]]}, std:{single:8500,mfj:17000}},
+  wv:{name:'West Virginia', brackets:{single:[[0,.0222],[10000,.0296],[25000,.0333],[40000,.0444],[60000,.0482]], mfj:[[0,.0222],[10000,.0296],[25000,.0333],[40000,.0444],[60000,.0482]]}, std:{single:2000,mfj:4000}},
+  wi:{name:'Wisconsin', brackets:{single:[[0,.035],[14680,.044],[29370,.053],[323290,.0765]], mfj:[[0,.035],[19580,.044],[39150,.053],[431060,.0765]]}, std:{single:13560,mfj:25110}, ltcgInclude:0.70}
+};
+// Per-person retirement-income exclusion by state and age (Infinity = fully exempt). Applied to ordinary
+// retirement withdrawals. Social Security is already exempt everywhere in this model. NJ and CT are
+// income-tested and handled separately in stateTaxAmount.
+function retExclPP(state, age){
+  if(age==null) return 0;
+  switch(state){
+    case 'il': return Infinity;                                  // all retirement income exempt, any age
+    case 'pa': return age>=59.5? Infinity:0;                     // exempt at/after retirement age
+    case 'ms': return age>=59.5? Infinity:0;
+    case 'ia': return age>=55? Infinity:0;
+    case 'mi': return age>=59.5? Infinity:0;                     // retirement exemption (phased to full by 2026)
+    case 'ga': return age>=65?65000: age>=62?35000:0;            // GA retirement exclusion
+    case 'co': return age>=65?24000: age>=55?20000:0;            // CO pension/annuity exclusion
+    case 'ky': return 31110;                                     // KY pension/retirement exclusion, any age
+    case 'la': return age>=65?6000:0;                            // LA retirement income exclusion 65+
+    case 'ny': return age>=59.5?20000:0;                         // NY private pension/IRA exclusion
+    case 'de': return age>=60?12500:0;                           // DE pension exclusion 60+
+    case 'va': return age>=65?12000:0;                           // VA age deduction 65+
+    case 'sc': return age>=65?15000:10000;                       // SC retirement deduction (+65 bonus)
+    case 'md': return age>=65?39500:0;                           // MD pension exclusion 65+
+    case 'ok': return 10000;                                     // OK retirement/pension exclusion
+    case 'ri': return age>=65?20000:0;                           // RI pension/401k modification (simplified)
+    case 'wv': return age>=65?8000:0;                            // WV senior income exclusion
+    case 'wi': return age>=65?5000:0;                            // WI retirement income subtraction
+    case 'me': return 30000;                                     // ME pension income deduction (simplified)
+    case 'ar': return 6000;                                      // AR retirement income exemption
+    default: return 0;
+  }
+}
+
+
+// 2026 Medicare (per person, monthly)
+const PARTB_BASE = 202.90, PARTD_BASE = 34.50;
+// IRMAA: [magi upper bound (single), partB surcharge, partD surcharge]; mfj thresholds = 2x single (except top frozen)
+const IRMAA_SINGLE = [
+  [109000, 0,      0],
+  [137000, 81.20,  14.50],
+  [171000, 202.90, 37.50],
+  [205000, 324.60, 60.40],
+  [500000, 446.30, 83.30],
+  [Infinity, 487.00, 91.00]
+];
+const IRMAA_MFJ_TOP = 750000; // top single threshold 500k -> mfj 750k (frozen, not 2x)
+
+// IRS Uniform Lifetime Table (RMD divisors) ages 73..100+
+const ULT = {73:26.5,74:25.5,75:24.6,76:23.7,77:22.9,78:22.0,79:21.1,80:20.2,81:19.4,82:18.5,83:17.7,84:16.8,85:16.0,86:15.2,87:14.4,88:13.7,89:12.9,90:12.2,91:11.5,92:10.8,93:10.1,94:9.5,95:8.9,96:8.4,97:7.8,98:7.3,99:6.8,100:6.4,101:6.0,102:5.6,103:5.2,104:4.9,105:4.6};
+// SECURE 2.0 required-beginning age by birth year: 72 (born <=1950), 73 (1951-1959), 75 (1960+)
+function rmdStartAge(birthYear){ return birthYear<=1950?72 : birthYear<=1959?73 : 75; }
+// single life expectancy (Table I) for 72(t) amortization, abbreviated
+const SLE = {40:45.7,41:44.8,42:43.8,43:42.9,44:41.9,45:41.0,46:40.0,47:39.0,48:38.1,49:37.1,50:36.2,51:35.3,52:34.3,53:33.4,54:32.5};
+
+// SS wage base (max taxable earnings) anchors
+const WBASE = {1986:42000,1987:43800,1988:45000,1989:48000,1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,2002:84900,2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,2008:102000,2009:106800,2010:106800,2011:106800,2012:110100,2013:113700,2014:117000,2015:118500,2016:118500,2017:127200,2018:128400,2019:132900,2020:137700,2021:142800,2022:147000,2023:160200,2024:168600,2025:176100,2026:184500};
+// Average Wage Index anchors
+const AWI = {1986:17321.82,1987:18426.51,1988:19334.04,1989:20099.55,1990:21027.98,1991:21811.60,1992:22935.42,1993:23132.67,1994:23753.53,1995:24705.66,1996:25913.90,1997:27426.00,1998:28861.44,1999:30469.84,2000:32154.82,2001:32921.92,2002:33252.09,2003:34064.95,2004:35648.55,2005:36952.94,2006:38651.41,2007:40405.48,2008:41334.97,2009:40711.61,2010:41673.83,2011:42979.61,2012:44321.67,2013:44888.16,2014:46481.52,2015:48098.63,2016:48642.15,2017:50321.89,2018:52145.80,2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,2023:66621.80,2024:69846.57};
+// 2026 PIA bend points (eligibility year)
+const BEND1=1286, BEND2=7749;
+// ACA federal default age-rating curve (factor relative to age 21)
+const ACA_CURVE = [[21,1.000],[30,1.135],[40,1.278],[45,1.444],[50,1.786],[55,2.230],[60,2.714],[63,2.952],[64,3.000]];
+const ACA_BASE_ANNUAL = 6000; // factor 1.0 => age 64 (3.0x) ≈ $18,000/yr; 60+ avg ≈ $1,448/mo (MoneyGeek 2026)
+
+/* ============================ HELPERS ============================ */
+const $ = id => document.getElementById(id);
+const num = id => { const v = parseFloat(($(id).value||'').replace(/,/g,'')); return isNaN(v)?0:v; };
+const blank = id => $(id).value.trim()==="";
+const fmt = n => (n<0?"-":"")+"$"+Math.round(Math.abs(n)).toLocaleString();
+const fmt0 = n => Math.round(n).toLocaleString();
+const pct = n => n.toFixed(1)+"%";
+
+function interp(anchors, x){ // anchors: array [[k,v]...] sorted; or object
+  let arr = Array.isArray(anchors)? anchors : Object.keys(anchors).map(k=>[+k,anchors[k]]).sort((a,b)=>a[0]-b[0]);
+  if(x<=arr[0][0]) return arr[0][1];
+  if(x>=arr[arr.length-1][0]) return arr[arr.length-1][1];
+  for(let i=0;i<arr.length-1;i++){ if(x>=arr[i][0]&&x<=arr[i+1][0]){ const t=(x-arr[i][0])/(arr[i+1][0]-arr[i][0]); return arr[i][1]+t*(arr[i+1][1]-arr[i][1]); } }
+  return arr[arr.length-1][1];
+}
+const wageBase = y => interp(WBASE, Math.min(y,2026));
+const awi = y => interp(AWI, Math.min(y,2024));
+const acaFactor = a => interp(ACA_CURVE, Math.max(21,Math.min(64,a)));
+function perPersonACA(age){ return age>=65?0: acaFactor(age)*ACA_BASE_ANNUAL; }
+
+function bracketTax(income, table, inflFactor){ // table base-year; inflate thresholds
+  income = Math.max(0,income); let tax=0;
+  for(let i=0;i<table.length;i++){
+    const lo = table[i][0]*inflFactor, hi = (i+1<table.length? table[i+1][0]*inflFactor : Infinity), rate=table[i][1];
+    if(income>lo) tax += (Math.min(income,hi)-lo)*rate; else break;
+  }
+  return tax;
+}
+function ltcgTax(ltcg, ordinaryTaxable, status, inflFactor){
+  if(ltcg<=0) return 0;
+  const t = LTCG[status]; let tax=0; const start=Math.max(0,ordinaryTaxable);
+  // gains stack on top of ordinary taxable income
+  let lo0=start, lo1=start+ltcg;
+  for(let i=0;i<t.length;i++){
+    const bl=t[i][0]*inflFactor, bh=(i+1<t.length? t[i+1][0]*inflFactor:Infinity), rate=t[i][1];
+    const seg = Math.max(0, Math.min(lo1,bh)-Math.max(lo0,bl));
+    if(seg>0) tax += seg*rate;
+  }
+  return tax;
+}
+// State income tax. CA: progressive brackets, SS untaxed, capital gains taxed as ordinary, CA std deduction,
+// +1% mental-health surcharge over $1M. Flat: single rate on (ordinary incl. SS + LTCG). None: 0.
+function stateTaxAmount(st, status, ordinaryGross, taxSS, ltcgIncome, inflFactor, agePrimary, ageSpouse){
+  const m = st.stateMode;
+  if(m==='none') return 0;
+  if(m==='flat') return st.stateRate * (ordinaryGross + taxSS + ltcgIncome);
+  if(m==='ca'){
+    const caTaxable = Math.max(0, ordinaryGross + ltcgIncome - CA_STDDED[status]*inflFactor);
+    let tax = bracketTax(caTaxable, CA_BRACKETS[status], inflFactor);
+    if(caTaxable > CA_MH_THRESH*inflFactor) tax += (caTaxable - CA_MH_THRESH*inflFactor)*CA_MH_RATE;
+    return tax;
+  }
+  const S = STATES[m]; if(!S) return 0;
+  // Capital gains: taxed as ordinary unless the state excludes a fraction (e.g. SC 44%, WI 30%, AR 50%, MO 100%)
+  const ltcgState = ltcgIncome * (S.ltcgInclude==null ? 1 : S.ltcgInclude);
+  // Retirement-income exclusion (Social Security already exempt). NJ/CT are income-tested; others are per-person.
+  let excl;
+  if(m==='nj' || m==='ct'){
+    const incomeForTest = ordinaryGross + ltcgState;
+    const cap = (m==='nj') ? (status==='mfj'?100000:75000) : (status==='mfj'?100000:75000); // CT: pension fully exempt below AGI cap
+    const limit = (m==='nj') ? 150000 : (status==='mfj'?100000:75000);
+    excl = (incomeForTest <= limit*inflFactor) ? (m==='nj' ? Math.min(ordinaryGross, cap*inflFactor) : ordinaryGross) : 0;
+  } else {
+    excl = retExclPP(m, agePrimary) + ((status==='mfj' && ageSpouse!=null)? retExclPP(m, ageSpouse) : 0);
+  }
+  const ordAfterExcl = Math.max(0, ordinaryGross - excl);
+  const stdDed = (S.std ? S.std[status] : STDDED[status]) * inflFactor;
+  const taxable = Math.max(0, ordAfterExcl + ltcgState - stdDed);
+  let tax = S.brackets ? bracketTax(taxable, S.brackets[status], inflFactor) : S.rate * taxable;
+  if(S.surtaxOver && taxable > S.surtaxOver*inflFactor) tax += (taxable - S.surtaxOver*inflFactor)*S.surtaxRate;
+  return tax;
+}
+function taxableSocialSecurity(ss, otherTaxableForProv, status){
+  if(ss<=0) return 0;
+  const prov = otherTaxableForProv + 0.5*ss;
+  const b1 = status==='mfj'?32000:25000, b2 = status==='mfj'?44000:34000;
+  if(prov<=b1) return 0;
+  if(prov<=b2) return Math.min(0.5*(prov-b1), 0.5*ss);
+  const t = 0.5*Math.min(prov-b1,b2-b1) + 0.85*(prov-b2);
+  return Math.min(t, 0.85*ss);
+}
+function irmaaPerPerson(magi, status, thrInfl){
+  thrInfl = thrInfl||1;
+  let thr = IRMAA_SINGLE;
+  for(let i=0;i<thr.length;i++){
+    let upper = thr[i][0];
+    if(status==='mfj') upper = (upper===500000? IRMAA_MFJ_TOP : (upper===Infinity?Infinity:upper*2));
+    if(upper!==Infinity) upper *= thrInfl; // IRMAA brackets are inflation-indexed (CPI)
+    if(magi<=upper) return {b:thr[i][1], d:thr[i][2], tier:i};
+  }
+  return {b:thr[thr.length-1][1], d:thr[thr.length-1][2], tier:thr.length-1};
+}
+
+/* ============================ SOCIAL SECURITY ============================ */
+function buildWages(salaryNow, ageNow, retireAge, infl, careerStart){
+  // career: start at careerStart (default 22), work until retireAge; salary back-projected by inflation, capped at wage base.
+  // The entered salary anchors to "now" while still working (it grows to retirement); but if retiring at or before the
+  // current age, the last working year is age retireAge-1, so the entered "final salary" anchors there (no discount).
+  const startAge=careerStart||22, retYear = NOW + (retireAge-ageNow);
+  const anchorYear = NOW + Math.min(0, (retireAge-1) - ageNow);
+  const rows=[];
+  for(let a=startAge; a<retireAge; a++){
+    const yr = retYear - (retireAge - a);            // calendar year for working age a  (= NOW + a - ageNow)
+    const sal = salaryNow * Math.pow(1+infl, yr - anchorYear); // nominal salary that year
+    const capped = Math.min(sal, wageBase(yr));
+    rows.push({year:yr, age:a, earn:Math.max(0,Math.round(capped))});
+  }
+  return rows;
+}
+function computePIA(wages, ageNow){
+  // index earnings to age-60 year, top 35, AIME, PIA via bend points
+  const birthYear = NOW - ageNow;
+  const idxYear = birthYear + 60;
+  const awi60 = awi(idxYear);
+  let indexed = wages.map(w=>{
+    const factor = w.year < idxYear ? awi60/awi(w.year) : 1;
+    return w.earn*factor;
+  }).sort((a,b)=>b-a).slice(0,35);
+  const aime = indexed.reduce((s,x)=>s+x,0)/420;
+  let pia = 0.9*Math.min(aime,BEND1) + 0.32*Math.max(0,Math.min(aime,BEND2)-BEND1) + 0.15*Math.max(0,aime-BEND2);
+  return {aime, pia}; // monthly PIA in today's $
+}
+function claimAdjust(pia, claimAge){
+  const FRA=67;
+  if(claimAge===FRA) return pia;
+  if(claimAge<FRA){
+    const m=(FRA-claimAge)*12;
+    const r = Math.min(m,36)*(5/900) + Math.max(0,m-36)*(5/1200);
+    return pia*(1-r);
+  } else {
+    return pia*(1+(claimAge-FRA)*0.08);
+  }
+}
+function spousalAdjust(spousalAmt, claimAge){
+  // Spousal benefit = 50% of the worker's PIA at the spouse's full retirement age (67). It is reduced if claimed
+  // early — 25/36 of 1% per month for the first 36 months before FRA, then 5/12 of 1% per month beyond — but earns
+  // NO delayed-retirement credit, so claiming after FRA never raises it above the 50% amount.
+  const FRA=67;
+  if(claimAge>=FRA) return spousalAmt;
+  const m=(FRA-claimAge)*12;
+  const r = Math.min(m,36)*(25/3600) + Math.max(0,m-36)*(5/1200);
+  return spousalAmt*(1-r);
+}
+
+// Annual benefit amounts (today's $) for a given pair of claim ages. Symmetric: each spouse's OWN benefit is
+// claim-adjusted on their own age; each can ALSO be topped up to a spousal benefit (50% of the OTHER spouse's PIA),
+// reduced for an early start and earning no delayed credit. Whoever earned less is therefore lifted to 50% of the
+// higher earner once that earner files — automatically, in solveYear's year-by-year logic below.
+function ssAmountsFor(st, claimP, claimS, piaMonthly, spousePia){
+  const ssPrimaryAnnual = claimAdjust(piaMonthly, claimP)*12;
+  let ssSpouseOwnAnnual=0, ssSpousalAnnual=0, ssPrimarySpousalAnnual=0;
+  if(st.married){
+    // Spouse's spousal entitlement = 50% of YOUR PIA. It can't be paid until you file, so its reduction is measured
+    // from the later of the spouse's claim age and the spouse's age when you (primary) file.
+    const spouseAgeAtPrimaryFiling = st.sageNow + (claimP - st.ageNow);
+    const effSpousalClaim = Math.max(claimS, spouseAgeAtPrimaryFiling);
+    ssSpousalAnnual = spousalAdjust(piaMonthly*0.5, effSpousalClaim)*12;
+    if(spousePia!=null){
+      ssSpouseOwnAnnual = claimAdjust(spousePia, claimS)*12;
+      // Symmetric case: YOUR spousal entitlement = 50% of the spouse's PIA (relevant only if the spouse is the
+      // higher earner), measured from the later of your claim age and your age when the spouse files.
+      const primaryAgeAtSpouseFiling = st.ageNow + (claimS - st.sageNow);
+      const effPrimarySpousalClaim = Math.max(claimP, primaryAgeAtSpouseFiling);
+      ssPrimarySpousalAnnual = spousalAdjust(spousePia*0.5, effPrimarySpousalClaim)*12;
+    }
+  }
+  return {ssPrimaryAnnual, ssSpouseOwnAnnual, ssSpousalAnnual, ssPrimarySpousalAnnual};
+}
+// SS received in a single year, in TODAY's dollars (no COLA inflation) — mirrors solveYear's SS branch exactly so the
+// optimizer and the displayed "today's $" lifetime agree with the nominal simulation.
+function ssRealYear(st, A, claimP, claimS, age, sage){
+  const married = st.married && sage!=null;
+  const endSpouse = (st.endAgeSpouse!=null)? st.endAgeSpouse : st.endAge;
+  const primaryAlive = age <= st.endAge;
+  const spouseAlive  = married && sage <= endSpouse;
+  const bothAlive    = primaryAlive && spouseAlive;
+  const survivorOnly = married && !bothAlive && (primaryAlive || spouseAlive);
+  let ssP=0, ssS=0;
+  if(bothAlive){
+    const primaryFiled = age>=claimP, spouseFiled = sage>=claimS;
+    const pOwn = primaryFiled? A.ssPrimaryAnnual : 0;
+    const pSpousal = (primaryFiled && spouseFiled)? (A.ssPrimarySpousalAnnual||0) : 0;
+    ssP = Math.max(pOwn, pSpousal);
+    const sOwn = spouseFiled? (A.ssSpouseOwnAnnual||0) : 0;
+    const sSpousal = (spouseFiled && primaryFiled)? (A.ssSpousalAnnual||0) : 0;
+    ssS = Math.max(sOwn, sSpousal);
+  } else if(survivorOnly){
+    const aliveAge = primaryAlive? age : sage;
+    const survClaim = primaryAlive? claimP : claimS;
+    const survBenefit = Math.max(A.ssPrimaryAnnual, A.ssSpouseOwnAnnual); // survivor keeps the larger of the two own benefits
+    if(aliveAge>=survClaim){ if(primaryAlive) ssP=survBenefit; else ssS=survBenefit; }
+  } else {
+    if(age>=claimP) ssP = A.ssPrimaryAnnual;
+  }
+  return {ssP, ssS};
+}
+// Lifetime SS in today's $ over the plan horizon (retirement → whoever lives longer), split by person.
+function lifetimeSSRealFor(st, A, claimP, claimS){
+  const startAge = st.retireAge;
+  const startSage = st.married? st.sageNow + (st.retireAge - st.ageNow) : null;
+  let loopEnd = st.endAge;
+  if(startSage!=null && st.endAgeSpouse!=null && !isNaN(st.endAgeSpouse)){
+    loopEnd = Math.max(st.endAge, st.endAgeSpouse + (st.ageNow - st.sageNow));
+  }
+  if(isNaN(loopEnd)) loopEnd = st.endAge;
+  loopEnd = Math.max(loopEnd, startAge);
+  let total=0, byP=0, byS=0;
+  for(let age=startAge; age<=loopEnd; age++){
+    const sage = startSage!=null? startSage + (age-startAge) : null;
+    const r = ssRealYear(st, A, claimP, claimS, age, sage);
+    byP+=r.ssP; byS+=r.ssS; total+=r.ssP+r.ssS;
+  }
+  return {total, byP, byS};
+}
+const lifeSSrealPair = (st, cp, cs, piaMonthly, spousePia)=> lifetimeSSRealFor(st, ssAmountsFor(st, cp, cs, piaMonthly, spousePia), cp, cs);
+// Brute-force the claim-age pair (62–70 each) that maximizes lifetime household benefits in today's dollars.
+function optimizeClaiming(st, piaMonthly, spousePia){
+  const ages=[62,63,64,65,66,67,68,69,70];
+  let best=null;
+  if(st.married){
+    for(const cp of ages) for(const cs of ages){
+      const L = lifeSSrealPair(st, cp, cs, piaMonthly, spousePia).total;
+      if(!best || L>best.total+0.5) best={claimP:cp, claimS:cs, total:L};
+    }
+  } else {
+    for(const cp of ages){
+      const L = lifeSSrealPair(st, cp, cp, piaMonthly, spousePia).total;
+      if(!best || L>best.total+0.5) best={claimP:cp, claimS:cp, total:L};
+    }
+  }
+  return best;
+}
+
+/* ============================ STATE ============================ */
+let WAGES=null, SWAGES=null, wagesEdited=false, swagesEdited=false;
+let strategy='target';
+let lastRun=null; // captured verdict summary for export
+let leMode='mean', preset='average'; // longevity basis + active assumption preset
+// Default plan-to age uses mean life expectancy normally, or the 90th-percentile age under the conservative preset.
+function leDefault(age, sex){ return leMode==='p90' ? expectedAge90(age, sex) : expectedAge(age, sex); }
+// Assumption presets — economic & longevity defaults the user can still override individually.
+const PRESETS = {
+  conservative: {ret:4.5, infl:3.5, hcInfl:7.5, medPremInfl:6.5, oopPre:7000, oopMed:6000, le:'p90'},
+  average:      {ret:6,   infl:2.5, hcInfl:6.5, medPremInfl:5.5, oopPre:5000, oopMed:4000, le:'mean'},
+  lenient:      {ret:7.5, infl:2,   hcInfl:5.5, medPremInfl:4.5, oopPre:4000, oopMed:3000, le:'mean'}
+};
+const PRESET_HINTS = {
+  conservative: 'Cautious: 4.5% return, 3.5% inflation, higher medical-cost trends (7.5% / 6.5%) and out-of-pocket ($7k / $6k), and a long life — planning to the ≈90th-percentile age (only ~10% live longer). The safest stress-test.',
+  average: 'Middle-of-the-road: 6% return, 2.5% inflation, 6.5% / 5.5% medical trends, $5k / $4k out-of-pocket, and mean life expectancy. The standard defaults.',
+  lenient: 'Optimistic: 7.5% return, 2% inflation, lower medical-cost trends (5.5% / 4.5%) and out-of-pocket ($4k / $3k), and mean life expectancy.'
+};
+function applyPreset(name){
+  const P=PRESETS[name]; if(!P) return; preset=name;
+  $('ret').value=P.ret; $('infl').value=P.infl; $('hcInfl').value=P.hcInfl; $('medPremInfl').value=P.medPremInfl;
+  $('oopPre').value=P.oopPre.toLocaleString('en-US'); $('oopMed').value=P.oopMed.toLocaleString('en-US');
+  leMode=P.le; endAgesEdited=false; refreshLEdefaults();
+  $('presetSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===name));
+  $('presetHint').textContent = PRESET_HINTS[name];
+  run();
+}
+
+function gather(){
+  const ageNow=num('age'), sageRaw=$('sage').value.trim();
+  const married = sageRaw!=="";
+  const sageNow = married? parseFloat(sageRaw):null;
+  const status = married?'mfj':'single';
+  const eaN = num('endAge'), esN = num('endAgeSpouse');
+  return {
+    ageNow, married, sageNow, status,
+    retireAge: num('rage'),
+    target: num('target'),
+    pretax0: num('pretax'), roth0: num('roth'),
+    savPrin0: num('savPrin'), savGain0: num('savGain'),
+    hsa0: num('hsa'),
+    other0: num('other'), otherQual0: Math.min(num('otherQual'),num('other')),
+    strategy, wrate: num('wrate')/100,
+    salary: num('salary'), claim: num('claim'), careerStart: num('careerStart')||22,
+    claimSpouse: married? ((num('sclaim')>=62 && num('sclaim')<=70)? num('sclaim') : num('claim')) : null,
+    piaOverride: blank('piaOverride')? null : num('piaOverride'),
+    sSalary: num('sSalary'), sCareerStart: num('sCareerStart')||22,
+    sPiaOverride: blank('sPiaOverride')? null : num('sPiaOverride'),
+    stateMode: $('stateMode').value, stateRate: num('stateRate')/100,
+    smooth: $('smooth').value==='on', rothConvIdx: ({'off':-1,'12':2,'22':3,'24':4})[$('rothConv').value]??-1,
+    hcPremEdit: blank('hcPrem')? null : num('hcPrem'),
+    hcInfl: num('hcInfl')/100, oopMed0: num('oopMed'), oopPre0: num('oopPre'), medPremInfl: num('medPremInfl')/100,
+    ret: num('ret')/100, infl: num('infl')/100,
+    endAge: (eaN && eaN>=ageNow)? eaN : leDefault(ageNow, $('sex').value),
+    sex: $('sex').value, sexSpouse: $('sexSpouse').value,
+    endAgeSpouse: married? ((esN && esN>=sageNow)? esN : leDefault(sageNow, $('sexSpouse').value)) : null
+  };
+}
+
+/* ============================ CORE YEAR SOLVER ============================ */
+// Given the household state at a year, solve withdrawals to hit a nominal net target.
+function solveYear(st, S){
+  // S: {age, sage, t (years from now), pretax, roth, savPrin, savGain, magiHist}
+  const infF=Math.pow(1+st.infl,S.t);
+  const ordInfl = infF; // bracket / stdded inflation factor
+  // Survivor logic: each spouse lives to their own plan-to age. While both are alive the household files MFJ with
+  // two Social Security checks and two-person Medicare; once the first passes, the survivor files single, keeps only
+  // the larger benefit, and has one-person Medicare & out-of-pocket. A never-married filer is always single.
+  const married = st.married && S.sage!=null;
+  const endSpouse = (st.endAgeSpouse!=null)? st.endAgeSpouse : st.endAge;
+  const primaryAlive = S.age <= st.endAge;
+  const spouseAlive  = married && S.sage <= endSpouse;
+  const bothAlive    = primaryAlive && spouseAlive;
+  const survivorOnly = married && !bothAlive && (primaryAlive || spouseAlive);
+  const status = bothAlive ? 'mfj' : 'single';
+  const aliveAge = primaryAlive ? S.age : (spouseAlive ? S.sage : S.age); // the living person's age
+  const otherTaxOrd = (st.other0-st.otherQual0)*infF;
+  const otherQual = st.otherQual0*infF;
+  // Social Security (nominal): COLA = inflation
+  // Each spouse receives the larger of their OWN benefit (available once they file) or a SPOUSAL benefit — 50% of the
+  // other spouse's PIA, which also requires that other spouse to have filed. This is symmetric: whoever earned less is
+  // automatically topped up to 50% of the higher earner the year that higher earner files. (See ssRealYear, mirrored.)
+  let ssP=0, ssS=0;
+  if(bothAlive){
+    const primaryFiled = S.age>=st.claim, spouseFiled = S.sage>=st.claimSpouse;
+    const pOwn = primaryFiled ? st.ssPrimaryAnnual : 0;
+    const pSpousal = (primaryFiled && spouseFiled) ? (st.ssPrimarySpousalAnnual||0) : 0;
+    ssP = Math.max(pOwn, pSpousal)*infF;
+    const sOwn = spouseFiled ? (st.ssSpouseOwnAnnual||0) : 0;
+    const sSpousal = (spouseFiled && primaryFiled) ? (st.ssSpousalAnnual||0) : 0;
+    ssS = Math.max(sOwn, sSpousal)*infF;
+  } else if(survivorOnly){
+    const survClaim = primaryAlive ? st.claim : st.claimSpouse;
+    const survBenefit = Math.max(st.ssPrimaryAnnual, st.ssSpouseOwnAnnual||0); // survivor keeps the larger own benefit
+    if(aliveAge>=survClaim){ if(primaryAlive) ssP = survBenefit*infF; else ssS = survBenefit*infF; }
+  } else {
+    if(S.age>=st.claim) ssP = st.ssPrimaryAnnual*infF; // never-married single
+  }
+  const ss = ssP+ssS;
+  // Medicare (age>=65, per person), based on MAGI 2 yrs prior. Premiums grow at the Medicare premium trend
+  // (historically ~5.5%, slower than commercial); IRMAA brackets are CPI-indexed.
+  const magiLag = S.magiHist[S.t-2]!==undefined? S.magiHist[S.t-2] : 0;
+  const premInfl = Math.pow(1+st.medPremInfl, S.t);    // Medicare premium trend to nominal
+  const oopInfl = Math.pow(1+st.hcInfl, S.t);          // general healthcare trend (out-of-pocket, ACA)
+  const thrInfl = Math.pow(1+st.infl, Math.max(0,S.t-2)); // CPI indexing of IRMAA brackets (to the lag year)
+  let medDetail = null, irmaaAnnual = 0;
+  function medicareFor(personAge, capture){
+    if(personAge<65) return 0;
+    const ir = irmaaPerPerson(magiLag, status, thrInfl);
+    const perMo = (PARTB_BASE+PARTD_BASE+ir.b+ir.d)*premInfl;
+    irmaaAnnual += (ir.b+ir.d)*premInfl*12; // the income-related surcharge portion (per person), nominal
+    if(capture) medDetail = {magiLag, tier:ir.tier, partB:PARTB_BASE*premInfl, partD:PARTD_BASE*premInfl, irmaaB:ir.b*premInfl, irmaaD:ir.d*premInfl};
+    return perMo*12;
+  }
+  const on65=a=>(a>=65?1:0), un65=a=>(a<65?1:0);
+  let personsOnMedicare, personsPre65, medicareGross;
+  if(bothAlive){
+    personsOnMedicare = on65(S.age)+on65(S.sage);
+    personsPre65 = un65(S.age)+un65(S.sage);
+    medicareGross = medicareFor(S.age, true) + medicareFor(S.sage, false);
+  } else { // single filer or surviving spouse: one person
+    personsOnMedicare = on65(aliveAge);
+    personsPre65 = un65(aliveAge);
+    medicareGross = medicareFor(aliveAge, true);
+  }
+  // Out-of-pocket medical: cost-sharing, dental/vision/hearing & uncovered care, per person, at the healthcare trend.
+  // Higher before 65 (marketplace deductibles) than on Medicare. HSA can pay it tax-free at ANY age.
+  const oopMedGross = ((st.oopMed0||0)*personsOnMedicare + (st.oopPre0||0)*personsPre65) * oopInfl;
+  // HSA pays Medicare premiums (65+) AND out-of-pocket medical (any age) tax-free, premiums first.
+  // (HSA can't pay ACA premiums tax-free — those stay in cash flow.)
+  const medicalGross = medicareGross + oopMedGross;
+  let hsaToPrem=0, hsaToOOP=0, medicare=medicareGross, oopMed=oopMedGross;
+  if(S.hsa>0){
+    hsaToPrem = Math.min(S.hsa, medicareGross);   // 0 before 65, since no Medicare premium yet
+    hsaToOOP  = Math.min(S.hsa - hsaToPrem, oopMedGross);
+    medicare  = medicareGross - hsaToPrem;
+    oopMed    = oopMedGross - hsaToOOP;
+  }
+  const hsaUsedForMed = hsaToPrem + hsaToOOP;
+  // Reserve enough HSA to fund all FUTURE medical costs (premiums + out-of-pocket), present-valued at the
+  // HSA growth rate; only the surplus above that reserve is usable as ordinary income (and only from 65+,
+  // since pre-65 non-medical HSA withdrawals carry a penalty). Default reserve = everything.
+  const hsaReserve = (S.hsaReserve!=null)? S.hsaReserve : Infinity;
+  const hsaForIncome = (S.age>=65)? Math.max(0, S.hsa - hsaUsedForMed - hsaReserve) : 0;
+  // Pre-65 ACA health premium (household), age-scaled per person, inflated by hc trend, adjusted by override ratio
+  let hcRaw = bothAlive ? (perPersonACA(S.age) + perPersonACA(S.sage)) : perPersonACA(aliveAge);
+  let health = hcRaw * st.hcAdjRatio * Math.pow(1+st.hcInfl, S.t);
+
+  // Standard deduction (with 65+ additions), inflated
+  let std = STDDED[status]*ordInfl;
+  if(bothAlive){ if(S.age>=65) std += ADD65[status]*ordInfl; if(S.sage>=65) std += ADD65[status]*ordInfl; }
+  else if(aliveAge>=65) std += ADD65[status]*ordInfl;
+
+  // tax + spendable given explicit source draws: pre-tax (ordinary), HSA-as-income (ordinary, 65+),
+  // Roth (tax-free), and taxable savings (LTCG on the gain fraction).
+  function evalDraw(fromPre, fromHSA, fromRoth, wSav, rothConv){
+    rothConv = rothConv||0;
+    const gainFrac = (S.savPrin+S.savGain)>0 ? S.savGain/(S.savPrin+S.savGain) : 0;
+    const realizedGain = wSav*gainFrac;
+    const ordinaryGross = fromPre + fromHSA + otherTaxOrd + rothConv; // a Roth conversion adds ordinary income
+    const taxSS = taxableSocialSecurity(ss, ordinaryGross + otherQual + realizedGain, status);
+    const ordinaryTaxablePreStd = ordinaryGross + taxSS;
+    const ltcgIncome = otherQual + realizedGain;
+    const magi = ordinaryTaxablePreStd + ltcgIncome; // approx AGI (before std & senior deductions)
+    let seniorBonus = 0;
+    if(NOW + S.t <= 2028){
+      const thr = status==='mfj' ? 150000 : 75000;
+      const perPerson = Math.max(0, 6000 - 0.06*Math.max(0, magi - thr));
+      const n65 = bothAlive ? (on65(S.age)+on65(S.sage)) : on65(aliveAge);
+      seniorBonus = perPerson * n65;
+    }
+    const ordinaryTaxable = Math.max(0, ordinaryTaxablePreStd - std - seniorBonus);
+    const fedOrd = bracketTax(ordinaryTaxable, ORD[status], ordInfl);
+    const fedLTCG = ltcgTax(ltcgIncome, ordinaryTaxable, status, ordInfl);
+    const niit = NIIT_RATE * Math.max(0, Math.min(ltcgIncome, magi - NIIT_THRESH[status]*ordInfl));
+    const fed = fedOrd+fedLTCG+niit;
+    const state = stateTaxAmount(st, status, ordinaryGross, taxSS, ltcgIncome, ordInfl, bothAlive?S.age:aliveAge, bothAlive?S.sage:null);
+    const tax = fed+state;
+    const wRet = fromPre + fromHSA + fromRoth;
+    const cashIn = otherTaxOrd+otherQual + ss + wRet + wSav; // the conversion is moved to Roth, not spent
+    const spendable = cashIn - tax - medicare - oopMed - health;
+    return {spendable, tax, fed, state, taxSS, fromPre, fromHSA, fromRoth, realizedGain, magi, ordinaryTaxable, ltcgIncome, wRet, rothConv};
+  }
+
+  // Optional "fill the bracket" Roth conversion: in low-income years, convert pre-tax → Roth up to the top of a
+  // chosen ordinary bracket. The conversion is taxable ordinary income; its tax is funded from taxable savings so
+  // net spending stays at target. Capped by pre-tax available and by savings able to cover the tax.
+  function applyRothConv(fp, fh, fromRoth, wSav, baseR, mode){
+    if(!(st.rothConvIdx>=0)) return {rothConv:0, wSav, r:baseR};
+    // A 72(t) SEPP forbids any other distribution from the account until the later of 5 yrs / age 59½ —
+    // a Roth conversion would bust the plan, so no conversions while SEPP is active.
+    if(mode==='sepp') return {rothConv:0, wSav, r:baseR};
+    const preLeft = S.pretax - fp;
+    if(preLeft <= 1) return {rothConv:0, wSav, r:baseR};
+    const ceiling = ORD[status][st.rothConvIdx][0]*ordInfl;
+    const Gmax = Math.max(0, Math.min(ceiling - baseR.ordinaryTaxable, preLeft));
+    if(Gmax <= 1) return {rothConv:0, wSav, r:baseR};
+    const savRemain = Math.max(0, (S.savPrin+S.savGain) - wSav);
+    const spend = (g,eS)=> evalDraw(fp, fh, fromRoth, wSav+eS, g).spendable;
+    let rothConv, newWSav;
+    if(spend(Gmax, savRemain) >= target-1){
+      // savings can cover the conversion tax: convert to the ceiling, draw just enough extra savings to stay at target
+      rothConv = Gmax;
+      let lo=0, hi=savRemain; for(let i=0;i<32;i++){const m=(lo+hi)/2; if(spend(Gmax,m)>=target) hi=m; else lo=m;}
+      newWSav = wSav + (lo+hi)/2;
+    } else {
+      // savings can't fully fund the tax: use all remaining savings and shrink the conversion to fit
+      let lo=0, hi=Gmax; for(let i=0;i<32;i++){const m=(lo+hi)/2; if(spend(m,savRemain)>=target) lo=m; else hi=m;}
+      rothConv = (lo+hi)/2;
+      newWSav = wSav + savRemain;
+    }
+    return {rothConv, wSav:newWSav, r:evalDraw(fp, fh, fromRoth, newWSav, rothConv)};
+  }
+
+  // RMD floor on pre-tax — SECURE 2.0 start age depends on birth year
+  let rmd=0;
+  const rmdRefAge = primaryAlive ? S.age : S.sage; // after the primary passes, RMDs track the surviving spouse
+  const rmdAge = rmdStartAge(NOW - st.ageNow);
+  if(rmdRefAge>=rmdAge && ULT[Math.min(rmdRefAge,105)]) rmd = S.pretax / ULT[Math.min(rmdRefAge,105)];
+
+  // Early-withdrawal rule: determine max flexible retirement draw & whether SEPP fixed
+  const retireAge = st.retireAge;
+  let mode='normal', seppAmt=0;
+  if(aliveAge<59.5){
+    if(retireAge<55){ mode='sepp'; // 72(t)
+      const sle = SLE[Math.min(54,Math.max(40,retireAge))]||40;
+      // amortization at ~5%
+      const r=0.05; seppAmt = (st.pretax0_atRetire||S.pretax)* r/(1-Math.pow(1+r,-sle));
+    } else if(retireAge>=55 && retireAge<59.5){ mode='r55'; } // flexible 401k
+  }
+
+  const target = st.target*infF;
+  // ordinary-income pool drains pre-tax first, then leftover HSA (65+); tax-free Roth and taxable savings follow
+  const ordPool = S.pretax + hsaForIncome;
+  const rothAvail = S.roth;
+  const savAvail = S.savPrin + S.savGain;
+  function splitOrd(O){ const fp=Math.min(O,S.pretax); const fh=Math.min(Math.max(0,O-fp), hsaForIncome); return [fp,fh]; }
+  function evalOrd(O, fromRoth, wSav){ const [fp,fh]=splitOrd(O); return evalDraw(fp,fh,fromRoth,wSav); }
+
+  if(st.strategy==='pct'){
+    // plain rule: withdraw a fixed % of starting balance (grown by inflation); drain ordinary pool then Roth
+    let want = st.pctBase*infF, note='';
+    let O = Math.min(want, ordPool);
+    let rem = Math.max(0, want-O);
+    let wSav = Math.min(rem, savAvail); rem -= wSav;        // savings before Roth
+    let fromRoth = Math.min(rem, rothAvail);                 // Roth last
+    if(rmd>O){ O=Math.min(rmd, ordPool); note='‡'; }
+    if(mode==='sepp'){ O=Math.min(seppAmt, ordPool); wSav=0; fromRoth=0; note='§'; }
+    const [fp,fh]=splitOrd(O); const r=evalDraw(fp,fh,fromRoth,wSav);
+    return finalize(fp,fh,fromRoth,wSav,r,rmd,mode,note,medicare,health,ss,ssP,ssS,target,S,hsaUsedForMed,medicareGross,{oopMed,oopMedGross,hsaToPrem,hsaToOOP,personsOnMedicare,personsPre65,medDetail,irmaaSurcharge:irmaaAnnual,rothConv:0,filingStatus:status,survivor:survivorOnly,survAge:aliveAge});
+  }
+
+  // TARGET MODE
+  // optional smoothing: cap ordinary draw so MAGI stays under the lower of the first IRMAA cliff and the top of the 24% bracket
+  let ordCap = Infinity;
+  if(st.smooth){
+    const irmaaT1 = (status==='mfj'?218000:109000)*ordInfl;
+    const br24top = ORD[status][4][0]*ordInfl; // start of 32% bracket = top of 24%
+    const ceiling = Math.min(irmaaT1, br24top);
+    if(evalOrd(ordPool,0,0).magi > ceiling){
+      let lo=0,hi=ordPool; for(let i=0;i<40;i++){ const m=(lo+hi)/2; if(evalOrd(m,0,0).magi<=ceiling) lo=m; else hi=m; } ordCap=lo;
+    }
+  }
+  // fill the remainder above the ordinary draw from taxable savings first; Roth is the last-resort filler
+  function topUp(O){
+    let wSav=0, fromRoth=0;
+    if(evalOrd(O,0,0).spendable < target-1 && savAvail>0){
+      if(evalOrd(O,0,savAvail).spendable<=target) wSav=savAvail;
+      else { let lo=0,hi=savAvail; for(let i=0;i<40;i++){const m=(lo+hi)/2; if(evalOrd(O,0,m).spendable>target)hi=m; else lo=m;} wSav=(lo+hi)/2; }
+    }
+    if(evalOrd(O,0,wSav).spendable < target-1 && rothAvail>0){
+      if(evalOrd(O,rothAvail,wSav).spendable<=target) fromRoth=rothAvail;
+      else { let lo=0,hi=rothAvail; for(let i=0;i<40;i++){const m=(lo+hi)/2; if(evalOrd(O,m,wSav).spendable>target)hi=m; else lo=m;} fromRoth=(lo+hi)/2; }
+    }
+    return {O, fromRoth, wSav};
+  }
+  function solveWithCap(cap){
+    let O, bound=false;
+    if(mode==='sepp'){ O=Math.min(seppAmt, ordPool); }
+    else {
+      const ordMax=Math.min(ordPool, cap);
+      if(evalOrd(0,0,0).spendable>=target) O=0;
+      else if(evalOrd(ordMax,0,0).spendable<=target){ O=ordMax; if(cap<ordPool) bound=true; }
+      else { let lo=0,hi=ordMax; for(let i=0;i<40;i++){const m=(lo+hi)/2; if(evalOrd(m,0,0).spendable>target)hi=m; else lo=m;} O=(lo+hi)/2; }
+    }
+    let rmdBound=false;
+    if(rmd>0){ const minO=Math.min(rmd,ordPool); if(O<minO){ O=minO; rmdBound=true; } }
+    const tu=topUp(O);
+    return {...tu, rmdBound, bound};
+  }
+  let sol = solveWithCap(ordCap);
+  let chk = evalDraw(...splitOrd(sol.O), sol.fromRoth, sol.wSav);
+  // if smoothing left a shortfall but more pre-tax remains, lift the cap (draining pre-tax is the priority)
+  if(st.smooth && ordCap<ordPool && chk.spendable < target-1){ sol = solveWithCap(ordPool); }
+  let note='';
+  if(mode==='sepp'||mode==='r55') note='§';
+  if(sol.rmdBound) note = note?note+'‡':'‡';
+  const [fp,fh]=splitOrd(sol.O);
+  let r=evalDraw(fp,fh,sol.fromRoth,sol.wSav);
+  const conv = applyRothConv(fp, fh, sol.fromRoth, sol.wSav, r, mode);
+  r = conv.r;
+  return finalize(fp,fh,sol.fromRoth,conv.wSav,r,rmd,mode,note,medicare,health,ss,ssP,ssS,target,S,hsaUsedForMed,medicareGross,{oopMed,oopMedGross,hsaToPrem,hsaToOOP,personsOnMedicare,personsPre65,medDetail,irmaaSurcharge:irmaaAnnual,rothConv:conv.rothConv,filingStatus:status,survivor:survivorOnly,survAge:aliveAge});
+}
+function finalize(fromPre,fromHSA,fromRoth,wSav,r,rmd,mode,note,medicare,health,ss,ssP,ssS,target,S,hsaUsedForMed,medicareGross,extra){
+  return {wRet:fromPre+fromHSA+fromRoth, wSav, fromPre, fromHSA, fromRoth, hsaUsedForMed, medicareGross, ...r,
+    rmd, mode, note, medicare, health, ss, ssP, ssS, target,
+    pretax:S.pretax, roth:S.roth, savPrin:S.savPrin, savGain:S.savGain, hsa:S.hsa, age:S.age, sage:S.sage, ...(extra||{})};
+}
+
+/* ============================ SIMULATION ============================ */
+// SSA 2022 period life table (2025 Trustees Report): remaining life expectancy e(x) in years, by exact age and sex.
+// Used only to seed the default "plan-to" ages; fully editable. Mean life expectancy ≈ 50% chance of living longer.
+const LIFE_M = {45:33.32,46:32.46,47:31.60,48:30.75,49:29.90,50:29.05,51:28.22,52:27.39,53:26.56,54:25.75,55:24.94,56:24.15,57:23.37,58:22.59,59:21.83,60:21.08,61:20.34,62:19.61,63:18.89,64:18.18,65:17.48,66:16.79,67:16.11,68:15.43,69:14.76,70:14.09,71:13.44,72:12.80,73:12.16,74:11.53,75:10.92,76:10.32,77:9.74,78:9.18,79:8.64,80:8.11,81:7.60,82:7.11,83:6.64,84:6.18,85:5.75,86:5.34,87:4.94,88:4.58,89:4.23,90:3.91,91:3.60,92:3.32,93:3.06};
+const LIFE_F = {45:37.25,46:36.34,47:35.43,48:34.53,49:33.63,50:32.73,51:31.84,52:30.96,53:30.08,54:29.20,55:28.34,56:27.48,57:26.63,58:25.78,59:24.95,60:24.12,61:23.31,62:22.50,63:21.70,64:20.90,65:20.12,66:19.34,67:18.56,68:17.79,69:17.03,70:16.27,71:15.53,72:14.80,73:14.08,74:13.37,75:12.68,76:12.00,77:11.35,78:10.71,79:10.09,80:9.49,81:8.90,82:8.34,83:7.79,84:7.26,85:6.76,86:6.28,87:5.83,88:5.40,89:5.00,90:4.62,91:4.27,92:3.94,93:3.64};
+function expectedAge(age, sex){
+  if(age==null || isNaN(age)) return 92;
+  const tbl = (sex==='f')? LIFE_F : LIFE_M;
+  const a = Math.max(45, Math.min(93, Math.round(age)));
+  return Math.min(105, Math.round(age + (tbl[a]||3)));
+}
+// 90th-percentile survival age (only ~10% of same-age/sex people live beyond) — CDC/NCHS 2022 U.S. period life table
+// (number-surviving lx column). Used by the "conservative" preset for a longer-life planning horizon.
+const LIFE90_M = {45:93,46:93,47:93,48:93,49:93,50:93,51:93,52:93,53:93,54:93,55:93,56:93,57:93,58:93,59:93,60:93,61:93,62:93,63:93,64:93,65:94,66:94,67:94,68:94,69:94,70:94,71:94,72:94,73:94,74:94,75:94,76:95,77:95,78:95,79:95,80:95,81:95,82:96,83:96,84:96,85:96,86:97,87:97,88:97,89:98,90:98,91:99,92:99,93:100};
+const LIFE90_F = {45:96,46:96,47:96,48:96,49:96,50:96,51:96,52:96,53:96,54:96,55:96,56:96,57:96,58:96,59:96,60:96,61:96,62:96,63:96,64:96,65:96,66:96,67:96,68:96,69:96,70:96,71:96,72:96,73:96,74:97,75:97,76:97,77:97,78:97,79:97,80:97,81:97,82:97,83:98,84:98,85:98,86:98,87:99,88:99,89:99,90:99,91:100,92:100,93:100};
+function expectedAge90(age, sex){
+  if(age==null || isNaN(age)) return 96;
+  const tbl = (sex==='f')? LIFE90_F : LIFE90_M;
+  const a = Math.max(45, Math.min(93, Math.round(age)));
+  return Math.min(105, tbl[a]||96);
+}
+
+function simulateCore(st, startBalances, startAge, startSage, reserveByT){
+  // returns yearly rows from startAge..endAge. reserveByT[t] = HSA to hold back for future Medicare (null => reserve all)
+  const rows=[];
+  let pretax=startBalances.pretax, roth=startBalances.roth, savPrin=startBalances.savPrin, savGain=startBalances.savGain, hsa=startBalances.hsa||0;
+  const magiHist=[];
+  st.pretax0_atRetire = pretax;
+  // Horizon runs to whoever lives longer. In primary-age terms, the spouse reaches their plan-to age at
+  // primaryAge = endAgeSpouse + (ageNow - sageNow).
+  let loopEnd = st.endAge;
+  if(startSage!=null && st.endAgeSpouse!=null && !isNaN(st.endAgeSpouse)){
+    const offset = st.ageNow - st.sageNow; // primary age − spouse age (constant)
+    loopEnd = Math.max(st.endAge, st.endAgeSpouse + offset);
+  }
+  if(isNaN(loopEnd)) loopEnd = st.endAge;
+  loopEnd = Math.max(loopEnd, startAge); // always produce at least one year
+  for(let age=startAge; age<=loopEnd; age++){
+    const t = age - st.ageNow;
+    const sage = startSage!=null? startSage + (age-startAge) : null;
+    const hsaReserve = reserveByT? (reserveByT[t]||0) : undefined; // undefined => solveYear reserves all HSA
+    const S = {age, sage, t, pretax, roth, savPrin, savGain, hsa, hsaReserve, magiHist};
+    const y = solveYear(st, S);
+    magiHist[t] = y.magi;
+    // apply withdrawals
+    pretax -= (y.fromPre + (y.rothConv||0)); roth -= y.fromRoth; roth += (y.rothConv||0);
+    hsa -= (y.hsaUsedForMed + y.fromHSA);
+    const gf = (savPrin+savGain)>0? savGain/(savPrin+savGain):0;
+    const savDraw=Math.min(y.wSav, savPrin+savGain);
+    savGain-=savDraw*gf; savPrin-=savDraw*(1-gf);
+    // surplus reinvest (if RMD forced more than target needed): bank the after-tax surplus into savings
+    if(y.spendable>y.target+1){ savPrin += (y.spendable-y.target); }
+    const shortfall = Math.max(0, y.target - y.spendable);
+    // grow remaining at return; savings growth accrues as unrealized gains
+    pretax*=(1+st.ret); roth*=(1+st.ret); hsa*=(1+st.ret);
+    const savTot=(savPrin+savGain)*(1+st.ret); savGain = savTot - savPrin; if(savGain<0){savPrin=savTot;savGain=0;}
+    rows.push({...y, t, endPretax:Math.max(0,pretax), endRoth:Math.max(0,roth), endSav:Math.max(0,savPrin+savGain), endHsa:Math.max(0,hsa), shortfall, year:NOW+t});
+    pretax=Math.max(0,pretax); roth=Math.max(0,roth); hsa=Math.max(0,hsa);
+    if(savPrin<0)savPrin=0; if(savGain<0)savGain=0;
+  }
+  return rows;
+}
+function simulate(st, startBalances, startAge, startSage, refineIters){
+  refineIters = (refineIters==null)? 2 : refineIters;
+  if((startBalances.hsa||0) <= 0) return simulateCore(st, startBalances, startAge, startSage, null);
+  // Pass 1: HSA reserved entirely (income use off) to project the gross Medicare premium stream.
+  let rows = simulateCore(st, startBalances, startAge, startSage, null);
+  // Refine: reserve = PV of future premiums; using HSA surplus as income can raise IRMAA, so iterate to converge.
+  let reserveByT;
+  for(let iter=0; iter<refineIters; iter++){
+    reserveByT = {};
+    for(const a of rows){ let res=0; for(const b of rows){ if(b.t>a.t) res += ((b.medicareGross||0)+(b.oopMedGross||0))/Math.pow(1+st.ret, b.t-a.t); } reserveByT[a.t]=res; }
+    rows = simulateCore(st, startBalances, startAge, startSage, reserveByT);
+  }
+  return rows;
+}
+
+// Find max sustainable real target income for a given starting portfolio at startAge
+function maxSustainable(st, startBalances, startAge, startSage){
+  function lastsFully(target){
+    const s={...st, target};
+    const rows=simulate(s, startBalances, startAge, startSage, 1);
+    return rows.every(r=> r.shortfall < Math.max(50, r.target*0.005));
+  }
+  let lo=0, hi=Math.max(st.target*3, 50000);
+  // expand hi if even hi sustains
+  if(lastsFully(hi)) return hi;
+  for(let i=0;i<34;i++){ const m=(lo+hi)/2; if(lastsFully(m)) lo=m; else hi=m; }
+  return lo;
+}
+// Find required starting portfolio (scaling current mix) so target is exactly sustainable
+function requiredPortfolio(st, baseMix, startAge, startSage){
+  function scaledBalances(k){ return {pretax:baseMix.pretax*k, roth:baseMix.roth*k, savPrin:baseMix.savPrin*k, savGain:baseMix.savGain*k, hsa:baseMix.hsa*k}; }
+  function sust(k){
+    const s={...st};
+    const rows=simulate(s, scaledBalances(k), startAge, startSage, 1);
+    return rows.every(r=> r.shortfall < Math.max(50, r.target*0.005));
+  }
+  const total0 = baseMix.pretax+baseMix.roth+baseMix.savPrin+baseMix.savGain+baseMix.hsa;
+  if(total0<=0) return Infinity;
+  let lo=0, hi=1;
+  while(!sust(hi) && hi<50) hi*=1.6;
+  if(!sust(hi)) return Infinity;
+  for(let i=0;i<36;i++){ const m=(lo+hi)/2; if(sust(m)) hi=m; else lo=m; }
+  return total0*hi;
+}
+
+/* ============================ TAX-STRATEGY OPTIMIZATION ============================ */
+// Total tax footprint of a simulation, expressed in TODAY'S dollars (each year deflated by inflation): lifetime
+// income tax (federal + state) + IRMAA surcharges + the income/estate tax the heirs would owe at the final death.
+// Roth conversions trade tax now for lower future RMD-driven tax, lower IRMAA, and lower heir tax; smoothing trades
+// bracket/IRMAA exposure across years — so the full footprint is what makes one combination genuinely cheaper.
+function taxFootprint(st, rows){
+  let incomePV=0, irmaaPV=0, shortPV=0;
+  for(const r of rows){
+    const d = Math.pow(1+st.infl, r.t);
+    incomePV += (r.tax||0)/d;
+    irmaaPV  += (r.irmaaSurcharge||0)/d;
+    shortPV  += (r.shortfall||0)/d;
+  }
+  let heirPV=0;
+  const est = estateEstimate(st, rows);
+  if(est && rows.length){ const dd=Math.pow(1+st.infl, rows[rows.length-1].t); heirPV = (est.incomeTax + est.estateTax)/dd; }
+  return {total: incomePV+irmaaPV+heirPV, incomePV, irmaaPV, heirPV, shortPV};
+}
+// Search the 8 combinations of bracket/IRMAA smoothing (off/on) × Roth-conversion bracket (off/12/22/24) and pick the
+// one with the smallest tax footprint in today's dollars. A shortfall guard comes first so tax savings never come at
+// the cost of the plan lasting (a combination that depletes earlier is rejected before tax is compared).
+const ROTH_OPTS = [{idx:-1,label:'off'},{idx:2,label:'12'},{idx:3,label:'22'},{idx:4,label:'24'}];
+function optimizeTaxes(st, balances, startAge, startSage){
+  let best=null, baseline=null;
+  for(const sm of [false,true]) for(const ro of ROTH_OPTS){
+    const s={...st, smooth:sm, rothConvIdx:ro.idx};
+    const rows=simulate(s, balances, startAge, startSage, 1);
+    const fp=taxFootprint(s, rows);
+    const cand={smooth:sm, rothConvIdx:ro.idx, rothConvLabel:ro.label, total:fp.total, shortPV:fp.shortPV, parts:fp};
+    if(sm===false && ro.idx===-1) baseline=cand;
+    if(!best) best=cand;
+    else if(cand.shortPV < best.shortPV - 1) best=cand;                                   // strictly fewer shortfalls wins
+    else if(Math.abs(cand.shortPV-best.shortPV)<=1 && cand.total < best.total - 1) best=cand; // else cheapest taxes
+  }
+  return {best, baseline};
+}
+
+/* ============================ RUN + RENDER ============================ */
+// Estate & heirs at the final death: gross estate (all accounts at FMV), federal estate tax on the excess over the
+// inflation-indexed exemption, and heirs' income tax — pre-tax (10-year rule) + HSA (immediately taxable) at the
+// assumed 22% bracket. Roth passes tax-free; taxable brokerage gets a stepped-up basis (no capital-gains tax).
+function estateEstimate(st, rows){
+  const last = rows[rows.length-1];
+  if(!last) return null;
+  const inflF = Math.pow(1+st.infl, last.t);
+  const pretax = Math.max(0,last.endPretax), roth = Math.max(0,last.endRoth), sav = Math.max(0,last.endSav), hsa = Math.max(0,last.endHsa||0);
+  const gross = pretax + roth + sav + hsa;
+  const persons = (st.married && st.endAgeSpouse!=null) ? 2 : 1; // portability gives a couple ~2x exemption
+  const exemption = ESTATE_EXEMPTION * persons * inflF;
+  const estateTax = ESTATE_RATE * Math.max(0, gross - exemption);
+  const incomeTax = HEIR_BRACKET * (pretax + hsa);   // Roth = 0; brokerage stepped-up = 0
+  const net = Math.max(0, gross - estateTax - incomeTax);
+  const deathAge = (last.survivor && last.survAge!=null)? last.survAge : last.age;
+  return {gross, exemption, estateTax, incomeTax, net, pretax, roth, sav, hsa, persons, deathAge, year:last.year};
+}
+let chart1=null;
+function run(){
+  const st=gather();
+  // UI sync
+  $('byBirth').textContent='b. '+(NOW-st.ageNow);
+  $('rmdHint').textContent='Withdrawals taxed as ordinary income; RMDs apply from '+rmdStartAge(NOW-st.ageNow)+'.';
+  $('filingShow').textContent = st.married? 'Married filing jointly':'Single';
+  $('flatRateField').style.display = (st.stateMode==='flat')? 'block':'none';
+  (function(){
+    const m=st.stateMode, h=$('stateHint'); if(!h) return;
+    if(m==='none'){ h.textContent='No state income tax — $0 modeled for all years.'; return; }
+    if(m==='ca'){ h.textContent='California uses its 2025 progressive brackets, exempts Social Security, and taxes capital gains as ordinary income.'; return; }
+    if(m==='flat'){ h.textContent='Enter an approximate effective rate for a state not listed.'; return; }
+    const S=STATES[m]; if(!S){ h.textContent=''; return; }
+    const full={il:'Illinois',pa:'Pennsylvania',ms:'Mississippi',ia:'Iowa',mi:'Michigan'};
+    const retNote={
+      ga:'exempts up to $65,000 of retirement income per person at 65+',
+      co:'exempts up to $24,000 of retirement income per person at 65+',
+      ky:'exempts up to $31,110 of retirement income per person',
+      la:'exempts up to $6,000 of retirement income per person at 65+',
+      ny:'exempts up to $20,000 of private pension/IRA income per person at 59½+',
+      de:'exempts up to $12,500 of retirement income per person at 60+',
+      va:'gives a $12,000 age deduction per person at 65+',
+      sc:'gives a retirement-income deduction (up to $15,000 per person at 65+)',
+      md:'exempts up to $39,500 of pension income per person at 65+',
+      ok:'exempts up to $10,000 of retirement income per person',
+      ri:'exempts up to $20,000 of pension/401(k) income per person at 65+',
+      wv:'exempts $8,000 of senior income per person at 65+',
+      wi:'subtracts up to $5,000 of retirement income per person at 65+',
+      me:'gives a pension-income deduction (about $30,000 per person)',
+      ar:'exempts up to $6,000 of retirement income per person',
+      nj:'fully exempts retirement income (up to $75k single/$100k joint) when total income is under $150,000',
+      ct:'fully exempts pension/IRA income when income is under $75k single/$100k joint'
+    };
+    const structure = S.brackets ? `progressive brackets (top ${(S.brackets[st.status][S.brackets[st.status].length-1][1]*100).toFixed(2)}%)` : `flat ${(S.rate*100).toFixed(2)}%`;
+    let cg = '';
+    if(S.ltcgInclude===0) cg=' and exempts capital gains';
+    else if(S.ltcgInclude!=null && S.ltcgInclude<1) cg=` and taxes only ${Math.round(S.ltcgInclude*100)}% of capital gains`;
+    if(full[m]){ h.innerHTML=`${full[m]} <b>fully exempts</b> IRA/401(k) &amp; pension withdrawals${m==='mi'?' (phased to full by 2026)':(m!=='il'?' once retired':'')} and Social Security${cg} — uses ${structure}.`; return; }
+    const rn = retNote[m] ? ` It ${retNote[m]}.` : '';
+    h.innerHTML=`${S.name}: ${structure}; Social Security exempt${cg}.${rn}`;
+  })();
+  $('spouseSS').style.display = st.married? 'block':'none';
+  $('spouseHorizon').style.display = st.married? 'block':'none';
+  $('rageHint').textContent = st.retireAge<=st.ageNow? 'Retiring now — assessing readiness today.' : ('Retiring in '+(st.retireAge-st.ageNow)+' year'+(st.retireAge-st.ageNow>1?'s':'')+'.');
+  $('healthPanel').style.opacity = 1;
+
+  // Social Security benefit (today's $ annual). Build the earnings records first, then derive PIAs.
+  if(!WAGES || !wagesEdited) WAGES=buildWages(st.salary, st.ageNow, st.retireAge, st.infl, st.careerStart);
+  if(st.married){
+    if(!SWAGES || !swagesEdited) SWAGES=buildWages(st.sSalary, st.sageNow, st.retireAge - (st.ageNow-st.sageNow), st.infl, st.sCareerStart);
+  }
+  const piaCalc=computePIA(WAGES, st.ageNow);
+  const piaMonthly = st.piaOverride!=null? st.piaOverride : piaCalc.pia;
+  $('piaShow').textContent = st.piaOverride!=null? '' : ('PIA ≈ $'+fmt0(piaCalc.pia)+'/mo');
+  const spPiaCalc = (st.married && SWAGES)? computePIA(SWAGES, st.sageNow) : null;
+  const spousePia = st.married? (st.sPiaOverride!=null? st.sPiaOverride : (spPiaCalc? spPiaCalc.pia : null)) : null;
+  $('sPiaShow').textContent = (st.married && st.sPiaOverride==null && spPiaCalc)? ('PIA ≈ $'+fmt0(spPiaCalc.pia)+'/mo') : '';
+
+  // Optimal claiming strategy: the (primary, spouse) claim ages that maximize lifetime household benefits in today's
+  // dollars given life expectancy. Used as the default; the user can override in the Advanced > claiming-ages panel.
+  const opt = optimizeClaiming(st, piaMonthly, spousePia);
+  st.optClaim = opt;
+  $('sclaimWrap').style.display = st.married? 'flex':'none';
+  if(!claimEdited){ st.claim = opt.claimP; $('claim').value = opt.claimP; } else { st.claim = num('claim'); }
+  if(st.married){ if(!sclaimEdited){ st.claimSpouse = opt.claimS; $('sclaim').value = opt.claimS; } else { st.claimSpouse = (num('sclaim')>=62 && num('sclaim')<=70)? num('sclaim') : st.claim; } }
+  else { st.claimSpouse = st.claim; }
+  $('claimOptShow').textContent = st.married? `optimal: you ${opt.claimP}, spouse ${opt.claimS}` : `optimal: ${opt.claimP}`;
+  const overridden = (st.claim!==opt.claimP) || (st.married && st.claimSpouse!==opt.claimS);
+  $('claimOptBtn').style.display = overridden? 'block':'none';
+
+  // Final benefit amounts on the chosen claim ages (symmetric own/spousal handled inside).
+  const amounts = ssAmountsFor(st, st.claim, st.claimSpouse, piaMonthly, spousePia);
+  const ssPrimaryAnnual = amounts.ssPrimaryAnnual;
+  st.ssPrimaryAnnual=amounts.ssPrimaryAnnual; st.ssSpouseOwnAnnual=amounts.ssSpouseOwnAnnual;
+  st.ssSpousalAnnual=amounts.ssSpousalAnnual; st.ssPrimarySpousalAnnual=amounts.ssPrimarySpousalAnnual;
+  st.ssSpouseAnnual = Math.max(amounts.ssSpouseOwnAnnual, amounts.ssSpousalAnnual);
+  const ssSpouseAnnual = st.ssSpouseAnnual;
+  // Steady-state actual benefit each person receives while both are alive & filed (for display).
+  const benefitP = Math.max(amounts.ssPrimaryAnnual, amounts.ssPrimarySpousalAnnual||0);
+  const benefitS = st.married? Math.max(amounts.ssSpouseOwnAnnual||0, amounts.ssSpousalAnnual||0) : 0;
+  renderWageEditor(st);
+
+  // Healthcare default + adjustment ratio (honor user override while preserving age scaling)
+  const retSage = st.married? st.sageNow + (st.retireAge-st.ageNow) : null;
+  const defHC = perPersonACA(st.retireAge) + (st.married? perPersonACA(retSage):0);
+  $('hcAuto').textContent = st.retireAge<65? ('auto ≈ $'+fmt0(defHC)+'/yr') : '(not needed — Medicare at 65)';
+  if(st.hcPremEdit!=null && defHC>0){ st.hcAdjRatio = st.hcPremEdit/defHC; } else { st.hcAdjRatio = 1; }
+
+  // pct-mode base
+  st.pctBase = (st.pretax0+st.roth0+st.savPrin0+st.savGain0)*st.wrate;
+
+  // Portfolio at retirement (grow current balances to retireAge if future; no contributions baseline)
+  const yearsToRet = Math.max(0, st.retireAge - st.ageNow);
+  const g = Math.pow(1+st.ret, yearsToRet);
+  const balAtRet = {pretax:st.pretax0*g, roth:st.roth0*g, savPrin:st.savPrin0*g, savGain:st.savGain0*g + (st.savPrin0*(g-1)), hsa:st.hsa0*g};
+  const startSage = st.married? st.sageNow + yearsToRet : null;
+
+  // Tax-strategy optimization: pick the smoothing + Roth-conversion combination that minimizes total lifetime taxes
+  // in today's dollars (used as the default; overridable in Advanced > Tax strategy).
+  const taxOpt = optimizeTaxes(st, balAtRet, st.retireAge, startSage);
+  st.taxOpt = taxOpt;
+  if(!smoothEdited){ st.smooth = taxOpt.best.smooth; $('smooth').value = taxOpt.best.smooth?'on':'off'; }
+  else { st.smooth = $('smooth').value==='on'; }
+  if(!rothConvEdited){ st.rothConvIdx = taxOpt.best.rothConvIdx; $('rothConv').value = taxOpt.best.rothConvLabel; }
+  else { st.rothConvIdx = ({'off':-1,'12':2,'22':3,'24':4})[$('rothConv').value] ?? -1; }
+  const taxOptLabelTxt = (sm,idx)=>{ const conv = idx>=0? ('Roth→'+({2:'12%',3:'22%',4:'24%'}[idx])) : 'no conversions'; return (sm?'smoothing on':'no smoothing')+', '+conv; };
+  $('taxOptShow').textContent = 'optimal: '+taxOptLabelTxt(taxOpt.best.smooth, taxOpt.best.rothConvIdx);
+  const taxOverridden = (st.smooth!==taxOpt.best.smooth) || (st.rothConvIdx!==taxOpt.best.rothConvIdx);
+  $('taxOptBtn').style.display = taxOverridden? 'block':'none';
+
+  // main simulation (the plan): from retireAge to endAge
+  const rows = simulate(st, balAtRet, st.retireAge, startSage);
+
+  // ---- VERDICT ----
+  const sustainable = maxSustainable(st, balAtRet, st.retireAge, startSage);
+  const ratio = st.target>0? sustainable/st.target : 1;
+  // depletion age
+  let depAge=null; for(const r of rows){ if(r.endPretax+r.endRoth+r.endSav < 1 && r.shortfall>1){ depAge=r.age; break; } }
+  const horizon = st.endAge - st.retireAge;
+  const planEnd = (st.married && st.endAgeSpouse!=null)? Math.max(st.endAge, st.endAgeSpouse) : st.endAge;
+  let cls, badge, title, body, stats=[];
+  const future = st.retireAge>st.ageNow;
+
+  if(ratio>=1.0 || depAge===null){ cls='green'; badge='Retirement ready'; }
+  else if(ratio>=0.90 || (depAge!=null && depAge >= st.endAge - Math.ceil(horizon*0.1))){ cls='yellow'; badge='Reduced income'; }
+  else { cls='red'; badge='Shortfall'; }
+
+  const sustTxt = fmt(sustainable);
+  if(cls==='green'){
+    title = future? ('On track to retire at '+st.retireAge) : 'You can retire today';
+    body = `At your settings, the plan funds the full <b>${fmt(st.target)}</b> target income every year through age ${planEnd}` + (depAge===null?' with money to spare.':'.') + ` Your portfolio could sustainably support about <b>${sustTxt}/yr</b>.`;
+  } else if(cls==='yellow'){
+    title = 'Close — a modest trim gets you there';
+    body = `The plan is within ~10% of the goal. A sustainable income of about <b>${sustTxt}/yr</b> lasts through age ${planEnd}` + (depAge!=null?`, versus your <b>${fmt(st.target)}</b> target (savings would otherwise run dry near age ${depAge}).`:`.`);
+  } else {
+    title = future? 'Not yet on track' : 'The target outruns the savings';
+    body = `At <b>${fmt(st.target)}</b>/yr the plan falls short` + (depAge!=null?` — savings run out around age <b>${depAge}</b>.`:'.') + ` A sustainable level is closer to <b>${sustTxt}/yr</b> (${Math.round(ratio*100)}% of target).`;
+  }
+
+  stats.push({n:sustTxt, l:'Sustainable income / yr'});
+  stats.push({n:Math.round(ratio*100)+'%', l:'of your target'});
+  stats.push({n: depAge!=null? ('age '+depAge):'never', l:'savings depleted'});
+
+  // future retirement: savings needed
+  if(future){
+    const baseMix={pretax:balAtRet.pretax,roth:balAtRet.roth,savPrin:balAtRet.savPrin,savGain:balAtRet.savGain,hsa:balAtRet.hsa};
+    const reqAtRet = requiredPortfolio(st, baseMix, st.retireAge, startSage);
+    const haveAtRet = baseMix.pretax+baseMix.roth+baseMix.savPrin+baseMix.savGain+baseMix.hsa;
+    const gap = reqAtRet - haveAtRet;
+    const N=yearsToRet, r=st.ret;
+    if(!(gap>1) || !isFinite(reqAtRet)){
+      cls='green'; badge='On track'; title='On track to retire at '+st.retireAge;
+      body = `Your current balances, grown at ${pct(st.ret*100)} for ${N} years, are projected to reach about <b>${fmt(haveAtRet)}</b> — enough to fund <b>${fmt(st.target)}/yr</b> through age ${planEnd} with no additional saving required.`;
+      stats=[{n:fmt(reqAtRet),l:'Nest egg needed at '+st.retireAge},{n:fmt(haveAtRet),l:'Projected, no new saving'},{n:'$0',l:'Extra saving needed / yr'}];
+      renderSavingsPlan(null);
+    } else {
+      const fvFactor = r>0? (Math.pow(1+r,N)-1)/r : N;
+      const annual = gap/fvFactor;
+      const plan = capContrib(annual, st);
+      const hhSalary = st.salary + (st.married ? st.sSalary : 0);
+      // Feasibility: green if the required saving fits inside 2026 tax-advantaged limits;
+      // yellow if it also needs taxable saving; red if it exceeds ~60% of household salary.
+      if(hhSalary>0 && annual > 0.60*hhSalary){ cls='red'; badge='Very aggressive'; title='A steep savings rate to retire at '+st.retireAge; }
+      else if(annual > plan.taxAdvCap){ cls='yellow'; badge='Reachable — needs taxable too'; title='Reachable, but beyond 401(k)/IRA limits'; }
+      else { cls='green'; badge='Achievable plan'; title='A clear path to retiring at '+st.retireAge; }
+      body = `To fund <b>${fmt(st.target)}/yr</b> from age ${st.retireAge} you need about <b>${fmt(reqAtRet)}</b> saved by then. Current balances grow to roughly <b>${fmt(haveAtRet)}</b> on their own, leaving a <b>${fmt(gap)}</b> gap — closed by saving about <b>${fmt(annual)}/yr</b> for ${N} years. The breakdown is below.`;
+      stats=[{n:fmt(annual),l:'Extra saving needed / yr'},{n:fmt(reqAtRet),l:'Nest egg needed at '+st.retireAge},{n:fmt(haveAtRet),l:'Projected, no new saving'}];
+      renderSavingsPlan({reqAtRet,haveAtRet,gap,annual,N,plan,st});
+    }
+  } else {
+    renderSavingsPlan(null);
+  }
+
+  const v=$('verdict'); v.className='verdict '+cls;
+  $('vBadge').textContent=badge; $('vTitle').textContent=title; $('vBody').innerHTML=body;
+  $('vStats').innerHTML = stats.map(s=>`<div class="v-stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('');
+  // ---- Optimal Social Security claiming callout ----
+  (function(){
+    const vc=$('vClaim'); if(!vc) return;
+    const optL = opt.total;
+    const cur = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia).total;
+    const early = lifeSSrealPair(st, 62, 62, piaMonthly, spousePia).total;
+    const claimTxt = st.married? `<b>you at ${opt.claimP}</b> and <b>your spouse at ${opt.claimS}</b>` : `<b>age ${opt.claimP}</b>`;
+    let h = `<b>Optimal Social Security claiming:</b> claim ${claimTxt}. It is projected to deliver about <b>${fmt(optL)}</b> of lifetime household benefits in today's dollars over your planning horizon`;
+    const gain = optL - early;
+    h += (gain>500)? ` — roughly <b>${fmt(gain)}</b> more than claiming as early as possible (62).` : `.`;
+    if(overridden){
+      const diff = optL - cur;
+      h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
+    }
+    h += ` <span style="color:var(--ink2);">The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.</span>`;
+    vc.innerHTML = h; vc.style.display='block';
+  })();
+  // ---- Optimal tax-strategy callout ----
+  (function(){
+    const vt=$('vTax'); if(!vt) return;
+    const b=taxOpt.best, base=taxOpt.baseline;
+    const convTxt = idx => idx>=0? `Roth conversions filling the <b>${({2:'12%',3:'22%',4:'24%'})[idx]}</b> bracket` : null;
+    const smTxt = b.smooth? `<b>bracket &amp; IRMAA smoothing</b>` : null;
+    const parts = [smTxt, convTxt(b.rothConvIdx)].filter(Boolean);
+    let strategy;
+    if(parts.length===0) strategy = `drawing pre-tax straight down with <b>no smoothing or conversions</b> (already the most tax-efficient here)`;
+    else if(parts.length===1) strategy = parts[0];
+    else strategy = parts.join(' plus ');
+    let h = `<b>Optimal tax strategy:</b> ${strategy}. Projected lifetime taxes — income tax, IRMAA surcharges and heirs' tax — total about <b>${fmt(b.total)}</b> in today's dollars`;
+    const save = (base? base.total : b.total) - b.total;
+    h += (save>500)? ` — roughly <b>${fmt(save)}</b> less than taking no smoothing or conversions.` : `.`;
+    if(taxOverridden){
+      const curIdx = st.rothConvIdx, curSm = st.smooth;
+      const curParts=[curSm?'smoothing on':'smoothing off', curIdx>=0?('Roth→'+({2:'12%',3:'22%',4:'24%'}[curIdx])):'no conversions'];
+      h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to ${curParts.join(', ')}. Use "Use optimal tax strategy" in Advanced to restore.</span>`;
+    }
+    vt.innerHTML = h; vt.style.display='block';
+  })();
+  // Estate & heirs callout (highlighted when federal estate tax applies)
+  const est = estateEstimate(st, rows);
+  const ve = $('vEstate');
+  if(est && est.gross>1){
+    if(est.estateTax>0){
+      ve.className='v-estate warn';
+      ve.innerHTML = `<span class="et">⚠ Federal estate tax may apply.</span> The projected estate of <b>${fmt(est.gross)}</b> at age ${est.deathAge} exceeds the ~${fmt(est.exemption)} exemption${est.persons>1?' (two exemptions via portability)':''}, so heirs may owe about <b>${fmt(est.estateTax)}</b> in estate tax, plus roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax/HSA balances. Estimated <b>${fmt(est.net)}</b> would pass to heirs.`;
+    } else {
+      ve.className='v-estate';
+      ve.innerHTML = `<b>Estate &amp; heirs:</b> about <b>${fmt(est.gross)}</b> at age ${est.deathAge} — below the ~${fmt(est.exemption)} federal estate-tax exemption, so no estate tax. Heirs owe roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax accounts (10-year rule) and any HSA${est.incomeTax<1?'':''}; Roth and the stepped-up taxable account pass tax-free. Net to heirs ≈ <b>${fmt(est.net)}</b>.`;
+    }
+    ve.style.display='block';
+  } else { ve.style.display='none'; }
+  lastRun = {badge, title, stats, st, rows, est}; // captured for scenario export (same data shown on screen)
+
+  const lifeNomP = rows.reduce((a,r)=>a+(r.ssP||0),0), lifeNomS = rows.reduce((a,r)=>a+(r.ssS||0),0);
+  const lifeReal = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia);
+  renderTab1(st,rows);
+  renderTab2(st, {piaCalc, spPiaCalc, benefitP, benefitS, ssPrimaryAnnual, ssSpouseAnnual, lifeNom:lifeNomP+lifeNomS, lifeNomP, lifeNomS, lifeReal, opt});
+  renderTab3(st,rows);
+  renderMethod(st);
+}
+
+function renderSavingsPlan(d){
+  const el=$('savingsPlan');
+  if(!el) return;
+  if(!d){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  const {reqAtRet,haveAtRet,gap,annual,N,plan,st}=d;
+  const ppl2 = plan.ppl>1?' ×2 (both spouses)':'';
+  const allocRows=[
+    ['Pre-tax / Roth 401(k)', plan.to401, plan.max401, 'Retirement account'+ppl2],
+    ['IRA (Traditional / Roth)', plan.toIRA, plan.maxIRA, 'Retirement account'+ppl2],
+    ['Taxable brokerage', plan.toTax, null, 'Personal savings — no limit']
+  ].filter(r=>r[1]>0.5);
+  const allocHTML = allocRows.length? allocRows.map(r=>`<tr><td>${r[0]}</td><td class="sp-num">${fmt(r[1])}/yr</td><td>${r[2]!=null?('of '+fmt(r[2]))+' cap':'—'}</td><td class="sp-tag">${r[3]}</td></tr>`).join('')
+    : `<tr><td colspan="4">No additional saving needed.</td></tr>`;
+  el.innerHTML=`
+    <div class="sp-head">Your savings plan to retire at ${st.retireAge}</div>
+    <table class="sp-table"><tbody>
+      <tr><td>Nest egg needed at retirement</td><td class="sp-num">${fmt(reqAtRet)}</td></tr>
+      <tr><td>Projected balance with no new saving</td><td class="sp-num">${fmt(haveAtRet)}</td></tr>
+      <tr class="sp-gap"><td>Shortfall to close</td><td class="sp-num">${fmt(gap)}</td></tr>
+      <tr class="sp-total"><td>Save this much each year, for ${N} years</td><td class="sp-num">${fmt(annual)}/yr</td></tr>
+    </tbody></table>
+    <div class="sp-sub">Where to put it — retirement accounts first, to their 2026 caps, then personal savings:</div>
+    <table class="sp-table"><thead><tr><th>Account</th><th>Annual saving</th><th>2026 limit</th><th></th></tr></thead><tbody>${allocHTML}</tbody></table>
+    <div class="sp-note">The shortfall is closed with a level annual contribution growing at your ${pct(st.ret*100)} expected return. Tax-advantaged retirement accounts (401(k), then IRA) are filled to their 2026 limits first; anything beyond that goes to a taxable brokerage as personal savings. Saving more in the early years does more work than this level figure implies.</div>`;
+}
+
+function capContrib(annual, st){
+  const age=st.ageNow; // catch-up eligibility based on current age
+  function lim401(ag){ let l=24500; if(ag>=60&&ag<=63) l+=11250; else if(ag>=50) l+=8000; return l; }
+  function limIRA(ag){ return 7500 + (ag>=50?1100:0); }
+  const ppl = st.married?2:1;
+  const max401 = lim401(age)*ppl, maxIRA=limIRA(age)*ppl;
+  let rem=Math.max(0,annual), to401=Math.min(rem,max401); rem-=to401;
+  let toIRA=Math.min(rem,maxIRA); rem-=toIRA;
+  let toTax=Math.max(0,rem);
+  return {to401, toIRA, toTax, max401, maxIRA, taxAdvCap:max401+maxIRA, ppl};
+}
+
+/* ============================ TABS ============================ */
+function card(l,n,d,a){ return `<div class="hcard${a?' '+a:''}"><div class="l">${l}</div><div class="n">${n}</div>${d?`<div class="d">${d}</div>`:''}</div>`; }
+
+function renderTab1(st,rows){
+  const first=rows[0];
+  const planEnd = (st.married && st.endAgeSpouse!=null)? Math.max(st.endAge, st.endAgeSpouse) : st.endAge;
+  const totalStart=first.pretax+first.roth+first.savPrin+first.savGain+(first.hsa||0);
+  const endBal=rows[rows.length-1];
+  const endTot=endBal.endPretax+endBal.endRoth+endBal.endSav+(endBal.endHsa||0);
+  $('cards1').innerHTML =
+    card('Portfolio at retirement', fmt(totalStart), 'age '+st.retireAge, 'green')+
+    card('Yr-1 retirement draw', fmt(first.wRet), first.note?('rule '+first.note):'flexible', 'brass')+
+    card('Yr-1 savings draw', fmt(first.wSav), 'taxable top-up', 'blue')+
+    card('Balance at age '+planEnd, fmt(endTot),'', endTot>1?'green':'red');
+  // chart
+  const labels=rows.map(r=>r.age);
+  if(chart1) chart1.destroy();
+  const hasHSA = (st.hsa0>0) || rows.some(r=>r.endHsa>1);
+  const datasets=[
+    {label:'Pre-tax',data:rows.map(r=>r.endPretax),borderColor:'#2f6b4a',backgroundColor:'rgba(47,107,74,.10)',fill:true,tension:.25,pointRadius:0,borderWidth:2},
+    {label:'Roth',data:rows.map(r=>r.endRoth),borderColor:'#9a7b2e',backgroundColor:'rgba(154,123,46,.10)',fill:true,tension:.25,pointRadius:0,borderWidth:2},
+    {label:'Personal savings',data:rows.map(r=>r.endSav),borderColor:'#2f5d83',backgroundColor:'rgba(47,93,131,.10)',fill:true,tension:.25,pointRadius:0,borderWidth:2}
+  ];
+  if(hasHSA) datasets.push({label:'HSA',data:rows.map(r=>r.endHsa),borderColor:'#a8362a',backgroundColor:'rgba(168,54,42,.08)',fill:true,tension:.25,pointRadius:0,borderWidth:2,borderDash:[5,3]});
+  chart1=new Chart($('chart1'),{type:'line',data:{labels,datasets},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{family:'IBM Plex Mono',size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{x:{title:{display:true,text:'Age',font:{family:'IBM Plex Mono'}},grid:{display:false}},y:{ticks:{callback:v=>{const a=Math.abs(v); if(a>=1e6) return '$'+(v/1e6)+'m'; if(a>=1e3) return '$'+(v/1e3)+'k'; return '$'+v;},font:{family:'IBM Plex Mono'}}}}}});
+  // Estate & heirs breakdown
+  const est = estateEstimate(st, rows), eb=$('estateBox');
+  if(est && est.gross>1){
+    eb.style.display='block';
+    eb.innerHTML = `<h3 style="margin:0 0 4px;">What your heirs inherit <span style="font-weight:400;color:var(--ink2);">— at the final death (age ${est.deathAge}, ${est.year})</span></h3>`+
+      `<div class="cards" style="margin-top:12px;">`+
+        card('Gross estate', fmt(est.gross), 'all accounts, nominal', 'green')+
+        card('Federal estate tax', fmt(est.estateTax), est.estateTax>0?('40% over '+fmt(est.exemption)):('under '+fmt(est.exemption)+' exemption'), est.estateTax>0?'red':'')+
+        card('Heirs\u2019 income tax', fmt(est.incomeTax), 'pre-tax + HSA @ 22%', est.incomeTax>0?'brass':'')+
+        card('Net to heirs', fmt(est.net), 'after both taxes', 'blue')+
+      `</div>`+
+      `<table class="sp-table" style="margin-top:14px;"><thead><tr><th>Inherited asset</th><th>Value</th><th>Heir treatment</th></tr></thead><tbody>`+
+        `<tr><td>Pre-tax (Traditional IRA/401k)</td><td class="sp-num">${fmt(est.pretax)}</td><td>Withdraw within 10 years; taxed as ordinary income (assumed 22%) → ${fmt(0.22*est.pretax)}</td></tr>`+
+        `<tr><td>HSA</td><td class="sp-num">${fmt(est.hsa)}</td><td>${est.hsa>1?'Immediately taxable to a non-spouse heir as ordinary income (22%) → '+fmt(0.22*est.hsa):'—'}</td></tr>`+
+        `<tr><td>Roth</td><td class="sp-num">${fmt(est.roth)}</td><td>Tax-free (emptied within 10 years, no income tax)</td></tr>`+
+        `<tr><td>Taxable brokerage</td><td class="sp-num">${fmt(est.sav)}</td><td>Stepped-up cost basis at death → no capital-gains tax</td></tr>`+
+      `</tbody></table>`+
+      `<div class="sp-note">Federal estate tax applies only above the ${fmt(est.exemption)} exemption${est.persons>1?' (two exemptions, assuming portability of the first spouse\u2019s)':''}, inflation-indexed from the 2026 $15M/person level and taxed at 40%. Income tax assumes heirs are in the 22% bracket; state estate/inheritance taxes and the income-tax-on-estate-tax (IRD) deduction are not modeled.</div>`;
+  } else { eb.style.display='none'; }
+  // table
+  const showHSA = hasHSA;
+  let h='<thead><tr><th>Age</th><th>Year</th><th>Ret. draw</th><th>Sav. draw</th><th>SS</th><th>Spendable</th><th>Pre-tax bal</th><th>Roth bal</th><th>Savings bal</th>'+(showHSA?'<th>HSA bal</th>':'')+'</tr></thead><tbody>';
+  rows.forEach(r=>{ const klass=r.shortfall>1?'depleted':(r.mode==='r55'?'r55':(r.mode==='sepp'?'sepp':''));
+    h+=`<tr class="${klass} ${r.note.includes('‡')?'rmd':''}"><td>${r.age}${r.note?' '+r.note:''}</td><td>${r.year}</td><td>${fmt(r.wRet)}</td><td>${fmt(r.wSav)}</td><td>${fmt(r.ss)}</td><td>${fmt(r.spendable)}</td><td>${fmt(r.endPretax)}</td><td>${fmt(r.endRoth)}</td><td>${fmt(r.endSav)}</td>`+(showHSA?`<td>${fmt(r.endHsa)}</td>`:'')+`</tr>`; });
+  h+='</tbody>'; $('tbl1').innerHTML=h;
+}
+
+function wageTableHTML(arr, which){
+  let h='<thead><tr><th>Year</th><th>Age</th><th>Earnings (capped)</th></tr></thead><tbody>';
+  arr.forEach((w,i)=>{ h+=`<tr><td>${w.year}</td><td>${w.age}</td><td><input class="editcell" data-arr="${which}" data-i="${i}" type="text" inputmode="numeric" value="${w.earn.toLocaleString('en-US')}"></td></tr>`; });
+  return h+'</tbody>';
+}
+// Summary-only tab: cards + a per-person breakdown including lifetime SS (nominal AND today's dollars) and actual
+// career earnings on record. The editable earnings tables live in the Social Security input section (renderWageEditor).
+function renderTab2(st, D){
+  const ownMode = st.married && SWAGES && SWAGES.length;
+  const careerEarnP = (WAGES||[]).reduce((a,w)=>a+(w.earn||0),0);
+  const careerEarnS = ownMode? (SWAGES||[]).reduce((a,w)=>a+(w.earn||0),0) : 0;
+  let cards =
+    card('Your PIA (FRA 67)', fmt(D.piaCalc.pia)+'/mo', 'AIME '+fmt(D.piaCalc.aime), 'green')+
+    card('Your benefit @ '+st.claim, fmt(D.benefitP/12)+'/mo', fmt(D.benefitP)+'/yr', 'green');
+  if(st.married){
+    cards += card('Spouse benefit @ '+st.claimSpouse, fmt(D.benefitS/12)+'/mo', ownMode? 'own or spousal, larger':'spousal, 50% of higher PIA', 'blue');
+  } else {
+    cards += card('Filing','Single','never married','blue');
+  }
+  cards += card('Lifetime SS — today’s $', fmt(D.lifeReal.total), 'household, present value', 'brass');
+  $('cards2').innerHTML = cards;
+
+  const rowsHtml=[];
+  const prow=(label,claimAge,monthly,annual,lifeNom,lifeReal,career)=>
+    rowsHtml.push(`<tr><td>${label}</td><td class="sp-num">${claimAge!=null?claimAge:'—'}</td><td class="sp-num">${fmt(monthly)}</td><td class="sp-num">${fmt(annual)}</td><td class="sp-num">${fmt(lifeNom)}</td><td class="sp-num">${fmt(lifeReal)}</td><td class="sp-num">${career!=null?fmt(career):'—'}</td></tr>`);
+  prow('You', st.claim, D.benefitP/12, D.benefitP, D.lifeNomP, D.lifeReal.byP, careerEarnP);
+  if(st.married) prow('Spouse', st.claimSpouse, D.benefitS/12, D.benefitS, D.lifeNomS, D.lifeReal.byS, ownMode? careerEarnS : null);
+  const hh = `<tr class="sp-total"><td>Household</td><td></td><td></td><td></td><td class="sp-num">${fmt(D.lifeNom)}</td><td class="sp-num">${fmt(D.lifeReal.total)}</td><td class="sp-num">${fmt(careerEarnP+careerEarnS)}</td></tr>`;
+  $('ssDetail').innerHTML = `
+    <table class="sp-table" style="margin-top:4px;"><thead><tr><th>Person</th><th>Claim age</th><th>Monthly benefit</th><th>Annual benefit</th><th>Lifetime SS (nominal)</th><th>Lifetime SS (today’s $)</th><th>Career earnings on record</th></tr></thead><tbody>${rowsHtml.join('')}${hh}</tbody></table>
+    <div class="sp-note">Monthly/annual is the steady-state benefit while both spouses are alive and have filed (including any spousal top-up). <b>Career earnings on record</b> is the sum of capped taxable wages — the basis for the AIME &amp; PIA; edit it under the Social Security input section above. ${st.optClaim? `Optimal claiming ages: <b>you ${st.optClaim.claimP}${st.married?', spouse '+st.optClaim.claimS:''}</b> (see the verdict banner).`:''}</div>`;
+}
+
+// Editable earnings records, rendered into the Social Security input section. Sub-tabbed (You / Spouse) when modeling
+// the spouse's own record; a single table otherwise. The active sub-tab survives re-renders.
+let ssRecActive='p';
+function renderWageEditor(st){
+  const wrap=$('wageWrap'), tabsEl=$('ssRecTabs'); if(!wrap||!tabsEl) return;
+  const ownMode = st.married && SWAGES && SWAGES.length;
+  if(ownMode){
+    tabsEl.style.display='flex';
+    tabsEl.innerHTML = `<button class="tab${ssRecActive==='p'?' on':''}" data-w="p">Your earnings record</button><button class="tab${ssRecActive==='s'?' on':''}" data-w="s">Spouse's earnings record</button>`;
+    wrap.innerHTML = `<div class="ssrec-pane" data-w="p" style="display:${ssRecActive==='p'?'block':'none'};"><div class="tablescroll"><table>${wageTableHTML(WAGES,'p')}</table></div></div>`
+      + `<div class="ssrec-pane" data-w="s" style="display:${ssRecActive==='s'?'block':'none'};"><div class="tablescroll"><table>${wageTableHTML(SWAGES,'s')}</table></div></div>`;
+    tabsEl.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ ssRecActive=t.dataset.w; tabsEl.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t)); wrap.querySelectorAll('.ssrec-pane').forEach(p=>p.style.display=(p.dataset.w===ssRecActive)?'block':'none'); });
+  } else {
+    ssRecActive='p'; tabsEl.style.display='none'; tabsEl.innerHTML='';
+    wrap.innerHTML = `<div class="tablescroll"><table>${wageTableHTML(WAGES,'p')}</table></div>`;
+  }
+  wrap.querySelectorAll('.editcell').forEach(inp=>inp.addEventListener('change',e=>{
+    const spouse = e.target.dataset.arr==='s';
+    const arr = spouse ? SWAGES : WAGES;
+    arr[+e.target.dataset.i].earn = parseFloat((e.target.value||'').replace(/,/g,''))||0;
+    if(spouse) swagesEdited=true; else wagesEdited=true;
+    run();
+  }));
+}
+
+function renderTab3(st,rows){
+  const lifeTax=rows.reduce((s,r)=>s+r.tax,0);
+  const lifeMedGross=rows.reduce((s,r)=>s+(r.medicareGross||0),0);
+  const lifeOOP=rows.reduce((s,r)=>s+(r.oopMedGross||0),0);
+  const lifeHsaMed=rows.reduce((s,r)=>s+(r.hsaUsedForMed||0),0);
+  const lifeHC=rows.reduce((s,r)=>s+r.health,0);
+  const anyHsaMed = lifeHsaMed>0.5;
+  $('cards3').innerHTML =
+    card('Lifetime federal+state tax', fmt(lifeTax),'over the plan', 'red')+
+    card('Lifetime Medicare + out-of-pocket', fmt(lifeMedGross+lifeOOP), anyHsaMed?(fmt(lifeHsaMed)+' paid via HSA'):'premiums + cost-sharing', 'brass')+
+    card('Lifetime pre-65 premiums', fmt(lifeHC),'ACA before Medicare', 'blue')+
+    card('Lifetime SS collected', fmt(rows.reduce((s,r)=>s+r.ss,0)),'', 'green');
+  function medTip(r){
+    const d=r.medDetail; if(!d) return '';
+    const ppl=r.personsOnMedicare||1; const L=[];
+    L.push(`Medicare premium · age ${r.age} (${r.year}, nominal $)`);
+    L.push(`MAGI 2 yrs prior: ${fmt(d.magiLag)} → ${d.tier===0?'standard premium, no IRMAA surcharge':'IRMAA tier '+d.tier+' of 5'}`);
+    let pl=`Per person/yr: Part B ${fmt(d.partB*12)} + Part D ${fmt(d.partD*12)}`;
+    if(d.tier>0) pl+=` + IRMAA surcharge (Part B ${fmt(d.irmaaB*12)}, Part D ${fmt(d.irmaaD*12)})`;
+    L.push(pl);
+    L.push(`× ${ppl} ${ppl>1?'people':'person'} = ${fmt(r.medicareGross)}`);
+    if((r.hsaToPrem||0)>0.5) L.push(`${fmt(r.hsaToPrem)} paid tax-free from HSA`);
+    return L.join('&#10;');
+  }
+  function oopTip(r){
+    const ppl=(r.personsPre65||0)+(r.personsOnMedicare||0); if(ppl<1) return '';
+    const pre = (r.personsPre65||0)>0; const L=[];
+    L.push(`Out-of-pocket medical · age ${r.age} (${r.year}, nominal $)`);
+    L.push(pre?`Deductibles, copays and coinsurance on a marketplace plan`:`Cost-sharing, dental/vision/hearing and uncovered care`);
+    L.push(`${ppl} ${ppl>1?'people':'person'}, grown at the medical trend = ${fmt(r.oopMedGross||0)}`);
+    if((r.hsaToOOP||0)>0.5) L.push(`${fmt(r.hsaToOOP)} paid tax-free from HSA`);
+    return L.join('&#10;');
+  }
+  const anyConv = rows.some(r=>(r.rothConv||0)>0.5);
+  let h='<thead><tr><th>Age</th><th>SS</th><th>Ret. draw</th><th>Sav. draw</th>'+(anyConv?'<th>Roth conv.</th>':'')+'<th>Taxable SS</th><th>Fed tax</th><th>State tax</th><th>Medicare</th><th>OOP medical</th><th>Pre-65 health</th><th>Spendable</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const medGross=(r.medicareGross||0), oopG=(r.oopMedGross||0);
+    const medCell = (r.hsaToPrem||0)>0.5
+      ? `<td class="hsa-med" title="${medTip(r)}">${fmt(medGross)}<span class="hsa-tag">HSA</span></td>`
+      : `<td title="${medTip(r)}">${fmt(medGross)}</td>`;
+    const oopCell = oopG<0.5 ? `<td>${fmt(0)}</td>`
+      : ((r.hsaToOOP||0)>0.5
+        ? `<td class="hsa-med" title="${oopTip(r)}">${fmt(oopG)}<span class="hsa-tag">HSA</span></td>`
+        : `<td title="${oopTip(r)}">${fmt(oopG)}</td>`);
+    const convCell = anyConv ? ((r.rothConv||0)>0.5 ? `<td class="conv" title="Pre-tax → Roth conversion, filling ordinary income to the chosen bracket top. Taxed now; grows tax-free in Roth.">${fmt(r.rothConv)}</td>` : `<td>${fmt(0)}</td>`) : '';
+    const ageCell = r.survivor ? `${r.survAge} <span title="Surviving spouse: single filing, the larger of the two Social Security benefits, and one-person Medicare &amp; out-of-pocket." style="color:var(--brass);font-weight:600;">▸</span>` : `${r.age}${r.note?' '+r.note:''}`;
+    h+=`<tr class="${r.note.includes('‡')?'rmd':''}"><td>${ageCell}</td><td>${fmt(r.ss)}</td><td>${fmt(r.wRet)}</td><td>${fmt(r.wSav)}</td>${convCell}<td>${fmt(r.taxSS)}</td><td>${fmt(r.fed)}</td><td>${fmt(r.state)}</td>${medCell}${oopCell}<td>${fmt(r.health)}</td><td>${fmt(r.spendable)}</td></tr>`;
+  });
+  h+='</tbody>'; $('tbl3').innerHTML=h;
+  const convNote = anyConv ? ` The <b>Roth conv.</b> column shows pre-tax dollars converted to Roth that year to fill the chosen bracket.` : '';
+  const anySurv = rows.some(r=>r.survivor);
+  const survNote = anySurv ? ` A <span style="color:var(--brass);font-weight:600;">▸</span> marks the surviving-spouse years (the age shown switches to the survivor): single filing, the larger single Social Security benefit, and one-person Medicare &amp; out-of-pocket.` : '';
+  $('hsaLegend').innerHTML = (anyHsaMed
+    ? ` Medicare &amp; OOP show the full cost; a <span class="hsa-tag">HSA</span> tag (in red) marks amounts paid tax-free from your HSA. Hover any Medicare cell for the IRMAA breakdown.`
+    : ` Hover any Medicare cell for the IRMAA breakdown.`) + convNote + survNote;
+}
+
+/* ============================ METHOD ============================ */
+function renderMethod(st){
+  $('method').innerHTML = `
+  <h2>How the model works</h2>
+  <p><b>The target-income waterfall.</b> You set a desired annual income <i>after</i> federal &amp; state tax, Medicare, out-of-pocket medical and pre-65 health premiums (today's dollars, grown by inflation). Each year the model funds it from a priority waterfall: other income and <b>Social Security</b> first, then a <b>retirement-account</b> withdrawal solved by bisection to hit the target, then <b>personal savings</b> for any remainder. Within the accounts, withdrawals follow their own order — <b>pre-tax</b> (Traditional, taxed as ordinary income) drains first, then any <b>HSA surplus</b>, then <b>taxable personal savings</b>, and finally <b>Roth</b>, the last-resort filler so it keeps compounding tax-free. The <b>Health Savings Account (HSA)</b> gets special handling: it grows tax-free and is <b>reserved first to cover your projected future Medicare premiums and out-of-pocket medical</b> (both of which it can pay tax-free), with the reserve sized by present-valuing that remaining cost stream at your growth rate; only the surplus above the reserve is drained as ordinary income, so the account isn't spent down before the bills it exists to cover arrive. In <b>Plain rule</b> mode the model instead withdraws a fixed percentage of the starting balance, grown by inflation.</p>
+  <p><b>Taxes on your withdrawals.</b> Personal savings splits into already-taxed <b>principal</b> (spendable tax-free) and <b>unrealized gains</b>, realized proportionally on each withdrawal and taxed at long-term capital-gains rates (0/15/20%), stacked on top of ordinary income. The <b>Net Investment Income Tax (NIIT)</b> — an extra 3.8% on investment income above ${st.married?'$250k (MFJ)':'$200k (single)'} of <b>MAGI</b> (Modified Adjusted Gross Income) — is included, as is taxable <b>Social Security</b> via the provisional-income formula. The <b>OBBBA senior bonus deduction</b> — an extra $6,000 per filer aged 65+ for tax years 2025&ndash;2028, phasing out at 6% of MAGI above $75k single / $150k joint — is applied while it's in force. Filing status is <b>${st.married?'married filing jointly while both spouses are alive':'single'}</b>; federal brackets and the standard deduction (plus the 65+ addition) are inflation-indexed.</p>
+  <p><b>State income tax &mdash; coverage.</b> The model covers <b>all 50 states and DC</b>: the nine <b>no-income-tax</b> states ($0), the fifteen <b>flat-rate</b> states, and every <b>graduated-rate</b> state with its full 2025 brackets (rates and thresholds from the Tax Foundation's 2025 tables, including California's 1% surcharge over $1M and the Massachusetts 4% surtax over ~$1.08M). Each state applies its own 2025 standard deduction or personal exemption (CPI-indexed), and <b>Social Security is exempt</b> in every state (only nine tax it, mostly via income limits). A custom flat rate is available for any edge case.</p>
+  <p><b>State income tax &mdash; retirement income &amp; capital gains.</b> Each state's retirement-income rules are applied: Illinois, Pennsylvania, Mississippi, Iowa and Michigan fully exempt IRA/401(k) and pension withdrawals; New Jersey and Connecticut fully exempt them below an income limit; and many others (Georgia, Colorado, Kentucky, Louisiana, New York, Delaware, Virginia, South Carolina, Maryland, Oklahoma, Rhode Island, West Virginia, Wisconsin, Maine, Arkansas) exempt a capped amount. Capital gains are taxed as ordinary income except where a state excludes part of them — Missouri (fully exempt), South Carolina (44% excluded), Arkansas (50%), Wisconsin (30%), and North Dakota and New Mexico (40%). Local and county income taxes (e.g. Maryland, Ohio, New York City, Kentucky), tax-benefit recapture, and credit-based deductions aren't modeled, so state figures are close estimates rather than line-by-line returns.</p>
+  <p><b>Bracket &amp; IRMAA smoothing.</b> An optional toggle caps pre-tax withdrawals at the lower of the first IRMAA cliff and the top of the 24% bracket, funding the rest from taxable savings then Roth — pre-tax is still drained first, just held under the cliff where savings and Roth can cover the gap.</p>
+  <p><b>Roth conversions.</b> An optional <b>"fill the bracket"</b> conversion does the opposite in low-income years: after funding the year's target, it converts pre-tax &rarr; Roth up to the top of a chosen bracket (12%, 22% or 24%), paying the conversion tax from taxable savings so spending stays on target. This deliberately pays tax now at a known low rate to shrink future Required Minimum Distributions and build a Roth balance that later withdraws tax-free and never counts toward MAGI or IRMAA. Conversions are paused during an active 72(t) SEPP period (extra distributions would bust the plan) and resume once it ends; the amount converted each year appears in the Income &amp; tax ledger.</p>
+  <p><b>Tax-strategy optimization.</b> Rather than defaulting both controls off, the model runs all eight combinations of bracket/IRMAA smoothing (off/on) and Roth-conversion bracket (off, 12%, 22%, 24%) and selects the one with the smallest <b>total tax footprint in today's dollars</b> — lifetime federal &amp; state income tax, the IRMAA surcharge portion of Medicare, and the income/estate tax your heirs would owe at the final death, each year deflated back to present value. Because a Roth conversion costs tax now but shrinks future RMD-driven income, IRMAA and the heirs' bill, only the full footprint reveals which combination is genuinely cheaper; a shortfall guard is applied first, so a strategy is never chosen if it would make the plan deplete earlier. The winning combination is used as the default and named in the verdict banner with its dollar advantage over doing nothing; override either control under Advanced and the banner shows the trade-off.</p>
+  <p>${st.married?`<b>Planning horizon &amp; survivor scenario.</b> Each spouse is projected to live to their own <b>plan-to age</b>, defaulting to the life-table life expectancy for their age and sex (you: ${st.endAge}, spouse: ${st.endAgeSpouse}) — both editable. The projection runs to whichever spouse lives longer. When the first spouse passes, the survivor switches to <b>single</b> filing (single brackets, standard deduction, IRMAA and NIIT thresholds), keeps only the <b>larger</b> of the two Social Security benefits (the smaller check stops; no spousal add-on), and incurs Medicare premiums and out-of-pocket costs for <b>one person</b>. The shared portfolio keeps funding the same target for the survivor, and those years are marked with a &#9656; in the Income &amp; tax ledger.`:`<b>Planning horizon.</b> The planning age defaults to your life expectancy (currently ${st.endAge}) from the SSA period life table for your age and sex — editable; since mean life expectancy implies roughly a 50% chance of living longer, planning to 90+ is a common safety margin.`}</p>
+  <p><b>Social Security.</b> A career earnings record (start at 22, through your retirement age — years worked are inferred, not entered) is capped at the wage base, indexed to wage growth via SSA's Average Wage Index (factor = AWI at age 60 ÷ AWI in year), and the highest 35 indexed years are averaged into the <b>AIME</b> (Average Indexed Monthly Earnings). The <b>PIA</b> (Primary Insurance Amount — your benefit at the full retirement age of 67) applies the 2026 bend-point formula: 90% of the first $${fmt0(BEND1)}, 32% up to $${fmt0(BEND2)}, and 15% above. Claiming adjustments relative to FRA are −5⁄9% per month for the first 36 months early and −5⁄12% beyond (age 62 ≈ 70% of PIA), or +8%/yr delayed credit to age 70 (≈124%). The estimate is benchmarked against SSA's published 2026 maximum-benefit figures. The earnings records are editable under the Social Security input section — type any year's actual wages from your SSA statement for a far more accurate benefit, or reset to the modeled default. ${st.married?'You and your spouse each set <b>your own claiming age</b> (the spouse\u2019s defaults to yours until you change it), and each benefit is adjusted on that person\u2019s own age. Your spouse receives the greater of their <b>own record</b> (claimed at the spouse\u2019s age, able to earn delayed credit) or a <b>spousal benefit</b> — 50% of the higher-earner PIA, applied symmetrically so whichever spouse earned less is topped up once the higher earner files. The spousal benefit is reduced if it first becomes payable before the spouse\u2019s full retirement age of 67 (25⁄36 of 1% per month early, then 5⁄12 of 1% per month) and earns <b>no delayed-retirement credit</b>, so it never exceeds the 50% figure. Because a spousal benefit also can\u2019t be paid until you (the primary earner) have actually filed, its reduction is measured from whenever it can first begin — the later of the spouse\u2019s claim age and the spouse\u2019s age when you file — so if you claim much later than your spouse, their spousal portion simply starts (unreduced if they\u2019re past 67 by then) when you file. The Social Security tab shows the household\u2019s <b>lifetime benefits claimed</b> across the plan. If one spouse dies, the survivor keeps the <b>larger</b> of the two benefits and the smaller one stops — so household Social Security steps down to a single check.':''}</p>
+  <p><b>Optimal claiming strategy.</b> Rather than defaulting to full retirement age, the model searches every claiming age from 62 to 70${st.married?' (for both spouses jointly)':''} and picks the ${st.married?'combination':'age'} that <b>maximizes total ${st.married?'household ':''}benefits in today’s dollars</b> over your planning horizon — the lifetime benefits ${st.married?'each of you collects':'you collect'}, deflated back to present purchasing power and summed across the plan. Because Social Security carries a cost-of-living adjustment equal to inflation, a later, larger check keeps its full delayed-credit premium in real terms. ${st.married?'And because the survivor inherits the <b>larger</b> of the two benefits, delaying the higher earner pays off twice — once for that earner’s own longevity and again for every survivor year, so the higher earner is usually nudged toward 70 while the lower earner may claim earlier. ':''}The exact answer depends on your ${st.married?'two life expectancies and earnings records':'life expectancy and earnings record'}; the chosen ${st.married?'strategy':'age'} and its dollar value appear in the verdict banner, and overriding ${st.married?'either age':'it'} under Advanced shows what your choice costs versus the optimum.</p>
+  <p><b>Medicare, out-of-pocket &amp; health before 65.</b> From 65, the model applies the Part B ($202.90/mo) and Part D ($34.50/mo) base premiums plus full <b>IRMAA</b> surcharges${st.married?', doubled for a couple both on Medicare':''}, grown to nominal dollars at a <b>Medicare-specific premium trend</b> (default 5.5% — Part B has risen ~4.5%/yr over 20 years and ~5.8% recently per CMS, below the broader commercial trend). IRMAA is the income-related surcharge for higher earners: the tier is set by your <b>MAGI</b> (Modified Adjusted Gross Income) from two years prior, compared against the 2026 brackets ($109k single / $218k joint and up) which are themselves <b>inflation-indexed</b> forward, so ordinary inflation alone doesn't push you into higher tiers. Hover any Medicare cell in the ledger for the exact tier and per-person breakdown. On top of premiums, the model adds <b>out-of-pocket medical</b> (cost-sharing, dental/vision/hearing and uncovered care) at every retirement age — defaulting to $5,000/person before 65 (marketplace deductibles run higher; average ~$3,800, KFF 2026) and $4,000/person on Medicare (KFF reports ~$6,460/yr total including premiums), both editable and grown at the healthcare trend. A larger Roth balance helps twice: Roth withdrawals don't count toward MAGI, so they neither add tax nor push you over an IRMAA cliff. If you hold an <b>HSA</b>, the model pays Medicare premiums and out-of-pocket medical from it tax-free first — including before 65, since an HSA covers qualified out-of-pocket costs at any age. Retiring before 65 also triggers an estimated unsubsidized <b>ACA</b> premium scaled to age (≈$1,448/mo for a 60+ adult, national average) at the healthcare trend (default 6.5%, vs ~7.5% recent individual-market trend); HSAs can't pay ACA premiums tax-free, so only those are funded from cash flow.</p>
+  <p><b>Early-withdrawal rules.</b> The IRS 10% early-withdrawal penalty shapes how retirement accounts can be tapped before 59½, so the model adapts to your retirement age. At <b>55–59½</b> the <b>Rule of 55</b> lets you draw your former employer's 401(k) penalty-free, so withdrawals stay flexible to hit the target (rows shaded amber, §) — note that IRAs don't qualify and would need to be rolled into the 401(k) first. Retire <b>under 55</b> and penalty-free access requires <b>72(t) "substantially equal periodic payments" (SEPP)</b>: the model fixes the annual draw at an amortization-method amount (single-life expectancy, ~5%) until 59½ and routes any extra need to personal savings (rows shaded red, §). At 59½, normal flexible withdrawals resume.</p>
+  <p><b>Required Minimum Distributions.</b> Under SECURE 2.0, pre-tax (Traditional) accounts must distribute a minimum each year from your <b>required-beginning age</b> — ${rmdStartAge(NOW-st.ageNow)} for you (73 if born 1951–1959, 75 if born 1960 or later); Roth accounts are exempt during the owner's lifetime. The model treats the RMD as a withdrawal floor: it divides the prior year-end balance by the IRS Uniform Lifetime Table divisor (26.5 at 73, 24.6 at 75, 20.2 at 80, 12.2 at 90…) and forces the larger amount if it exceeds your planned draw (marked ‡). Because forced distributions are taxable, any after-tax surplus is reinvested into personal savings.</p>
+  <p><b>The readiness verdict — retiring now.</b> The model solves for your <b>maximum sustainable income</b>: the level that exactly lasts to your planning horizon (for a couple, the later of the two plan-to ages). <b>Green</b> if that meets or beats your target; <b>yellow</b> if it's within 10% (or savings deplete only in the final tenth of the horizon); <b>red</b> below that.</p>
+  <p><b>The readiness verdict — retiring later.</b> If your retirement age is in the future, the model first grows today's balances to that age at your expected return with <i>no</i> new contributions, then asks by bisection how large a nest egg would make your target exactly sustainable — the <b>nest egg needed</b>. The difference is the gap, and it's closed with a level annual saving (a standard future-value-of-an-annuity calculation at your return over the years remaining). The savings-plan table then fills <b>tax-advantaged retirement accounts first</b> — 401(k) to the 2026 limit, then IRA${st.married?', both doubled for a couple':''} — and routes any remainder to a <b>taxable brokerage as personal savings</b>. The verdict is <b>green</b> when the required saving fits inside those retirement-account limits, <b>yellow</b> when it also needs taxable saving on top, and <b>red</b> when it would exceed roughly 60% of your salary — a sign the target, timeline, or balances need rethinking.</p>
+  <p><b>Estate &amp; heirs.</b> Whatever remains at the final death (the last surviving spouse) passes to heirs, and the model estimates two layers of tax. <b>Federal estate tax</b> applies to the gross estate — all accounts at face value — above the exemption, which the One Big Beautiful Bill Act set at <b>$15 million per person from 2026</b> (a couple gets roughly twice that through portability of the first spouse's unused exclusion), inflation-indexed to the year of death; anything above is taxed at the top <b>40%</b> rate, and it's flagged in the verdict banner up top when it bites. Then heirs face <b>income tax</b> as they take the money: an inherited <b>Traditional IRA/401(k)</b> must be emptied within 10 years and is taxed as ordinary income; a non-spouse's inherited <b>HSA</b> is immediately taxable in full. Both are estimated at an assumed <b>22%</b> heir bracket. An inherited <b>Roth</b> comes out tax-free, and the <b>taxable brokerage</b> gets a <b>stepped-up cost basis</b> at death, wiping out the built-in capital-gains tax. The Accounts tab shows the full breakdown. (State estate/inheritance taxes and the income-in-respect-of-a-decedent deduction for estate tax paid are not modeled.)</p>
+  <p><b>Assumption presets.</b> One control at the top sets the economic and longevity assumptions together: <b>Conservative</b> (4.5% return, 3.5% inflation, 7.5% / 6.5% healthcare and Medicare-premium trends, higher out-of-pocket, and a planning age at roughly the <b>90th percentile of survival</b> — the age only ~10% of people your age and sex live beyond), <b>Average</b> (6% return, 2.5% inflation, 6.5% / 5.5% trends, mean life expectancy — the standard defaults), and <b>Lenient</b> (7.5% return, 2% inflation, lower trends and out-of-pocket, mean life expectancy). Conservative is a stress test; lenient is optimistic. A preset simply fills the relevant fields — you can still override any of them individually afterward. The 90th-percentile survival ages come from the CDC/NCHS 2022 U.S. period life table (the number-surviving column).</p>
+  <p><b>What isn't modeled.</b> Tax credits, the 25% missed-RMD excise penalty, the joint-life RMD table for a much-younger spouse, Medicare Advantage, the Part D late-enrollment penalty and IRMAA appeals (Form SSA-44), and future tax-law changes (other than the senior deduction's scheduled 2028 sunset) are all out of scope. On the state side, local and county income taxes, tax-benefit recapture, and credit-based deductions are excluded; income-tested retirement exclusions (e.g. New Jersey, Connecticut) are approximated as simple income cliffs; and a handful of states' capital-gains and senior-specific breaks are simplified — so state figures are solid estimates rather than line-by-line returns.</p>
+  <p class="src">Sources: IRS Notice 2025-67 (2026 contribution limits &amp; tax brackets) and the OBBBA-adjusted 2025 standard deduction, bonus senior deduction, and $15M estate-tax exemption (40% top rate); CMS 2026 Medicare Part A &amp; B premiums and IRMAA tiers; SSA — wage base, Average Wage Index, 2026 bend points and maximum-benefit figures, the Uniform Lifetime &amp; single-life tables, and the 2022 period life table (2025 Trustees Report) for life expectancy, with CDC/NCHS 2022 U.S. life-table survivorship for the conservative preset's 90th-percentile longevity; IRS 72(t) guidance; Tax Foundation, <i>State Individual Income Tax Rates and Brackets, 2025</i> (state rates, brackets &amp; standard deductions for all 50 states and DC), with California FTB 2025 brackets and state departments of revenue for retirement-income exclusions and capital-gains treatment; KFF / MoneyGeek / PwC (2026 ACA premiums &amp; medical cost trend). A hypothetical, educational model — not financial advice.</p>`;
+}
+
+/* ============================ CSV ============================ */
+function dl(name, rows){ const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+/* ---------- Scenario export / import (roundtrips inputs; outputs spreadsheet-friendly) ---------- */
+const EXPORT_FIELDS = [
+  ['age','Your age'],['sage','Spouse age (blank if single)'],['rage','Retirement age'],['careerStart','Career start age'],['sCareerStart','Spouse career start age'],
+  ['salary','Your current/final salary'],['sSalary','Spouse current/final salary'],['sPiaOverride','Spouse PIA override (monthly, today $)'],
+  ['target','Target annual income, after tax/Medicare/premiums'],
+  ['pretax','Pre-tax (Traditional) balance'],['roth','Roth balance'],
+  ['savPrin','Personal savings — principal'],['savGain','Personal savings — unrealized gains'],['hsa','HSA balance'],
+  ['other','Other annual income'],['otherQual','…of which pension/qualified'],
+  ['claim','Social Security claim age (you)'],['sclaim','Social Security claim age (spouse)'],['piaOverride','PIA override (monthly, today $)'],
+  ['hcPrem','Pre-65 annual premium override'],['oopPre','Out-of-pocket medical, pre-65 (per person)'],['oopMed','Out-of-pocket medical, Medicare (per person)'],
+  ['hcInfl','Healthcare inflation %'],['medPremInfl','Medicare premium trend %'],
+  ['ret','Expected return %'],['infl','Inflation %'],['wrate','Plain-rule withdrawal %'],
+  ['endAge','Plan-to age — you'],['endAgeSpouse','Plan-to age — spouse'],
+  ['sex','Your sex (m/f)'],['sexSpouse','Spouse sex (m/f)'],
+  ['stateMode','State (code, e.g. none/ca/ny/flat)'],['stateRate','Custom flat state rate %'],
+  ['rothConv','Roth-conversion fill bracket (off/12/22/24)'],['smooth','Bracket/IRMAA smoothing (on/off)']
+];
+function csvCell(v){ v=(v==null)?'':String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function csvText(rows){ return rows.map(r=>r.map(csvCell).join(',')).join('\n'); }
+function dlText(name,text){ const blob=new Blob([text],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+
+function exportScenario(){
+  if(!lastRun) run();
+  const st=lastRun.st, rows=lastRun.rows, est=lastRun.est;
+  const o=[];
+  o.push(['The Retirement Drawdown — scenario export']);
+  o.push(['Exported', new Date().toISOString().slice(0,10)]); o.push(['Format','drawdown-v1']); o.push([]);
+  // INPUTS (roundtrip)
+  o.push(['SECTION','INPUTS — edit values and re-import to restore this scenario']);
+  o.push(['key','label','value']);
+  EXPORT_FIELDS.forEach(([id,label])=>{ const el=$(id); if(!el) return;
+    const v = (el.classList && el.classList.contains('money')) ? (el.value||'').replace(/[^0-9]/g,'') : el.value;
+    o.push([id,label,v]); });
+  o.push(['strategy','Withdrawal strategy (target/pct)', strategy]);
+  if(wagesEdited && WAGES) WAGES.forEach(w=>o.push(['wages.'+w.year,'SS earnings, you, '+w.year, Math.round(w.earn)]));
+  if(swagesEdited && SWAGES) SWAGES.forEach(w=>o.push(['swages.'+w.year,'SS earnings, spouse, '+w.year, Math.round(w.earn)]));
+  o.push([]);
+  // SUMMARY
+  o.push(['SECTION','SUMMARY']); o.push(['metric','value']);
+  if(lastRun){ o.push(['Verdict', lastRun.badge+' — '+lastRun.title]); lastRun.stats.forEach(s=>o.push([s.l, s.n])); }
+  if(est && est.gross>1){
+    o.push(['Final death age', est.deathAge]); o.push(['Estate year', est.year]);
+    o.push(['Gross estate', Math.round(est.gross)]); o.push(['Estate-tax exemption', Math.round(est.exemption)]);
+    o.push(['Federal estate tax', Math.round(est.estateTax)]); o.push(['Heirs income tax (22%)', Math.round(est.incomeTax)]);
+    o.push(['Net to heirs', Math.round(est.net)]);
+  }
+  o.push([]);
+  // ACCOUNTS
+  o.push(['SECTION','ACCOUNTS — year by year']);
+  o.push(['Age','Year','Ret draw','Sav draw','Social Security','Spendable','Pre-tax balance','Roth balance','Savings balance','HSA balance']);
+  rows.forEach(r=>o.push([r.age,r.year,Math.round(r.wRet),Math.round(r.wSav),Math.round(r.ss),Math.round(r.spendable),Math.round(r.endPretax),Math.round(r.endRoth),Math.round(r.endSav),Math.round(r.endHsa||0)]));
+  o.push([]);
+  // INCOME & TAX
+  o.push(['SECTION','INCOME AND TAX — year by year']);
+  o.push(['Age','Year','Social Security','Ret draw','Sav draw','Roth conversion','Taxable SS','Federal tax','State tax','Medicare','OOP medical','Medical paid by HSA','Pre-65 premium','Spendable']);
+  rows.forEach(r=>o.push([r.age,r.year,Math.round(r.ss),Math.round(r.wRet),Math.round(r.wSav),Math.round(r.rothConv||0),Math.round(r.taxSS),Math.round(r.fed),Math.round(r.state),Math.round(r.medicareGross||0),Math.round(r.oopMedGross||0),Math.round(r.hsaUsedForMed||0),Math.round(r.health),Math.round(r.spendable)]));
+  o.push([]);
+  // SOCIAL SECURITY earnings
+  if(WAGES){
+    o.push(['SECTION','SOCIAL SECURITY — your earnings record']); o.push(['Year','Age','Earnings (capped)']);
+    WAGES.forEach(w=>o.push([w.year,w.age,Math.round(w.earn)])); o.push([]);
+    if(st.married && SWAGES){
+      o.push(['SECTION','SOCIAL SECURITY — spouse earnings record']); o.push(['Year','Age','Earnings (capped)']);
+      SWAGES.forEach(w=>o.push([w.year,w.age,Math.round(w.earn)])); o.push([]);
+    }
+  }
+  dlText('retirement_drawdown_scenario.csv', csvText(o));
+}
+
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; } else cell+=c; }
+    else if(c==='"') q=true;
+    else if(c===',') { row.push(cell); cell=''; }
+    else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+    else if(c!=='\r') cell+=c;
+  }
+  if(cell!==''||row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+function importScenario(text){
+  const rows=parseCSV(text);
+  let i=rows.findIndex(r=>r[0]==='SECTION' && /^INPUTS/.test(r[1]||''));
+  if(i<0) throw new Error('no INPUTS section found — is this a Drawdown export?');
+  i+=2; // skip the SECTION row and the key,label,value header
+  const ids=new Set(EXPORT_FIELDS.map(f=>f[0])); const wageOv={}, swageOv={};
+  let impStrategy=null, impSpouse=null, n=0;
+  for(; i<rows.length; i++){ const r=rows[i];
+    if(!r.length || (r.length===1 && r[0]==='')) continue;
+    if(r[0]==='SECTION') break;
+    const key=r[0], val=(r.length>=3? r[2] : r[1]);
+    if(!key) continue;
+    if(key==='strategy'){ impStrategy=val; continue; }
+    if(key==='spouseMode'){ continue; } // legacy field, no longer used (spouse always has an own record)
+    if(key.indexOf('wages.')===0){ wageOv[+key.slice(6)]=parseFloat(val)||0; continue; }
+    if(key.indexOf('swages.')===0){ swageOv[+key.slice(7)]=parseFloat(val)||0; continue; }
+    if(ids.has(key)){ const el=$(key); if(el){ el.value=val; if(el.classList && el.classList.contains('money')) fmtMoneyInput(el); n++; } }
+  }
+  if(impStrategy){ strategy=impStrategy; $('stratSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===strategy)); $('stratHint').textContent = strategy==='target'?'Solve withdrawals to deliver the target income above.':'Withdraw a fixed % of the starting balance, grown by inflation.'; if(typeof updateStrategyNote==='function') updateStrategyNote(); }
+  endAgesEdited=true;          // honor imported plan-to ages
+  claimEdited=true;            // honor imported claim age (you)
+  sclaimEdited=true;           // honor imported spouse claim age
+  smoothEdited=true;           // honor imported smoothing choice
+  rothConvEdited=true;         // honor imported Roth-conversion choice
+  wagesEdited=false; swagesEdited=false;
+  run();                       // builds WAGES/SWAGES from imported salary
+  let anyW=false, anyS=false;
+  if(WAGES) WAGES.forEach(w=>{ if(wageOv[w.year]!=null){ w.earn=wageOv[w.year]; anyW=true; } });
+  if(SWAGES) SWAGES.forEach(w=>{ if(swageOv[w.year]!=null){ w.earn=swageOv[w.year]; anyS=true; } });
+  if(anyW) wagesEdited=true; if(anyS) swagesEdited=true;
+  if(anyW||anyS) run();
+  return n;
+}
+$('csv1').onclick=()=>{ if(!lastRun) run(); const r=lastRun.rows; dl('accounts.csv',[['age','year','ret_draw','sav_draw','ss','spendable','pretax','roth','savings'],...r.map(x=>[x.age,x.year,Math.round(x.wRet),Math.round(x.wSav),Math.round(x.ss),Math.round(x.spendable),Math.round(x.endPretax),Math.round(x.endRoth),Math.round(x.endSav)])]); };
+$('csv3').onclick=()=>{ if(!lastRun) run(); const r=lastRun.rows; dl('ledger.csv',[['age','ss','ret_draw','sav_draw','roth_conversion','taxableSS','fedTax','stateTax','medicare','oop_medical','medical_paid_by_hsa','health','spendable'],...r.map(x=>[x.age,Math.round(x.ss),Math.round(x.wRet),Math.round(x.wSav),Math.round(x.rothConv||0),Math.round(x.taxSS),Math.round(x.fed),Math.round(x.state),Math.round(x.medicareGross||0),Math.round(x.oopMedGross||0),Math.round(x.hsaUsedForMed||0),Math.round(x.health),Math.round(x.spendable)])]); };
+function growBal(st){ const g=Math.pow(1+st.ret,Math.max(0,st.retireAge-st.ageNow)); return {pretax:st.pretax0*g,roth:st.roth0*g,savPrin:st.savPrin0*g,savGain:st.savGain0*g+st.savPrin0*(g-1),hsa:st.hsa0*g}; }
+
+/* ============================ WIRE-UP ============================ */
+function fmtMoneyInput(el){
+  const raw=(el.value||'').replace(/[^0-9]/g,'');
+  el.value = raw==='' ? '' : parseInt(raw,10).toLocaleString('en-US');
+}
+document.querySelectorAll('input.money').forEach(fmtMoneyInput); // format defaults on load
+let endAgesEdited=false, sclaimEdited=false, claimEdited=false, smoothEdited=false, rothConvEdited=false;
+function refreshLEdefaults(){
+  if(endAgesEdited) return;
+  const ageNow=num('age'), sageRaw=$('sage').value.trim();
+  $('endAge').value = leDefault(ageNow, $('sex').value);
+  if(sageRaw!=='') $('endAgeSpouse').value = leDefault(parseFloat(sageRaw), $('sexSpouse').value);
+}
+refreshLEdefaults(); // seed life-expectancy defaults before first render
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{
+  if(el.classList.contains('money')) fmtMoneyInput(el);
+  if(el.id==='salary'||el.id==='age'||el.id==='rage'||el.id==='infl'||el.id==='careerStart') wagesEdited=false;
+  if(el.id==='sSalary'||el.id==='sage'||el.id==='sCareerStart') swagesEdited=false;
+  if(el.id==='endAge'||el.id==='endAgeSpouse') endAgesEdited=true;
+  if(el.id==='claim') claimEdited=true;   // overrides the optimized claim age
+  if(el.id==='sclaim') sclaimEdited=true;  // overrides the optimized spouse claim age
+  if(el.id==='smooth') smoothEdited=true;  // overrides the optimized smoothing choice
+  if(el.id==='rothConv') rothConvEdited=true; // overrides the optimized Roth-conversion choice
+  if(el.id==='age'||el.id==='sage'||el.id==='sex'||el.id==='sexSpouse') refreshLEdefaults();
+  run();
+}));
+function updateStrategyNote(){ const el=$('stratNote'); if(!el) return; el.textContent = strategy==='target' ? 'Target income — solved each year to hit your target.' : 'Plain rule — '+($('wrate').value||'4')+'% of the starting balance, grown by inflation.'; }
+$('stratSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ strategy=b.dataset.v; $('stratSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); $('stratHint').textContent= strategy==='target'?'Solve withdrawals to deliver the target income above.':'Withdraw a fixed % of the starting balance, grown by inflation.'; updateStrategyNote(); run(); });
+$('wrate').addEventListener('input', updateStrategyNote);
+$('presetSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>applyPreset(b.dataset.v));
+$('advToggle').onclick=()=>{ const w=$('advWrap'), hidden=w.hasAttribute('hidden'); if(hidden) w.removeAttribute('hidden'); else w.setAttribute('hidden',''); $('advToggle').setAttribute('aria-expanded', hidden?'true':'false'); };
+$('ssRecToggle').onclick=()=>{ const w=$('ssRecWrap'), hidden=w.hasAttribute('hidden'); if(hidden) w.removeAttribute('hidden'); else w.setAttribute('hidden',''); $('ssRecToggle').setAttribute('aria-expanded', hidden?'true':'false'); };
+$('claimOptBtn').onclick=()=>{ claimEdited=false; sclaimEdited=false; run(); };
+$('taxOptBtn').onclick=()=>{ smoothEdited=false; rothConvEdited=false; run(); };
+$('ssReset').onclick=()=>{ wagesEdited=false; swagesEdited=false; run(); };
+function toast(msg){ const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3800); }
+$('exportBtn').onclick=()=>{ exportScenario(); toast('↓ Scenario exported as CSV'); };
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader();
+  rd.onload=()=>{ try{ const n=importScenario(rd.result); window.scrollTo({top:0,behavior:'smooth'}); toast('✓ Scenario imported — '+n+' inputs restored'); const b=$('importBtn'); const t=b.textContent; b.textContent='✓ Imported '+n+' inputs'; setTimeout(()=>b.textContent=t,2500); }
+    catch(err){ alert('Could not import this file: '+err.message); } e.target.value=''; };
+  rd.readAsText(f); };
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t)); document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.t)); });
+
+run();
+</script>
+</body>
+</html>
