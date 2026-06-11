@@ -27,12 +27,12 @@ npm run report                    # open the last HTML test report
 The tests load the **actual** `retirement_model.html` through a local static server and drive it the way a user
 would — so what's tested is exactly what's deployed. There is no second copy of the model logic to drift.
 
-## What the tests cover (`tests/model.spec.js`, 36 cases)
+## What the tests cover (`tests/model.spec.js`, 37 cases)
 
 | Area | Checks |
 |------|--------|
 | Boot & rendering | loads with no uncaught errors; survives a battery of input changes |
-| SS benefit math | claim adjustments (62/67/70); optimizer objective == simulation, to the dollar |
+| SS benefit math | claim adjustments (62/67/70); optimizer objective == simulation, to the dollar; PIA is invariant to the inflation input and rises with real wage growth |
 | Readiness verdict | the "sustainable income" actually lasts, and 5% above it fails (4 scenarios) |
 | Future retirement | required nest egg sustains; the savings figure compounds to the gap |
 | Optimal claiming | optimizer pick == brute-force argmax (single & the 9×9 married grid); life-expectancy boundaries |

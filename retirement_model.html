@@ -13,13 +13,14 @@
   --rule:#ddd4c0; --rule2:#cabfa4; --green:#2f6b4a; --green2:#3f865d; --greenbg:#e4eee4;
   --brass:#9a7b2e; --brass2:#b8932f; --red:#a63c2b; --redbg:#f3e2dc; --blue:#2f5d83; --bluebg:#e2eaf1;
   --yellow:#9c7c14; --yellowbg:#f4ecd2;
+  --link:#1a5fb4; --link-h:#2b73cf;  /* classic-style hyperlink blue (and hover) */
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:var(--paper);color:var(--ink);font-family:'Hanken Grotesk',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
 .wrap{max-width:1040px;margin:0 auto;padding:32px 22px 80px;}
-a{color:var(--green);text-decoration:none;border-bottom:1px solid var(--rule2);}
-a:hover{color:var(--green2);}
+a{color:var(--link);text-decoration:none;border-bottom:1px solid var(--rule2);}
+a:hover{color:var(--link-h);}
 h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.12;margin:0;}
 .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
 
@@ -43,6 +44,11 @@ h1.title em{font-style:italic;font-weight:600;color:var(--green);}
 .v-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;}
 .v-body{margin-top:12px;color:var(--ink2);font-size:14.5px;max-width:760px;}
 .v-body b{color:var(--ink);}
+.v-jump{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;font-size:13px;}
+.v-jump .lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);}
+.v-jump a{cursor:pointer;font-weight:600;}
+.v-jump a::after{content:" \2197";border-bottom:none;}
+.results-intro{font-size:13px;color:var(--ink2);margin:0 0 4px;max-width:720px;}
 .v-stats{display:flex;flex-wrap:wrap;gap:26px;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);}
 .v-estate{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--paper2);border:1px solid var(--rule);font-size:13.5px;line-height:1.5;}
 .v-estate.warn{background:rgba(168,54,42,.07);border-color:var(--red);}
@@ -163,6 +169,8 @@ td.cmp-cur{outline:2px solid var(--blue);outline-offset:-2px;}
 .method .src{font-size:11.5px;color:var(--ink2);margin-top:18px;border-top:1px solid var(--rule);padding-top:12px;}
 canvas{max-width:100%;}
 .note-inline{font-size:11.5px;color:var(--blue);}
+.privacy{margin-top:14px;font-size:12.5px;color:var(--ink2);background:var(--greenbg);border:1px solid var(--rule2);border-radius:8px;padding:9px 13px;max-width:660px;line-height:1.5;}
+.privacy b{color:var(--green);}
 </style>
 </head>
 <body>
@@ -177,6 +185,7 @@ canvas{max-width:100%;}
       <p class="dek">Start from the income you want to live on — then watch it funded, year by year, from a waterfall of retirement accounts, Social Security and personal savings, net of taxes, Medicare, out-of-pocket medical costs and pre-65 health premiums. A readiness verdict tells you where you stand.</p>
       <div class="byline">By <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener">Nachiappan</a> in collaboration with Claude · A hypothetical, educational model — not financial advice.</div>
       <div class="byline" style="margin-top:8px;"><a href="how_the_model_works.html" target="_blank" rel="noopener">How the model works →</a></div>
+      <div class="privacy">🔒 <b>Everything runs in your browser.</b> Nothing you type or import is sent to any server, and nothing is saved — refresh the page and it's gone. Your numbers stay on your device; use <b>Export scenario</b> if you want to keep them.</div>
     </div>
     <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener" class="avatar-link"><img class="avatar" src="data:image/jpeg;base64,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" alt="Nachiappan"></a>
   </div>
@@ -193,6 +202,12 @@ canvas{max-width:100%;}
     <div class="v-estate" id="vTax" style="display:none;"></div>
     <div class="v-estate" id="vStress" style="display:none;"></div>
     <div class="v-estate" id="vEstate" style="display:none;"></div>
+    <div class="v-jump">
+      <span class="lab">See the full detail</span>
+      <a onclick="showResultTab('t1');return false;">Accounts over time</a>
+      <a onclick="showResultTab('t2');return false;">Social Security summary</a>
+      <a onclick="showResultTab('t3');return false;">Income &amp; tax ledger</a>
+    </div>
     <div class="v-actions">
       <button class="btn" id="exportBtn">↓ Export scenario (CSV)</button>
       <button class="btn" id="importBtn">↑ Import scenario</button>
@@ -521,6 +536,8 @@ canvas{max-width:100%;}
   </div>
 
   <!-- RESULTS -->
+  <div class="sec-label" id="results">3 · Year-by-year results</div>
+  <p class="results-intro">The verdict above is the summary; the full projection lives in three views — switch between them with the tabs: <b>Accounts over time</b> (balances, withdrawals &amp; chart), the <b>Social Security summary</b> (each benefit, lifetime totals &amp; the claiming-age comparison), and the <b>Income &amp; tax ledger</b> (year-by-year income, tax, Medicare &amp; spendable).</p>
   <div class="tabs" id="tabs">
     <button class="tab on" data-t="t1">Accounts over time</button>
     <button class="tab" data-t="t2">Social Security summary</button>
@@ -1566,7 +1583,8 @@ function run(){
   })();
   $('spouseSS').style.display = st.married? 'block':'none';
   $('spouseHorizon').style.display = st.married? 'block':'none';
-  $('rageHint').textContent = st.retireAge<=st.ageNow? 'Retiring now — assessing readiness today.' : ('Retiring in '+(st.retireAge-st.ageNow)+' year'+(st.retireAge-st.ageNow>1?'s':'')+'.');
+  $('rageHint').textContent = (st.retireAge<=st.ageNow? 'Retiring now — assessing readiness today.' : ('Retiring in '+(st.retireAge-st.ageNow)+' year'+(st.retireAge-st.ageNow>1?'s':'')+'.'))
+    + (st.married? ' Both spouses are assumed to retire the same year (spouse at '+(st.sageNow + (st.retireAge-st.ageNow))+'); one spouse working on while the other is retired isn\'t modeled.' : '');
   $('healthPanel').style.opacity = 1;
 
   // Social Security benefit (today's $ annual). Build the earnings records first, then derive PIAs.
@@ -1723,6 +1741,7 @@ function run(){
       h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
     }
     h += ` <span style="color:var(--ink2);">The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.</span>`;
+    h += ` <a onclick="showResultTab('t2');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the full claiming-age comparison ↗</a>`;
     vc.innerHTML = h; vc.style.display='block';
   })();
   // ---- Optimal tax-strategy callout ----
@@ -1744,6 +1763,7 @@ function run(){
       const curParts=[curSm?'smoothing on':'smoothing off', curIdx>=0?('Roth→'+({2:'12%',3:'22%',4:'24%'}[curIdx])):'no conversions'];
       h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to ${curParts.join(', ')}. Use "Use optimal tax strategy" in Advanced to restore.</span>`;
     }
+    h += ` <a onclick="showResultTab('t3');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the year-by-year tax ledger ↗</a>`;
     vt.innerHTML = h; vt.style.display='block';
   })();
   // Estate & heirs callout (highlighted when federal estate tax applies)
@@ -2298,6 +2318,14 @@ $('importFile').onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f
   rd.onload=()=>{ try{ const n=importScenario(rd.result); window.scrollTo({top:0,behavior:'smooth'}); toast('✓ Scenario imported — '+n+' inputs restored'); const b=$('importBtn'); const t=b.textContent; b.textContent='✓ Imported '+n+' inputs'; setTimeout(()=>b.textContent=t,2500); }
     catch(err){ alert('Could not import this file: '+err.message); } e.target.value=''; };
   rd.readAsText(f); };
+// Activate one of the three main result tabs and scroll it into view — used by the verdict's "see the full detail"
+// links and the in-callout pointers, so the detailed tabs are discoverable from the summary the user is reading.
+function showResultTab(id){
+  const bar=document.getElementById('tabs'); if(!bar) return;
+  bar.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.dataset.t===id));
+  ['t1','t2','t3'].forEach(p=>{ const el=document.getElementById(p); if(el) el.classList.toggle('on', p===id); });
+  (document.getElementById('results')||bar).scrollIntoView({behavior:'smooth', block:'start'});
+}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t)); document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.t)); });
 
 run();
