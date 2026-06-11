@@ -506,7 +506,7 @@ canvas{max-width:100%;}
       </div>
       <div class="field"><label>Return volatility (std. dev.)</label>
         <div class="inwrap"><input type="number" id="vol" value="12" step="1" min="0" max="30"><span class="suf">%</span></div>
-        <div class="hint">Annual swing around the expected return — drives the <b>volatility stress test</b> in the verdict. ≈9% for a 30/70 portfolio, ≈12% for 60/40, ≈17% for all-stock. Set 0 to disable.</div>
+        <div class="hint">Annual swing around the expected return — drives the <b>volatility stress test</b> in the verdict. ≈9% for a 30/70 portfolio, ≈12% for 60/40, ≈17% for all-stock; the <b>assumption preset</b> sets it to match its return (9% / 12% / 16%). Set 0 to disable.</div>
       </div>
     </div>
     <div id="spouseHorizon" class="field" style="display:none;margin-top:10px;max-width:360px;"><label>Plan to age — spouse</label>
@@ -953,18 +953,20 @@ let leMode='mean', preset='average'; // longevity basis + active assumption pres
 function leDefault(age, sex){ return leMode==='p90' ? expectedAge90(age, sex) : expectedAge(age, sex); }
 // Assumption presets — economic & longevity defaults the user can still override individually.
 const PRESETS = {
-  conservative: {ret:4.5, infl:3.5, hcInfl:7.5, medPremInfl:6.5, oopPre:7000, oopMed:6000, le:'p90'},
-  average:      {ret:6,   infl:2.5, hcInfl:6.5, medPremInfl:5.5, oopPre:5000, oopMed:4000, le:'mean'},
-  lenient:      {ret:7.5, infl:2,   hcInfl:5.5, medPremInfl:4.5, oopPre:4000, oopMed:3000, le:'mean'}
+  // vol tracks the portfolio implied by the return: a 4.5% return is a conservative (bond-heavy, low-vol) mix,
+  // 6% is ~60/40, 7.5% is equity-heavy — matching the ≈9% / ≈12% / ≈17% anchors on the volatility field.
+  conservative: {ret:4.5, infl:3.5, vol:9,  hcInfl:7.5, medPremInfl:6.5, oopPre:7000, oopMed:6000, le:'p90'},
+  average:      {ret:6,   infl:2.5, vol:12, hcInfl:6.5, medPremInfl:5.5, oopPre:5000, oopMed:4000, le:'mean'},
+  lenient:      {ret:7.5, infl:2,   vol:16, hcInfl:5.5, medPremInfl:4.5, oopPre:4000, oopMed:3000, le:'mean'}
 };
 const PRESET_HINTS = {
-  conservative: 'Cautious: 4.5% return, 3.5% inflation, higher medical-cost trends (7.5% / 6.5%) and out-of-pocket ($7k / $6k), and a long life — planning to the ≈90th-percentile age (only ~10% live longer). The safest stress-test.',
-  average: 'Middle-of-the-road: 6% return, 2.5% inflation, 6.5% / 5.5% medical trends, $5k / $4k out-of-pocket, and mean life expectancy. The standard defaults.',
-  lenient: 'Optimistic: 7.5% return, 2% inflation, lower medical-cost trends (5.5% / 4.5%) and out-of-pocket ($4k / $3k), and mean life expectancy.'
+  conservative: 'Cautious: 4.5% return, 3.5% inflation, 9% return volatility (a bond-heavy mix), higher medical-cost trends (7.5% / 6.5%) and out-of-pocket ($7k / $6k), and a long life — planning to the ≈90th-percentile age (only ~10% live longer). The safest stress-test.',
+  average: 'Middle-of-the-road: 6% return, 2.5% inflation, 12% return volatility (~60/40), 6.5% / 5.5% medical trends, $5k / $4k out-of-pocket, and mean life expectancy. The standard defaults.',
+  lenient: 'Optimistic: 7.5% return, 2% inflation, 16% return volatility (equity-heavy), lower medical-cost trends (5.5% / 4.5%) and out-of-pocket ($4k / $3k), and mean life expectancy.'
 };
 function applyPreset(name){
   const P=PRESETS[name]; if(!P) return; preset=name;
-  $('ret').value=P.ret; $('infl').value=P.infl; $('hcInfl').value=P.hcInfl; $('medPremInfl').value=P.medPremInfl;
+  $('ret').value=P.ret; $('infl').value=P.infl; $('vol').value=P.vol; $('hcInfl').value=P.hcInfl; $('medPremInfl').value=P.medPremInfl;
   $('oopPre').value=P.oopPre.toLocaleString('en-US'); $('oopMed').value=P.oopMed.toLocaleString('en-US');
   leMode=P.le; endAgesEdited=false; refreshLEdefaults();
   $('presetSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===name));
