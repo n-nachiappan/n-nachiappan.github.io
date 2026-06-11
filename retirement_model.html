@@ -851,8 +851,13 @@ function computePIA(wages, ageNow, infl, wageGrow){
   let indexed = wages.map(w=> w.earn * awiNow/awiAt(w.year, nwg)).sort((a,b)=>b-a).slice(0,35);
   const aime = indexed.reduce((s,x)=>s+x,0)/420;  // monthly, in today's (2026) dollars
   const pia0 = 0.9*Math.min(aime,BEND1) + 0.32*Math.max(0,Math.min(aime,BEND2)-BEND1) + 0.15*Math.max(0,aime-BEND2);
-  const pia = pia0 * Math.pow(1+g, (birthYear+62) - NOW); // real-wage-growth uplift to the age-62 eligibility year
-  return {aime, pia}; // monthly PIA in today's $
+  const piaFull = pia0 * Math.pow(1+g, (birthYear+62) - NOW); // real-wage-growth uplift to the age-62 eligibility year
+  // Insured status: a retirement benefit needs 40 credits ≈ 10 years of covered work. Below that, the worker's OWN
+  // benefit is $0. (A spouse can still draw a spousal or survivor benefit on the other's record — that's derived from
+  // this PIA in ssAmountsFor, so it keeps working regardless of the lower earner's own insured status.)
+  const yearsWorked = wages.reduce((n,w)=> n + (w.earn>0?1:0), 0);
+  const insured = yearsWorked >= 10;
+  return {aime, pia: insured? piaFull : 0, piaUninsured: piaFull, insured, yearsWorked}; // monthly PIA in today's $
 }
 function claimAdjust(pia, claimAge){
   const FRA=67;
@@ -1594,10 +1599,12 @@ function run(){
   }
   const piaCalc=computePIA(WAGES, st.ageNow, st.infl, st.wageGrow);
   const piaMonthly = st.piaOverride!=null? st.piaOverride : piaCalc.pia;
-  $('piaShow').textContent = st.piaOverride!=null? '' : ('PIA ≈ $'+fmt0(piaCalc.pia)+'/mo');
+  $('piaShow').textContent = st.piaOverride!=null? '' : (piaCalc.insured? ('PIA ≈ $'+fmt0(piaCalc.pia)+'/mo') : ('Not insured — '+piaCalc.yearsWorked+' yrs of work (40 credits / 10 yrs needed for an own benefit)'));
   const spPiaCalc = (st.married && SWAGES)? computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow) : null;
   const spousePia = st.married? (st.sPiaOverride!=null? st.sPiaOverride : (spPiaCalc? spPiaCalc.pia : null)) : null;
-  $('sPiaShow').textContent = (st.married && st.sPiaOverride==null && spPiaCalc)? ('PIA ≈ $'+fmt0(spPiaCalc.pia)+'/mo') : '';
+  $('sPiaShow').textContent = (st.married && st.sPiaOverride==null && spPiaCalc)? (spPiaCalc.insured? ('PIA ≈ $'+fmt0(spPiaCalc.pia)+'/mo') : ('Not insured — '+spPiaCalc.yearsWorked+' yrs of work; may still draw a spousal benefit on your record')) : '';
+  st.piaInsured = (st.piaOverride!=null) || piaCalc.insured;       // own benefit eligibility (override implies eligible)
+  st.spousePiaInsured = st.married? ((st.sPiaOverride!=null) || (spPiaCalc? spPiaCalc.insured : false)) : null;
 
   // Optimal claiming strategy: the (primary, spouse) claim ages that maximize lifetime household benefits in today's
   // dollars given life expectancy. Used as the default; the user can override in the Advanced > claiming-ages panel.
@@ -1729,6 +1736,11 @@ function run(){
   // ---- Optimal Social Security claiming callout ----
   (function(){
     const vc=$('vClaim'); if(!vc) return;
+    const noneInsured = st.married? (!st.piaInsured && !st.spousePiaInsured) : !st.piaInsured;
+    if(noneInsured){
+      vc.innerHTML = `<b>No Social Security benefit applies.</b> A retirement benefit requires <b>40 credits — about 10 years of covered work</b>, which ${st.married?'neither spouse reaches':'this earnings record doesn\'t reach'} here, so $0 is included in the plan. If you actually qualify (e.g. earlier work not captured), lower the <b>career-start age</b> or enter a <b>benefit override</b> under the Social Security section.`;
+      vc.style.display='block'; return;
+    }
     const optL = opt.total;
     const cur = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia).total;
     const early = lifeSSrealPair(st, 62, 62, piaMonthly, spousePia).total;
@@ -1741,6 +1753,9 @@ function run(){
       h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
     }
     h += ` <span style="color:var(--ink2);">The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.</span>`;
+    if(st.married && (!st.piaInsured || !st.spousePiaInsured)){
+      h += ` <span style="color:var(--ink2);">${st.piaInsured?'Your spouse has':'You have'} under 10 years of covered work, so that person draws a <b>spousal benefit</b> (up to 50% of the other's PIA), not an own benefit.</span>`;
+    }
     h += ` <a onclick="showResultTab('t2');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the full claiming-age comparison ↗</a>`;
     vc.innerHTML = h; vc.style.display='block';
   })();
@@ -1941,8 +1956,10 @@ function renderTab2(st, D){
   const ownMode = st.married && SWAGES && SWAGES.length;
   const careerEarnP = (WAGES||[]).reduce((a,w)=>a+(w.earn||0),0);
   const careerEarnS = ownMode? (SWAGES||[]).reduce((a,w)=>a+(w.earn||0),0) : 0;
+  const ownElig = D.piaCalc.insured || st.piaOverride!=null;
+  const ownPiaShown = st.piaOverride!=null? st.piaOverride : D.piaCalc.pia;
   let cards =
-    card('Your PIA (FRA 67)', fmt(D.piaCalc.pia)+'/mo', 'AIME '+fmt(D.piaCalc.aime), 'green')+
+    card('Your PIA (FRA 67)', ownElig? (fmt(ownPiaShown)+'/mo') : '$0/mo', ownElig? ('AIME '+fmt(D.piaCalc.aime)) : ('not insured — '+D.piaCalc.yearsWorked+' yrs worked, 10 needed'), ownElig?'green':'red')+
     card('Your benefit @ '+st.claim, fmt(D.benefitP/12)+'/mo', fmt(D.benefitP)+'/yr', 'green');
   if(st.married){
     cards += card('Spouse benefit @ '+st.claimSpouse, fmt(D.benefitS/12)+'/mo', 'own + spousal excess', 'blue');
