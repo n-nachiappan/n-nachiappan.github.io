@@ -221,6 +221,48 @@ test.describe('5. Deemed-filing spousal mechanics', () => {
   });
 });
 
+test.describe('5b. Insured status (40 credits / 10 years of work)', () => {
+  test('a single filer with under 10 years of work gets no own benefit', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { age: '55', sage: '', salary: '120,000', careerStart: '55', rage: '62' }); // 7 working years
+    const r = await page.evaluate(() => {
+      const st = lastRun.st, pc = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow);
+      return { years: pc.yearsWorked, insured: pc.insured, pia: pc.pia, resolved: st.piaMonthlyResolved };
+    });
+    expect(r.years).toBeLessThan(10);
+    expect(r.insured).toBe(false);
+    expect(r.pia).toBe(0);
+    expect(r.resolved).toBe(0); // the plan uses $0
+  });
+
+  test('10+ years of work is insured and yields a positive benefit', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { age: '55', sage: '', salary: '120,000', careerStart: '40', rage: '55' }); // 15 working years
+    const r = await page.evaluate(() => {
+      const st = lastRun.st, pc = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow);
+      return { years: pc.yearsWorked, insured: pc.insured, pia: pc.pia };
+    });
+    expect(r.years).toBeGreaterThanOrEqual(10);
+    expect(r.insured).toBe(true);
+    expect(r.pia).toBeGreaterThan(0);
+  });
+
+  test('a non-insured spouse still draws a spousal benefit on the insured record', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { age: '62', salary: '180,000', careerStart: '22', rage: '65', sage: '60', sSalary: '50,000', sCareerStart: '60' }); // spouse 3 yrs
+    const r = await page.evaluate(() => {
+      const st = lastRun.st;
+      const piaS = computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow);
+      const A = ssAmountsFor(st, st.claim, st.claimSpouse, st.piaMonthlyResolved, st.spousePiaResolved);
+      return { spouseInsured: piaS.insured, own: A.ssSpouseOwnAnnual, excess: A.ssSpouseExcessAnnual, halfPrimary: st.piaMonthlyResolved * 0.5 * 12 };
+    });
+    expect(r.spouseInsured).toBe(false);
+    expect(r.own).toBe(0);                                  // no own benefit
+    expect(r.excess).toBeGreaterThan(0);                   // but a spousal benefit applies
+    expect(r.excess).toBeLessThanOrEqual(r.halfPrimary + 1); // capped at 50% of the insured PIA (reduced if claimed early)
+  });
+});
+
 test.describe('6. Tax-strategy optimization', () => {
   test('chosen combo is the true argmin (after the shortfall guard)', async ({ page }) => {
     await load(page);
