@@ -1438,14 +1438,52 @@ function summarizeStress(res, st){
     p10:q(0.10), median:q(0.50), p90:q(0.90),
     medianDep: deps.length? deps[Math.floor(deps.length/2)] : null};
 }
+// Grade the stress success rate and fold it into the HEADLINE verdict (banner colour, badge, title, body).
+// The overall decision is the more pessimistic of two lenses: the steady-return verdict and the volatility test —
+// so a plan that funds the target at the expected return but breaks under a bad sequence is no longer shown "green".
+const STRESS_GREEN=80, STRESS_YELLOW=65; // success-rate bands that map to the banner colours
+function stressGrade(pct){ return pct>=STRESS_GREEN? 'green' : pct>=STRESS_YELLOW? 'yellow' : 'red'; }
+function applyStressVerdict(s){
+  const lr=lastRun, det=lr&&lr.detCls; if(!det) return det;
+  const order={green:0,yellow:1,red:2};
+  const sg=stressGrade(s.pct);
+  const overall = order[sg]>order[det]? sg : det;   // worse-of the two views
+  const v=$('verdict'); if(v) v.className='verdict '+overall;
+  const b=$('vBadge'), t=$('vTitle'), bd=$('vBody');
+  if(order[overall]>order[det]){            // volatility pulled the decision down — relabel the headline
+    if(overall==='red'){
+      if(b) b.textContent='High sequence risk';
+      if(t) t.textContent = lr.future? 'On plan — but volatile markets are the real risk' : 'Vulnerable to a bad market sequence';
+      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> once realistic market volatility is layered on, the plan funds the full target in only <b>${s.pct}%</b> of randomized paths — a poor run of early returns could break it. Read the steady-return result as conditional on calmer markets or a spending cushion.`;
+    } else {                                 // yellow
+      if(b) b.textContent = lr.future? 'On track — volatility risk' : 'Doable — mind the sequence';
+      if(t) t.textContent = lr.future? 'On plan — mind the market sequence' : 'On track, but mind the market sequence';
+      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> under market volatility the plan funds the full target in <b>${s.pct}%</b> of randomized paths — solid, but a modest cushion would firm it up against a bad sequence of early returns.`;
+    }
+  } else {                                   // stress confirms (or the plan was already short) — keep the clean body
+    if(bd && lr.detBody) bd.innerHTML = lr.detBody;
+    if(b && lr.detBadge) b.textContent = lr.detBadge;
+    if(t && lr.detTitle) t.textContent = lr.detTitle;
+  }
+  return overall;
+}
 function renderStress(s, st, note){
   const el=$('vStress'); if(!el) return;
+  const overall = applyStressVerdict(s) || stressGrade(s.pct);
   el.className='v-estate'+(s.pct<75?' warn':''); el.style.display='block';
-  const grade = s.pct>=90? 'robust' : s.pct>=80? 'reasonably resilient' : s.pct>=60? 'fragile under bad market sequences' : 'unlikely to survive volatile markets';
-  let h=`<b>Volatility stress test:</b> with <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan funds the full target in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
+  const grade = s.pct>=90? 'robust' : s.pct>=80? 'reasonably resilient' : s.pct>=65? 'workable but exposed' : s.pct>=45? 'fragile under bad market sequences' : 'unlikely to survive volatile markets';
+  const word={green:'a go',yellow:'borderline',red:'not yet'};
+  let lead='';
+  if(lastRun && lastRun.detCls){
+    const det=lastRun.detCls;
+    lead = (overall!==det)
+      ? `<b>Overall decision (volatility-adjusted):</b> the steady-return verdict above reads <b>${word[det]}</b>, but at ${s.pct}% stress success the realistic call is <b>${word[overall]}</b> — the banner now reflects this. `
+      : `<b>Overall decision:</b> the stress test <b>confirms</b> the verdict above. `;
+  }
+  let h=lead+`<b>Volatility stress test:</b> with <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan funds the full target in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
   if(s.medianDep!=null) h+=` In the failing paths, savings typically run dry around age <b>${s.medianDep}</b>.`;
   if(note) h+=` <span style="color:var(--ink2);">(${note}.)</span>`;
-  h+=` <span style="color:var(--ink2);">The verdict above assumes the same return every year; this adds sequence-of-returns risk — 85%+ is commonly treated as robust.</span>`;
+  h+=` <span style="color:var(--ink2);">The verdict above assumes the same return every year; this adds sequence-of-returns risk. Here ≥${STRESS_GREEN}% keeps the verdict, ${STRESS_YELLOW}–${STRESS_GREEN-1}% caps it at caution, and below ${STRESS_YELLOW}% downgrades it.</span>`;
   el.innerHTML=h;
 }
 
@@ -1704,7 +1742,8 @@ function run(){
     }
     ve.style.display='block';
   } else { ve.style.display='none'; }
-  lastRun = {badge, title, stats, st, rows, est}; // captured for scenario export (same data shown on screen)
+  lastRun = {badge, title, stats, st, rows, est, // captured for scenario export (same data shown on screen)
+             detCls:cls, detBadge:badge, detTitle:title, detBody:body, future}; // deterministic verdict, for the stress-test overlay
 
   const lifeNomP = rows.reduce((a,r)=>a+(r.ssP||0),0), lifeNomS = rows.reduce((a,r)=>a+(r.ssS||0),0);
   const lifeReal = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia);
