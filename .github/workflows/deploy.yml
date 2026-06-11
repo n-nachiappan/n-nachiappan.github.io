@@ -1,4 +1,4 @@
-ame: Test and Deploy
+name: Test and Deploy
 
 # Runs the Playwright validation suite on every push/PR.
 # Deploys to GitHub Pages ONLY when the tests pass on the main branch — so a regression can never reach the live site.
