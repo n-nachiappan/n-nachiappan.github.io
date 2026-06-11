@@ -44,13 +44,31 @@ test.describe('2. Social Security benefit math', () => {
     await load(page);
     const r = await page.evaluate(() => {
       const st = lastRun.st;
-      const pia = computePIA(WAGES, st.ageNow).pia;
+      // Use the exact monthly PIA the simulation ran with (computePIA now takes infl & wage-growth args;
+      // the resolved value already reflects them, plus any override), so the reconciliation is signature-independent.
+      const pia = st.piaMonthlyResolved;
       const simReal = lastRun.rows.reduce((a, x) => a + (x.ss || 0) / Math.pow(1 + st.infl, x.t), 0);
-      const obj = lifeSSrealPair(st, st.claim, st.claimSpouse, pia, null).total;
+      const obj = lifeSSrealPair(st, st.claim, st.claimSpouse, pia, st.spousePiaResolved).total;
       return { pia, simReal, obj };
     });
     expect(r.pia).toBeGreaterThan(0);
     expect(Math.abs(r.simReal - r.obj)).toBeLessThan(2); // exact reconciliation
+  });
+
+  test('PIA is invariant to the inflation input and rises with real wage growth', async ({ page }) => {
+    await load(page);
+    const r = await page.evaluate(() => {
+      // Build a controlled young-earner record directly, so the result depends only on the args under test.
+      const piaFor = (infl, wg) => computePIA(buildWages(100000, 30, 67, infl, 22, wg), 30, infl, wg).pia;
+      return {
+        lowInfl: piaFor(0.02, 0.011), highInfl: piaFor(0.06, 0.011), // same wage growth, different inflation
+        noGrowth: piaFor(0.025, 0),   growth: piaFor(0.025, 0.011),  // same inflation, real growth on/off
+      };
+    });
+    // The today's-dollar PIA must not move with the inflation assumption (the AWI fix).
+    expect(Math.abs(r.highInfl - r.lowInfl)).toBeLessThan(2);
+    // Real wage growth lifts a future retiree's benefit (≈ (1+g)^years to age-62 eligibility).
+    expect(r.growth).toBeGreaterThan(r.noGrowth * 1.2);
   });
 });
 
@@ -114,7 +132,7 @@ test.describe('4. Optimal Social Security claiming', () => {
   test('single: optimizer pick equals the brute-force argmax', async ({ page }) => {
     await load(page);
     const r = await page.evaluate(() => {
-      const st = lastRun.st, pia = computePIA(WAGES, st.ageNow).pia;
+      const st = lastRun.st, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
       let best = { age: 0, v: -1 };
       for (let c = 62; c <= 70; c++) {
         const v = lifeSSrealPair(st, c, c, pia, null).total;
@@ -130,7 +148,7 @@ test.describe('4. Optimal Social Security claiming', () => {
     await setInputs(page, { sage: '58', sSalary: '90,000' });
     const r = await page.evaluate(() => {
       const st = lastRun.st;
-      const pia = computePIA(WAGES, st.ageNow).pia, sp = computePIA(SWAGES, st.sageNow).pia;
+      const pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia, sp = computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow).pia;
       let best = { cp: 0, cs: 0, v: -1 };
       for (let cp = 62; cp <= 70; cp++) for (let cs = 62; cs <= 70; cs++) {
         const v = lifeSSrealPair(st, cp, cs, pia, sp).total;
@@ -144,7 +162,7 @@ test.describe('4. Optimal Social Security claiming', () => {
   test('boundary: short life favors early; long life favors delaying', async ({ page }) => {
     await load(page);
     const r = await page.evaluate(() => {
-      const st = lastRun.st, pia = computePIA(WAGES, st.ageNow).pia;
+      const st = lastRun.st, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
       return {
         short: optimizeClaiming({ ...st, endAge: 74 }, pia, null).claimP,
         long: optimizeClaiming({ ...st, endAge: 95 }, pia, null).claimP,
@@ -161,7 +179,7 @@ test.describe('5. Deemed-filing spousal mechanics', () => {
     await setInputs(page, { age: '60', salary: '176,100', sage: '58', sSalary: '40,000' });
     const r = await page.evaluate(() => {
       const st = lastRun.st;
-      const piaP = computePIA(WAGES, st.ageNow).pia, piaS = computePIA(SWAGES, st.sageNow).pia;
+      const piaP = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia, piaS = computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow).pia;
       const A = ssAmountsFor(st, 70, 62, piaP, piaS); // you delay to 70, spouse claims 62
       const own = A.ssSpouseOwnAnnual, excess = A.ssSpouseExcessAnnual, combined = own + excess;
       return {
@@ -181,7 +199,7 @@ test.describe('5. Deemed-filing spousal mechanics', () => {
     await setInputs(page, { age: '60', salary: '40,000', sage: '58', sSalary: '176,100' });
     const r = await page.evaluate(() => {
       const st = lastRun.st;
-      const piaP = computePIA(WAGES, st.ageNow).pia, piaS = computePIA(SWAGES, st.sageNow).pia;
+      const piaP = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia, piaS = computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow).pia;
       const A = ssAmountsFor(st, 62, 70, piaP, piaS); // you claim 62, spouse (higher) delays to 70
       return { primaryExcess: A.ssPrimaryExcessAnnual, spouseExcess: A.ssSpouseExcessAnnual };
     });
