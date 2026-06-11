@@ -1,0 +1,16 @@
+{
+  "name": "retirement-drawdown-model",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Retirement Drawdown — target-income planner, with a Playwright validation suite.",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}

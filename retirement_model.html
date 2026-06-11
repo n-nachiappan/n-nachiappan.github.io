@@ -1767,10 +1767,11 @@ function renderTab1(st,rows){
     card('Yr-1 retirement draw', fmt(first.wRet), first.note?('rule '+first.note):'flexible', 'brass')+
     card('Yr-1 savings draw', fmt(first.wSav), 'taxable top-up', 'blue')+
     card('Balance at age '+planEnd, fmt(endTot),'', endTot>1?'green':'red');
-  // chart
+  // chart (skip gracefully if the Chart.js CDN failed to load — the page stays fully functional without it)
   const labels=rows.map(r=>r.age);
-  if(chart1) chart1.destroy();
   const hasHSA = (st.hsa0>0) || rows.some(r=>r.endHsa>1);
+  if(typeof Chart!=='undefined' && $('chart1')){
+  if(chart1) chart1.destroy();
   const datasets=[
     {label:'Pre-tax',data:rows.map(r=>r.endPretax),borderColor:'#2f6b4a',backgroundColor:'rgba(47,107,74,.10)',fill:true,tension:.25,pointRadius:0,borderWidth:2},
     {label:'Roth',data:rows.map(r=>r.endRoth),borderColor:'#9a7b2e',backgroundColor:'rgba(154,123,46,.10)',fill:true,tension:.25,pointRadius:0,borderWidth:2},
@@ -1778,6 +1779,7 @@ function renderTab1(st,rows){
   ];
   if(hasHSA) datasets.push({label:'HSA',data:rows.map(r=>r.endHsa),borderColor:'#a8362a',backgroundColor:'rgba(168,54,42,.08)',fill:true,tension:.25,pointRadius:0,borderWidth:2,borderDash:[5,3]});
   chart1=new Chart($('chart1'),{type:'line',data:{labels,datasets},options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{family:'IBM Plex Mono',size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{x:{title:{display:true,text:'Age',font:{family:'IBM Plex Mono'}},grid:{display:false}},y:{ticks:{callback:v=>{const a=Math.abs(v); if(a>=1e6) return '$'+(v/1e6)+'m'; if(a>=1e3) return '$'+(v/1e3)+'k'; return '$'+v;},font:{family:'IBM Plex Mono'}}}}}});
+  }
   // Estate & heirs breakdown
   const est = estateEstimate(st, rows), eb=$('estateBox');
   if(est && est.gross>1){
