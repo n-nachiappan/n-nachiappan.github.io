@@ -493,6 +493,10 @@ canvas{max-width:100%;}
         <div class="inwrap"><input type="number" id="infl" value="2.5" step="0.25" min="0" max="10"><span class="suf">%</span></div>
         <div class="hint">Grows your target, SS COLA &amp; brackets.</div>
       </div>
+      <div class="field"><label>Real wage growth</label>
+        <div class="inwrap"><input type="number" id="wageGrow" value="1.1" step="0.1" min="0" max="3"><span class="suf">%</span></div>
+        <div class="hint">Career earnings growth <b>above inflation</b> (SSA's Average Wage Index trend, ≈1.1%). Lifts Social Security for future retirees while keeping the benefit in today's dollars. Set 0 to freeze wages in real terms.</div>
+      </div>
       <div class="field"><label>Plan to age — you</label>
         <div style="display:flex;gap:6px;align-items:center;">
           <select id="sex"><option value="m">Male</option><option value="f">Female</option></select>
@@ -717,6 +721,12 @@ function interp(anchors, x){ // anchors: array [[k,v]...] sorted; or object
 }
 const wageBase = y => interp(WBASE, Math.min(y,2026));
 const awi = y => interp(AWI, Math.min(y,2024));
+// The published AWI / wage-base tables end here; beyond them, project forward at the nominal wage trend (nwg) the
+// caller supplies, instead of freezing at the last value. nwg = (1+inflation)(1+real-wage-growth)-1. This is what
+// keeps the Social Security benefit in today's dollars and invariant to the inflation assumption (see computePIA).
+const AWI_LAST=2024, WBASE_LAST=2026;
+const awiAt   = (y,nwg) => y<=AWI_LAST   ? awi(y)      : AWI[AWI_LAST]    * Math.pow(1+nwg, y-AWI_LAST);
+const wbaseAt = (y,nwg) => y<=WBASE_LAST ? wageBase(y) : WBASE[WBASE_LAST]* Math.pow(1+nwg, y-WBASE_LAST);
 const acaFactor = a => interp(ACA_CURVE, Math.max(21,Math.min(64,a)));
 function perPersonACA(age){ return age>=65?0: acaFactor(age)*ACA_BASE_ANNUAL; }
 
@@ -794,32 +804,37 @@ function irmaaPerPerson(magi, status, thrInfl){
 }
 
 /* ============================ SOCIAL SECURITY ============================ */
-function buildWages(salaryNow, ageNow, retireAge, infl, careerStart){
-  // career: start at careerStart (default 22), work until retireAge; salary back-projected by inflation, capped at wage base.
-  // The entered salary anchors to "now" while still working (it grows to retirement); but if retiring at or before the
-  // current age, the last working year is age retireAge-1, so the entered "final salary" anchors there (no discount).
-  const startAge=careerStart||22, retYear = NOW + (retireAge-ageNow);
-  const anchorYear = NOW + Math.min(0, (retireAge-1) - ageNow);
+function buildWages(salaryNow, ageNow, retireAge, infl, careerStart, wageGrow){
+  // Synthetic earnings record that TRACKS THE WAGE INDEX: the entered salary is read as the worker's standing relative
+  // to the national average wage, held across the career, so each year's earnings = salary scaled by that year's AWI
+  // (the wage base rises with it too). Anchoring to the wage index — rather than back-projecting a nominal salary by
+  // inflation — is what keeps the resulting benefit in today's dollars and independent of the inflation assumption.
+  const g = wageGrow||0, nwg = (1+infl)*(1+g)-1;   // nominal wage trend = inflation + real wage growth (AWI)
+  const startAge=careerStart||22, retYear = NOW + (retireAge-ageNow), awiNow=awiAt(NOW,nwg);
   const rows=[];
   for(let a=startAge; a<retireAge; a++){
     const yr = retYear - (retireAge - a);            // calendar year for working age a  (= NOW + a - ageNow)
-    const sal = salaryNow * Math.pow(1+infl, yr - anchorYear); // nominal salary that year
-    const capped = Math.min(sal, wageBase(yr));
+    const sal = salaryNow * awiAt(yr,nwg)/awiNow;    // earnings tracking the wage index, anchored at today's salary
+    const capped = Math.min(sal, wbaseAt(yr, nwg));
     rows.push({year:yr, age:a, earn:Math.max(0,Math.round(capped))});
   }
   return rows;
 }
-function computePIA(wages, ageNow){
-  // index earnings to age-60 year, top 35, AIME, PIA via bend points
+function computePIA(wages, ageNow, infl, wageGrow){
+  // PIA in TODAY'S (2026) dollars, invariant to the inflation assumption:
+  //   1. index every working year's earnings to TODAY's wage level via AWI (projected past 2024 at the wage trend),
+  //      so a wage-tracking career indexes to a flat today's-dollar amount and the inflation component cancels;
+  //   2. AIME = average of the top 35 indexed years / 420 months; PIA from the 2026 bend points — a today's-dollar PIA;
+  //   3. apply the real-wage-growth uplift (1+g)^(years to the worker's age-62 eligibility): future retirees earn a
+  //      higher real benefit (their wage base & bend points rise in real terms), past cohorts a slightly lower one.
+  // For the 2026 eligibility cohort the uplift exponent is 0, so this is the plain today's-dollar PIA.
+  const g = wageGrow||0, nwg = (1+(infl||0))*(1+g)-1;
   const birthYear = NOW - ageNow;
-  const idxYear = birthYear + 60;
-  const awi60 = awi(idxYear);
-  let indexed = wages.map(w=>{
-    const factor = w.year < idxYear ? awi60/awi(w.year) : 1;
-    return w.earn*factor;
-  }).sort((a,b)=>b-a).slice(0,35);
-  const aime = indexed.reduce((s,x)=>s+x,0)/420;
-  let pia = 0.9*Math.min(aime,BEND1) + 0.32*Math.max(0,Math.min(aime,BEND2)-BEND1) + 0.15*Math.max(0,aime-BEND2);
+  const awiNow = awiAt(NOW, nwg);                  // index target: today's wage level → today's dollars
+  let indexed = wages.map(w=> w.earn * awiNow/awiAt(w.year, nwg)).sort((a,b)=>b-a).slice(0,35);
+  const aime = indexed.reduce((s,x)=>s+x,0)/420;  // monthly, in today's (2026) dollars
+  const pia0 = 0.9*Math.min(aime,BEND1) + 0.32*Math.max(0,Math.min(aime,BEND2)-BEND1) + 0.15*Math.max(0,aime-BEND2);
+  const pia = pia0 * Math.pow(1+g, (birthYear+62) - NOW); // real-wage-growth uplift to the age-62 eligibility year
   return {aime, pia}; // monthly PIA in today's $
 }
 function claimAdjust(pia, claimAge){
@@ -981,7 +996,7 @@ function gather(){
     smooth: $('smooth').value==='on', rothConvIdx: ({'off':-1,'12':2,'22':3,'24':4})[$('rothConv').value]??-1,
     hcPremEdit: blank('hcPrem')? null : num('hcPrem'),
     hcInfl: num('hcInfl')/100, oopMed0: num('oopMed'), oopPre0: num('oopPre'), medPremInfl: num('medPremInfl')/100,
-    ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100,
+    ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100, wageGrow: num('wageGrow')/100,
     preRetMAGI: num('salary') + (married? num('sSalary') : 0), // household MAGI while working ≈ combined wages (today's $)
     endAge: (eaN && eaN>=ageNow)? eaN : leDefault(ageNow, $('sex').value),
     sex: $('sex').value, sexSpouse: $('sexSpouse').value,
@@ -1553,14 +1568,14 @@ function run(){
   $('healthPanel').style.opacity = 1;
 
   // Social Security benefit (today's $ annual). Build the earnings records first, then derive PIAs.
-  if(!WAGES || !wagesEdited) WAGES=buildWages(st.salary, st.ageNow, st.retireAge, st.infl, st.careerStart);
+  if(!WAGES || !wagesEdited) WAGES=buildWages(st.salary, st.ageNow, st.retireAge, st.infl, st.careerStart, st.wageGrow);
   if(st.married){
-    if(!SWAGES || !swagesEdited) SWAGES=buildWages(st.sSalary, st.sageNow, st.retireAge - (st.ageNow-st.sageNow), st.infl, st.sCareerStart);
+    if(!SWAGES || !swagesEdited) SWAGES=buildWages(st.sSalary, st.sageNow, st.retireAge - (st.ageNow-st.sageNow), st.infl, st.sCareerStart, st.wageGrow);
   }
-  const piaCalc=computePIA(WAGES, st.ageNow);
+  const piaCalc=computePIA(WAGES, st.ageNow, st.infl, st.wageGrow);
   const piaMonthly = st.piaOverride!=null? st.piaOverride : piaCalc.pia;
   $('piaShow').textContent = st.piaOverride!=null? '' : ('PIA ≈ $'+fmt0(piaCalc.pia)+'/mo');
-  const spPiaCalc = (st.married && SWAGES)? computePIA(SWAGES, st.sageNow) : null;
+  const spPiaCalc = (st.married && SWAGES)? computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow) : null;
   const spousePia = st.married? (st.sPiaOverride!=null? st.sPiaOverride : (spPiaCalc? spPiaCalc.pia : null)) : null;
   $('sPiaShow').textContent = (st.married && st.sPiaOverride==null && spPiaCalc)? ('PIA ≈ $'+fmt0(spPiaCalc.pia)+'/mo') : '';
 
@@ -2088,7 +2103,7 @@ const EXPORT_FIELDS = [
   ['claim','Social Security claim age (you)'],['sclaim','Social Security claim age (spouse)'],['piaOverride','PIA override (monthly, today $)'],
   ['hcPrem','Pre-65 annual premium override'],['oopPre','Out-of-pocket medical, pre-65 (per person)'],['oopMed','Out-of-pocket medical, Medicare (per person)'],
   ['hcInfl','Healthcare inflation %'],['medPremInfl','Medicare premium trend %'],
-  ['ret','Expected return %'],['infl','Inflation %'],['vol','Return volatility % (stress test)'],['wrate','Plain-rule withdrawal %'],
+  ['ret','Expected return %'],['infl','Inflation %'],['wageGrow','Real wage growth % (above inflation)'],['vol','Return volatility % (stress test)'],['wrate','Plain-rule withdrawal %'],
   ['endAge','Plan-to age — you'],['endAgeSpouse','Plan-to age — spouse'],
   ['sex','Your sex (m/f)'],['sexSpouse','Spouse sex (m/f)'],
   ['stateMode','State (code, e.g. none/ca/ny/flat)'],['stateRate','Custom flat state rate %'],
@@ -2255,8 +2270,8 @@ function refreshLEdefaults(){
 refreshLEdefaults(); // seed life-expectancy defaults before first render
 document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{
   if(el.classList.contains('money')) fmtMoneyInput(el);
-  if(el.id==='salary'||el.id==='age'||el.id==='rage'||el.id==='infl'||el.id==='careerStart') wagesEdited=false;
-  if(el.id==='sSalary'||el.id==='sage'||el.id==='sCareerStart') swagesEdited=false;
+  if(el.id==='salary'||el.id==='age'||el.id==='rage'||el.id==='infl'||el.id==='careerStart'||el.id==='wageGrow') wagesEdited=false;
+  if(el.id==='sSalary'||el.id==='sage'||el.id==='sCareerStart'||el.id==='infl'||el.id==='wageGrow') swagesEdited=false;
   if(el.id==='endAge'||el.id==='endAgeSpouse') endAgesEdited=true;
   if(el.id==='claim') claimEdited=true;   // overrides the optimized claim age
   if(el.id==='sclaim') sclaimEdited=true;  // overrides the optimized spouse claim age
