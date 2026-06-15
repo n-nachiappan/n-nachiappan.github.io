@@ -1008,7 +1008,7 @@ function applyPreset(name){
   $('oopPre').value=P.oopPre.toLocaleString('en-US'); $('oopMed').value=P.oopMed.toLocaleString('en-US');
   leMode=P.le; endAgesEdited=false; refreshLEdefaults();
   $('presetSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===name));
-  $('presetHint').textContent = PRESET_HINTS[name];
+  $('presetHint').textContent = PRESET_HINTS[name] + ' Note: picking a preset overwrites these fields — including any you imported (return, inflation, volatility, medical trends, out-of-pocket and plan-to age).';
   run();
 }
 
@@ -1590,31 +1590,46 @@ function scheduleFix(st, balances, startSage, headlinePct){
     return 100*ok/N;
   }
   const PASS=STRESS_GREEN;
+  const CASH_MAX_YEARS=7;                         // a cash buffer is meant to bridge a downturn (a few years), not de-risk the whole plan
   const portTot=balances.pretax+balances.roth+balances.savPrin+balances.savGain+(balances.hsa||0);
+  // Balances grown by w extra working years (more compounding); ignores added contributions, so it's conservative.
+  const grownBal=(w)=>{ const g=Math.pow(1+st.ret,w); return {pretax:balances.pretax*g, roth:balances.roth*g, savPrin:balances.savPrin*g, savGain:balances.savGain*g + balances.savPrin*(g-1), hsa:(balances.hsa||0)*g}; };
+  const maxW = Math.max(0, Math.min(10, 72-st.retireAge));
   const out={base: (headlinePct!=null? headlinePct : Math.round(rate(st, balances)))};  // show the same % as the headline stress panel
   const tasks=[];
-  // Lever 1 — out-of-market cash reserve drawn in down years
+  // Lever 1 — out-of-market cash reserve drawn in down years, capped at a sensible buffer (≤ CASH_MAX_YEARS of spending).
+  // Beyond that, cash stops being a "bridge" and just becomes a low-return chunk of the portfolio, so we don't quote it.
   tasks.push(()=>{
-    const big=Math.max(st.target*10, portTot*0.6, 1);
-    if(rate({...st, cashReserve:big}, balances) < PASS){ out.cash={feasible:false}; return; }
-    let lo=0, hi=big; for(let k=0;k<8;k++){ const m=(lo+hi)/2; if(rate({...st, cashReserve:m}, balances)>=PASS) hi=m; else lo=m; }
-    out.cash={feasible:true, amount:roundUpTo(hi, 5000)};
+    const cap=st.target*CASH_MAX_YEARS;
+    out.cash={cap, capYears:CASH_MAX_YEARS};
+    if(rate({...st, cashReserve:cap}, balances) < PASS){ out.cash.feasible=false; return; }
+    let lo=0, hi=cap; for(let k=0;k<8;k++){ const m=(lo+hi)/2; if(rate({...st, cashReserve:m}, balances)>=PASS) hi=m; else lo=m; }
+    out.cash.feasible=true; out.cash.amount=roundUpTo(hi, 5000);
   });
   // Lever 2 — trim spending to the highest target that still passes
   tasks.push(()=>{
     let lo=0, hi=st.target; for(let k=0;k<9;k++){ const m=(lo+hi)/2; if(rate({...st, target:m}, balances)>=PASS) lo=m; else hi=m; }
     const T=roundDnTo(lo, 1000); out.spend={feasible:T>0, newTarget:T, cut:st.target-T, cutPct:Math.round(100*(st.target-T)/st.target)};
   });
-  // Lever 3 — work longer (more compounding + shorter drawdown); ignores extra contributions, so this is conservative
+  // Lever 3 — work longer (more compounding + shorter drawdown)
   tasks.push(()=>{
     let found=null;
-    for(let w=1; w<=10 && st.retireAge+w<=72; w++){
-      const g=Math.pow(1+st.ret,w);
-      const bal={pretax:balances.pretax*g, roth:balances.roth*g, savPrin:balances.savPrin*g, savGain:balances.savGain*g + balances.savPrin*(g-1), hsa:(balances.hsa||0)*g};
-      const sage = startSage==null? null : startSage+w;
-      if(rate({...st, retireAge:st.retireAge+w}, bal, sage)>=PASS){ found={years:w, age:st.retireAge+w}; break; }
-    }
-    out.work = found? {feasible:true, ...found} : {feasible:false};
+    for(let w=1; w<=maxW; w++){ const sage = startSage==null? null : startSage+w;
+      if(rate({...st, retireAge:st.retireAge+w}, grownBal(w), sage)>=PASS){ found={years:w, age:st.retireAge+w}; break; } }
+    out.work = found? {feasible:true, ...found} : {feasible:false, maxYears:maxW};
+  });
+  // Lever 4 — a BALANCED combination: apply the same fraction f of each single-lever fix at once and find the smallest f
+  // that passes. Because the three levers compound, f is well under 1, so no single move is taken to an extreme.
+  tasks.push(()=>{
+    const cashRef = out.cash.feasible? out.cash.amount : (out.cash.cap||0);      // cap-bounded, so the blend's cash stays sane
+    const trimRef = out.spend.feasible? out.spend.cut : st.target;
+    const workRef = out.work.feasible? out.work.years : (out.work.maxYears||0);
+    const comboRate=(f)=>{ const wy=Math.round(f*workRef), sage=(startSage==null?null:startSage+wy);
+      return rate({...st, cashReserve:f*cashRef, target:Math.max(0,st.target-f*trimRef), retireAge:st.retireAge+wy}, grownBal(wy), sage); };
+    if(comboRate(1) < PASS){ out.combo={feasible:false}; return; }                // safety: f=1 includes the full solo trim, which passes
+    let lo=0, hi=1; for(let k=0;k<8;k++){ const m=(lo+hi)/2; if(comboRate(m)>=PASS) hi=m; else lo=m; }
+    const f=hi, wy=Math.round(f*workRef);
+    out.combo={feasible:true, f, cash:roundUpTo(f*cashRef,5000), target:roundDnTo(st.target-f*trimRef,1000), cut:st.target-roundDnTo(st.target-f*trimRef,1000), years:wy, age:st.retireAge+wy};
   });
   tasks.push(()=> renderFix(out, st));
   (function step(){ if(token!==fixToken) return; const f=tasks.shift(); if(!f) return; f(); if(tasks.length) setTimeout(step,0); })();
@@ -1624,8 +1639,8 @@ function renderFix(o, st){
   const items=[];
   if(o.cash){
     items.push(o.cash.feasible
-      ? `<li><span class="ic">💵</span><b>Hold a cash reserve of about ${fmt(o.cash.amount)}</b> outside the market (high-yield savings, money-market or short T-bills) and spend from it during down-market years instead of selling — the classic buffer against a bad sequence of early returns. Set aside on top of the portfolio above, or carve it from it (slightly less protective, since it lowers the growth sleeve).</li>`
-      : `<li><span class="ic">💵</span><b>A cash reserve alone won't close the gap.</b> The target outruns the portfolio even in calm markets, so a finite buffer only delays depletion — pair it with a spending trim or more years of saving.</li>`);
+      ? `<li><span class="ic">💵</span><b>Hold a cash reserve of about ${fmt(o.cash.amount)}</b> (about ${(o.cash.amount/st.target).toFixed(1)} years of spending) outside the market — high-yield savings, money-market or short T-bills — and spend from it during down-market years instead of selling. It earns no market return, so the model holds it at roughly inflation; set it aside on top of the portfolio above, or carve it from it (then your growth sleeve shrinks, which the 0%-real treatment already reflects).</li>`
+      : `<li><span class="ic">💵</span><b>A cash buffer alone won't fix this plan.</b> Even ${fmt(o.cash.cap)} (~${o.cash.capYears} years of spending) doesn't reach ${STRESS_GREEN}% — the shortfall is structural (long horizon and/or thin real return), not a short market dip a buffer bridges. Beyond a few years of spending, "cash" stops being a buffer and just becomes a low-return slice of your portfolio. Lean on the levers below, or hold a less aggressive, <b>lower-volatility</b> portfolio.</li>`);
   }
   if(o.spend && o.spend.feasible){
     items.push(`<li><span class="ic">✂️</span><b>Trim planned spending to about ${fmt(o.spend.newTarget)}/yr</b> (−${fmt(o.spend.cut)}, ${o.spend.cutPct}%). Even applying the cut only in down years — a "guardrails" rule — gets most of the way there while letting you spend more when markets cooperate.</li>`);
@@ -1633,16 +1648,27 @@ function renderFix(o, st){
   if(o.work && o.work.feasible){
     items.push(`<li><span class="ic">🕒</span><b>Retire at ${o.work.age}</b> — about ${o.work.years} more year${o.work.years>1?'s':''}. The portfolio compounds longer and the drawdown is shorter; counting the extra saving you'd also do, the real cushion is bigger than this.</li>`);
   }
-  // Compact one-liner for the verdict; the full lever breakdown lives behind the toggle.
-  const hints=[];
-  if(o.cash && o.cash.feasible) hints.push(`hold ${fmt(o.cash.amount)} in cash`);
-  if(o.spend && o.spend.feasible) hints.push(`trim to ${fmt(o.spend.newTarget)}/yr`);
-  if(o.work && o.work.feasible) hints.push(`retire at ${o.work.age}`);
-  const summary=`<span class="fh" style="display:inline">How to pass the stress test:</span> at <b>${o.base}%</b> you're below the ${STRESS_GREEN}% line`
-    + (hints.length? ` — e.g. ${hints.join(', ')}` : ' — see options') + `.`;
-  let detail=`Here's the smallest single move on each lever that lifts stress success to <b>${STRESS_GREEN}%+</b>, each on its own. Combine them and you'd need less of each:`;
+  // The balanced combination — a moderate dose of each, so nothing is taken to an extreme.
+  let comboParts=[];
+  if(o.combo && o.combo.feasible){
+    const c=o.combo;
+    if(c.cash>=5000) comboParts.push(`hold about <b>${fmt(c.cash)}</b> in cash`);
+    if(c.cut>500)    comboParts.push(`trim to about <b>${fmt(c.target)}/yr</b>`);
+    if(c.years>=1)   comboParts.push(`retire at <b>${c.age}</b>`);
+  }
+  const andJoin = a => a.length>1? a.slice(0,-1).join(', ')+' and '+a[a.length-1] : (a[0]||'');
+  if(comboParts.length>=2){
+    const label = comboParts.length>=3? 'Or balance all three' : 'Or combine them';
+    items.push(`<li><span class="ic">⚖️</span><b>${label}:</b> ${andJoin(comboParts)} — together they reach ${STRESS_GREEN}% with <b>no single lever taken to an extreme</b> (each is only about ${Math.round(o.combo.f*100)}% of what it would take on its own).</li>`);
+  }
+  // Compact one-liner for the verdict; the full breakdown lives behind the toggle. Lead with the balanced mix when we have one.
+  let lead;
+  if(comboParts.length>=2){ lead=('a balanced mix — '+andJoin(comboParts)).replace(/<\/?b>/g,''); }
+  else { const hints=[]; if(o.cash&&o.cash.feasible) hints.push(`hold ${fmt(o.cash.amount)} in cash`); if(o.spend&&o.spend.feasible) hints.push(`trim to ${fmt(o.spend.newTarget)}/yr`); if(o.work&&o.work.feasible) hints.push(`retire at ${o.work.age}`); lead=hints.length? `e.g. ${hints.join(', ')}`:'see options'; }
+  const summary=`<span class="fh" style="display:inline">How to pass the stress test:</span> at <b>${o.base}%</b> you're below the ${STRESS_GREEN}% line — ${lead}.`;
+  let detail=`Each item below independently lifts stress success to <b>${STRESS_GREEN}%+</b> using a single lever, fully; the last blends them so none is excessive:`;
   detail+=`<ul>${items.join('')}</ul>`;
-  detail+=`<span class="note">Why these work: sequence-of-returns risk comes from selling assets while they're down early in retirement. A cash buffer, flexible spending, and a later start all reduce how much you must sell into a downturn. Delaying Social Security (toward 70) does the same by lifting your guaranteed, market-proof income floor. Amounts are reverse-engineered from the same ${STRESS_N} randomized market paths as the stress test above and are independent estimates — not a single combined plan.</span>`;
+  detail+=`<span class="note">Why these work: sequence-of-returns risk comes from selling assets while they're down early in retirement. A cash buffer, flexible spending, and a later start all reduce how much you must sell into a downturn. Delaying Social Security (toward 70) does the same by lifting your guaranteed, market-proof income floor. Amounts are reverse-engineered from the same ${STRESS_N} randomized market paths as the stress test above.</span>`;
   el.innerHTML=summaryBox(summary, detail); el.style.display='block';
 }
 // Render a collapsible callout: a one-line summary always visible, the full detail revealed by a "Details" toggle.
