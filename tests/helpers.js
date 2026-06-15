@@ -49,4 +49,16 @@ async function waitForStress(page) {
   return page.evaluate(() => lastRun.stress);
 }
 
-module.exports = { load, setInputs, exportCSV, waitForStress, BAL_AT_RET };
+// Wait until the "how to pass the stress test" recommendation panel has rendered (it runs after the stress test,
+// in async chunks). Resolves with its innerText. Only appears when stress success is below the green band.
+async function waitForFix(page) {
+  // The full lever breakdown is collapsed (display:none), so read textContent — which includes hidden text —
+  // and key off a phrase that only appears in the final render, not the "reverse-engineering…" placeholder.
+  await page.waitForFunction(() => {
+    const f = document.getElementById('vFix');
+    return f && f.style.display !== 'none' && /smallest single move/.test(f.textContent);
+  }, null, { timeout: 25_000 });
+  return page.evaluate(() => document.getElementById('vFix').textContent);
+}
+
+module.exports = { load, setInputs, exportCSV, waitForStress, waitForFix, BAL_AT_RET };
