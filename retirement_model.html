@@ -444,7 +444,7 @@ canvas{max-width:100%;}
   </div>
   <div class="panel" id="claimPanel">
     <h3>Social Security claiming ages <span class="computed" id="claimOptShow"></span></h3>
-    <div class="sub">By default these are set to the <b>optimal claiming strategy</b> — the ages that maximize total household benefits in today's dollars given your life expectancy (the higher earner is also weighed for the survivor benefit). Override either age below; click <b>Use optimal</b> to restore.</div>
+    <div class="sub">By default these are set to the <b>optimal claiming strategy</b> — the ages that maximize the <b>expected</b> household benefit in today's dollars, weighting each future year by the probability of being alive to collect it (a male and a female survival curve from the SSA life table; the higher earner is also weighed for the survivor benefit). This doesn't depend on your plan-to age. Override either age below; click <b>Use optimal</b> to restore.</div>
     <div class="grid g3">
       <div class="field"><label>Claiming age — you</label>
         <input type="number" id="claim" value="67" min="62" max="70">
@@ -453,6 +453,10 @@ canvas{max-width:100%;}
       <div class="field" id="sclaimWrap" style="display:none;"><label>Claiming age — spouse</label>
         <input type="number" id="sclaim" value="67" min="62" max="70">
         <div class="hint" id="sclaimHint">62–70. A spousal benefit can't begin until the other spouse has filed.</div>
+      </div>
+      <div class="field"><label>Real discount rate</label>
+        <div class="inwrap"><input type="number" id="realDisc" value="2.5" step="0.1" min="0" max="8"><span class="suf">%</span></div>
+        <div class="hint">Above inflation, for valuing future benefits. Default ≈ the 20-yr <b>TIPS</b> real yield (the safe asset given up to delay); a higher rate favors claiming earlier.</div>
       </div>
       <div class="field"><label>&nbsp;</label>
         <button class="btn" id="claimOptBtn" type="button">↺ Use optimal ages</button>
@@ -964,18 +968,67 @@ function lifetimeSSRealFor(st, A, claimP, claimS){
   return {total, byP, byS};
 }
 const lifeSSrealPair = (st, cp, cs, piaMonthly, spousePia)=> lifetimeSSRealFor(st, ssAmountsFor(st, cp, cs, piaMonthly, spousePia), cp, cs);
-// Brute-force the claim-age pair (62–70 each) that maximizes lifetime household benefits in today's dollars.
+
+/* ===================== SURVIVAL-WEIGHTED CLAIMING (best practice) =====================
+   The optimal CLAIMING age shouldn't hinge on a single plan-to age (which is just the drawdown horizon, set by the
+   preset). Best practice maximizes the EXPECTED present value of lifetime benefits, weighting each future year's
+   benefit by the PROBABILITY of being alive to collect it — with a separate survival curve per spouse (one male, one
+   female) and the joint states (both alive / one survivor) valued explicitly. Mortality uses a Gompertz law,
+   μ(x)=(1/b)·e^((x−m)/b), with (m,b) calibrated to the SSA period life table (matches male e62/e65/e70 = 19.7/17.5/14.0
+   and female 22.6/20.2/16.3 within 0.02 yr). Conditional survival from current age a₀ over t years:
+   ₜp_a₀ = exp( e^((a₀−m)/b)·(1−e^(t/b)) ). Benefits are valued in today's dollars (real); with COLA = inflation the
+   real benefit is level, so this is a pure survival-weighted expectation (no extra real discount applied). */
+const GOMPERTZ = { m:{m:84.3, b:10.7}, f:{m:88.1, b:9.75} };   // modal age & dispersion, by sex
+function surviveProb(ageNow, t, sex){
+  if(t<=0) return 1;
+  const g = (sex==='f')? GOMPERTZ.f : GOMPERTZ.m;
+  return Math.exp(Math.exp((ageNow-g.m)/g.b) * (1-Math.exp(t/g.b)));
+}
+// Expected (survival-probability-weighted) lifetime household SS in today's $, split by person. Independent of the
+// plan-to age. For a couple: both-alive pays each own+excess benefit; after one death the survivor keeps the LARGER
+// record — so each year is the probability-weighted blend of those states.
+function lifetimeSSExpectedFor(st, A, claimP, claimS){
+  const sexP = st.sex||'m';
+  const married = st.married && st.sageNow!=null;
+  const sexS = st.sexSpouse||'f';
+  const surv = Math.max(A.ssPrimaryAnnual, A.ssSpouseOwnAnnual);  // survivor keeps the larger own benefit
+  const df = 1/(1+(st.realDisc||0));   // real discount factor: future benefits valued at the TIPS-like real rate
+  let byP=0, byS=0;
+  for(let k=0;k<=70;k++){
+    const a = st.ageNow+k, s = married? st.sageNow+k : null;
+    const sp = surviveProb(st.ageNow, k, sexP);
+    const ss = married? surviveProb(st.sageNow, k, sexS) : 0;
+    if(sp<1e-6 && (!married || ss<1e-6)) break;
+    const d = Math.pow(df, k);
+    if(married){
+      const pBoth=sp*ss, pPonly=sp*(1-ss), pSonly=(1-sp)*ss;
+      const pFiled=a>=claimP, sFiled=s>=claimS;
+      const ownP=pFiled? A.ssPrimaryAnnual:0, exP=(pFiled&&sFiled)? (A.ssPrimaryExcessAnnual||0):0;
+      const ownS=sFiled? (A.ssSpouseOwnAnnual||0):0, exS=(pFiled&&sFiled)? (A.ssSpouseExcessAnnual||0):0;
+      const survP=(a>=claimP)? surv:0, survS=(s>=claimS)? surv:0;     // survivor benefit needs the survivor to have reached their claim age
+      byP += d*(pBoth*(ownP+exP) + pPonly*survP);
+      byS += d*(pBoth*(ownS+exS) + pSonly*survS);
+    } else {
+      byP += d*sp*((a>=claimP)? A.ssPrimaryAnnual:0);
+    }
+  }
+  return {total:byP+byS, byP, byS};
+}
+const lifeSSexpectedPair = (st, cp, cs, piaMonthly, spousePia)=> lifetimeSSExpectedFor(st, ssAmountsFor(st, cp, cs, piaMonthly, spousePia), cp, cs);
+
+// Brute-force the claim-age pair (62–70 each) that maximizes the EXPECTED (survival-weighted) lifetime household
+// benefit in today's dollars — the survivor-benefit value of delaying the higher earner falls out automatically.
 function optimizeClaiming(st, piaMonthly, spousePia){
   const ages=[62,63,64,65,66,67,68,69,70];
   let best=null;
   if(st.married){
     for(const cp of ages) for(const cs of ages){
-      const L = lifeSSrealPair(st, cp, cs, piaMonthly, spousePia).total;
+      const L = lifeSSexpectedPair(st, cp, cs, piaMonthly, spousePia).total;
       if(!best || L>best.total+0.5) best={claimP:cp, claimS:cs, total:L};
     }
   } else {
     for(const cp of ages){
-      const L = lifeSSrealPair(st, cp, cp, piaMonthly, spousePia).total;
+      const L = lifeSSexpectedPair(st, cp, cp, piaMonthly, spousePia).total;
       if(!best || L>best.total+0.5) best={claimP:cp, claimS:cp, total:L};
     }
   }
@@ -1037,6 +1090,8 @@ function gather(){
     hcPremEdit: blank('hcPrem')? null : num('hcPrem'),
     hcInfl: num('hcInfl')/100, oopMed0: num('oopMed'), oopPre0: num('oopPre'), medPremInfl: num('medPremInfl')/100,
     ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100, wageGrow: num('wageGrow')/100,
+    realDisc: num('realDisc')/100, // real discount rate for the survival-weighted SS claiming valuation
+
     preRetMAGI: num('salary') + (married? num('sSalary') : 0), // household MAGI while working ≈ combined wages (today's $)
     endAge: (eaN && eaN>=ageNow)? eaN : leDefault(ageNow, $('sex').value),
     sex: $('sex').value, sexSpouse: $('sexSpouse').value,
@@ -1904,13 +1959,13 @@ function run(){
       vc.innerHTML = summaryBox(sum, det); vc.style.display='block'; return;
     }
     const optL = opt.total;
-    const cur = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia).total;
-    const early = lifeSSrealPair(st, 62, 62, piaMonthly, spousePia).total;
+    const cur = lifeSSexpectedPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia).total;
+    const early = lifeSSexpectedPair(st, 62, 62, piaMonthly, spousePia).total;
     const claimTxt = st.married? `<b>you at ${opt.claimP}</b> and <b>spouse at ${opt.claimS}</b>` : `<b>age ${opt.claimP}</b>`;
     const gain = optL - early;
-    let sum = `<b>Optimal Social Security:</b> claim ${claimTxt} → about <b>${fmt(optL)}</b> lifetime in today's dollars`
+    let sum = `<b>Optimal Social Security:</b> claim ${claimTxt} → about <b>${fmt(optL)}</b> expected lifetime in today's dollars`
       + ((gain>500)? ` (~${fmt(gain)} more than claiming at 62).` : `.`);
-    let det = `Projected over your planning horizon. The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.`;
+    let det = `This maximizes the <b>expected</b> household benefit — each year weighted by the probability of being alive to collect it, from a male and a female survival curve (SSA life table), so it doesn't hinge on the single plan-to age. The higher earner is usually nudged to delay because a larger check also lifts the <b>survivor benefit</b> the longer-living spouse keeps; the lower earner may claim earlier.`;
     if(overridden){
       const diff = optL - cur;
       det += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
@@ -2088,7 +2143,8 @@ function claimPairTotals(st, A, cp, cs){
     real+=r.ssP+r.ssS;
     nom+=(r.ssP+r.ssS)*Math.pow(1+st.infl, age-st.ageNow);
   }
-  return {real, nom};
+  const exp = lifetimeSSExpectedFor(st, A, cp, cs).total;   // survival-weighted expected PV — the optimization basis
+  return {real, nom, exp};
 }
 // Hover breakdown for one claim-age combination: each person's starting benefit, the spousal-excess step-up when the
 // other spouse files, the survivor change, and lifetime totals nominal vs today's dollars.
@@ -2112,9 +2168,9 @@ function claimPairTip(st, A, cp, cs, tot, optTotal){
     L.push(`Claim at ${cp}`);
     L.push(`Benefit: ${fmt(A.ssPrimaryAnnual/12)}/mo from age ${cp} (${Math.round(100*claimAdjust(1,cp))}% of PIA)`);
   }
-  L.push(`Lifetime household: ${fmt(tot.nom)} nominal (benefits grow with the ${(st.infl*100).toFixed(1)}% COLA)`);
-  L.push(`= ${fmt(tot.real)} in today's dollars (what the optimizer compares)`);
-  const d=optTotal-tot.real;
+  L.push(`Lifetime household: ${fmt(tot.nom)} nominal, ${fmt(tot.real)} in today's $ if both live to the plan-to age`);
+  L.push(`Expected (survival-weighted): ${fmt(tot.exp)} — what the optimizer compares`);
+  const d=optTotal-tot.exp;
   L.push(d>0.5? `vs optimal: −${fmt(d)}` : `★ the optimal strategy`);
   return L.join('&#10;');
 }
@@ -2135,7 +2191,8 @@ function renderTab2(st, D){
   } else {
     cards += card('Filing','Single','never married','blue');
   }
-  cards += card('Lifetime SS — today’s $', fmt(D.lifeReal.total), 'household, present value', 'brass');
+  const lifeExp = lifeSSexpectedPair(st, st.claim, st.claimSpouse, D.piaMonthly, st.married?(D.spousePia||0):null);
+  cards += card('Expected lifetime SS', fmt(lifeExp.total), 'survival-weighted, today’s $', 'brass');
   $('cards2').innerHTML = cards;
 
   const rowsHtml=[];
@@ -2158,33 +2215,33 @@ function renderTab2(st, D){
         const A=ssAmountsFor(st,cp,cs,piaP,piaS);
         const tot=claimPairTotals(st,A,cp,cs);
         const cls=((st.optClaim && cp===st.optClaim.claimP && cs===st.optClaim.claimS)?'cmp-opt ':'')+((cp===st.claim && cs===st.claimSpouse)?'cmp-cur':'');
-        m+=`<td class="${cls.trim()}" title="${claimPairTip(st,A,cp,cs,tot,optTotal)}">${fmtK(tot.real)}</td>`;
+        m+=`<td class="${cls.trim()}" title="${claimPairTip(st,A,cp,cs,tot,optTotal)}">${fmtK(tot.exp)}</td>`;
       }
       m+='</tr>';
     }
     m+='</tbody>';
     cmp=`<div class="cmp-head">Claiming-age strategy comparison</div>
-      <div class="cmp-sub">Lifetime household Social Security in <b>today's dollars</b> for every combination of claiming ages, over your plan horizon (you to ${st.endAge}, spouse to ${st.endAgeSpouse}; survivor keeps the larger benefit). <b>Hover any cell</b> for the full breakdown — each person's starting check, the spousal-excess step-up when the other files, the survivor change, and nominal vs today's-dollar totals.</div>
+      <div class="cmp-sub"><b>Expected</b> lifetime household Social Security in <b>today's dollars</b> for every combination of claiming ages — each future year's benefit weighted by the <b>probability of being alive</b> to collect it (a male and a female survival curve from the SSA life table; survivor keeps the larger benefit). This is the basis of the optimal pick and does <b>not</b> depend on the plan-to age. <b>Hover any cell</b> for the full breakdown.</div>
       <div class="tablescroll"><table class="cmp-table">${m}</table></div>
       <div class="legend"><span class="chip"><span class="sw" style="background:var(--greenbg)"></span> optimal strategy</span><span class="chip"><span class="sw" style="border:2px solid var(--blue);background:transparent;"></span> your current selection</span><span class="chip">Totals count benefits from retirement (age ${st.retireAge}) onward.</span></div>`;
   } else {
-    let m=`<thead><tr><th>Claim age</th><th>Monthly benefit</th><th>% of PIA</th><th>Starts (year)</th><th>Lifetime nominal</th><th>Lifetime today's $</th><th>vs optimal</th></tr></thead><tbody>`;
+    let m=`<thead><tr><th>Claim age</th><th>Monthly benefit</th><th>% of PIA</th><th>Starts (year)</th><th>To plan age (today's $)</th><th>Expected · survival-weighted</th><th>vs optimal</th></tr></thead><tbody>`;
     for(const cp of ages){
       const A=ssAmountsFor(st,cp,cp,piaP,null);
       const tot=claimPairTotals(st,A,cp,cp);
       const cls=((st.optClaim && cp===st.optClaim.claimP)?'cmp-opt ':'')+((cp===st.claim)?'cmp-cur':'');
-      const d=optTotal-tot.real;
-      m+=`<tr><td class="${cls.trim()}" title="${claimPairTip(st,A,cp,cp,tot,optTotal)}">${cp}</td><td>${fmt(A.ssPrimaryAnnual/12)}</td><td>${Math.round(100*claimAdjust(1,cp))}%</td><td>${NOW+(cp-st.ageNow)}</td><td>${fmt(tot.nom)}</td><td>${fmt(tot.real)}</td><td>${d>0.5? '−'+fmt(d) : '★ optimal'}</td></tr>`;
+      const d=optTotal-tot.exp;
+      m+=`<tr><td class="${cls.trim()}" title="${claimPairTip(st,A,cp,cp,tot,optTotal)}">${cp}</td><td>${fmt(A.ssPrimaryAnnual/12)}</td><td>${Math.round(100*claimAdjust(1,cp))}%</td><td>${NOW+(cp-st.ageNow)}</td><td>${fmt(tot.real)}</td><td>${fmt(tot.exp)}</td><td>${d>0.5? '−'+fmt(d) : '★ optimal'}</td></tr>`;
     }
     m+='</tbody>';
     cmp=`<div class="cmp-head">Claiming-age strategy comparison</div>
-      <div class="cmp-sub">Every claiming age compared over your plan horizon (to age ${st.endAge}). <b>Nominal</b> is what you'd actually collect with the ${(st.infl*100).toFixed(1)}% COLA; <b>today's $</b> deflates that back to present purchasing power — the basis of the optimization.</div>
+      <div class="cmp-sub"><b>Expected · survival-weighted</b> weights each year's benefit by the probability you're alive to collect it (SSA life table) — the basis of the optimal pick, independent of your plan-to age. <b>To plan age</b> is the simpler sum to age ${st.endAge} in today's dollars, shown for comparison.</div>
       <div class="tablescroll"><table class="cmp-table">${m}</table></div>
       <div class="legend"><span class="chip"><span class="sw" style="background:var(--greenbg)"></span> optimal</span><span class="chip"><span class="sw" style="border:2px solid var(--blue);background:transparent;"></span> current selection</span><span class="chip">Totals count benefits from retirement (age ${st.retireAge}) onward.</span></div>`;
   }
   $('ssDetail').innerHTML = `
     <table class="sp-table" style="margin-top:4px;"><thead><tr><th>Person</th><th>Claim age</th><th>Monthly benefit</th><th>Annual benefit</th><th>Lifetime SS (nominal)</th><th>Lifetime SS (today’s $)</th><th>Career earnings on record</th></tr></thead><tbody>${rowsHtml.join('')}${hh}</tbody></table>
-    <div class="sp-note">Monthly/annual is the steady-state benefit while both spouses are alive and have filed (including any spousal top-up). <b>Career earnings on record</b> is the sum of capped taxable wages — the basis for the AIME &amp; PIA; edit it under the Social Security input section above. ${st.optClaim? `Optimal claiming ages: <b>you ${st.optClaim.claimP}${st.married?', spouse '+st.optClaim.claimS:''}</b> (see the verdict banner).`:''}</div>
+    <div class="sp-note">Monthly/annual is the steady-state benefit while both spouses are alive and have filed (including any spousal top-up); the lifetime columns sum benefits over your <b>plan horizon</b> (to age ${st.endAge}${st.married?' / '+st.endAgeSpouse:''}). The <b>Expected lifetime SS</b> card and the comparison below instead weight every year by <b>survival probability</b> — that's what drives the optimal claiming ages, so it doesn't move with the plan-to age. <b>Career earnings on record</b> is the sum of capped taxable wages — the basis for the AIME &amp; PIA; edit it under the Social Security input section above. ${st.optClaim? `Optimal claiming ages: <b>you ${st.optClaim.claimP}${st.married?', spouse '+st.optClaim.claimS:''}</b> (see the verdict banner).`:''}</div>
     ${cmp}`;
 }
 
@@ -2311,7 +2368,7 @@ const EXPORT_FIELDS = [
   ['claim','Social Security claim age (you)'],['sclaim','Social Security claim age (spouse)'],['piaOverride','PIA override (monthly, today $)'],
   ['hcPrem','Pre-65 annual premium override'],['oopPre','Out-of-pocket medical, pre-65 (per person)'],['oopMed','Out-of-pocket medical, Medicare (per person)'],
   ['hcInfl','Healthcare inflation %'],['medPremInfl','Medicare premium trend %'],
-  ['ret','Expected return %'],['infl','Inflation %'],['wageGrow','Real wage growth % (above inflation)'],['vol','Return volatility % (stress test)'],['wrate','Plain-rule withdrawal %'],
+  ['ret','Expected return %'],['infl','Inflation %'],['wageGrow','Real wage growth % (above inflation)'],['vol','Return volatility % (stress test)'],['realDisc','Real discount rate % (SS claiming)'],['wrate','Plain-rule withdrawal %'],
   ['endAge','Plan-to age — you'],['endAgeSpouse','Plan-to age — spouse'],
   ['sex','Your sex (m/f)'],['sexSpouse','Spouse sex (m/f)'],
   ['stateMode','State (code, e.g. none/ca/ny/flat)'],['stateRate','Custom flat state rate %'],
@@ -2379,23 +2436,23 @@ function exportScenario(){
     o.push(['SECTION','SOCIAL SECURITY — claiming-age comparison (every combination, from retirement through the plan horizon)']);
     const ages=[62,63,64,65,66,67,68,69,70];
     if(st.married){
-      o.push(['your claim age','spouse claim age','you own $/mo','you spousal excess $/mo','spouse own $/mo','spouse spousal excess $/mo','survivor $/mo','lifetime nominal','lifetime today $','vs optimal (today $)','optimal','current']);
+      o.push(['your claim age','spouse claim age','you own $/mo','you spousal excess $/mo','spouse own $/mo','spouse spousal excess $/mo','survivor $/mo','lifetime nominal (to plan age)','lifetime today $ (to plan age)','expected today $ (survival-weighted)','vs optimal (expected today $)','optimal','current']);
       for(const cp of ages) for(const cs of ages){
         const A=ssAmountsFor(st,cp,cs,piaP,piaS);
         const tot=claimPairTotals(st,A,cp,cs);
         o.push([cp, cs, Math.round(A.ssPrimaryAnnual/12), Math.round((A.ssPrimaryExcessAnnual||0)/12),
           Math.round(A.ssSpouseOwnAnnual/12), Math.round((A.ssSpouseExcessAnnual||0)/12),
           Math.round(Math.max(A.ssPrimaryAnnual, A.ssSpouseOwnAnnual)/12),
-          Math.round(tot.nom), Math.round(tot.real), Math.round(st.optClaim.total - tot.real),
+          Math.round(tot.nom), Math.round(tot.real), Math.round(tot.exp), Math.round(st.optClaim.total - tot.exp),
           (cp===st.optClaim.claimP && cs===st.optClaim.claimS)?'YES':'', (cp===st.claim && cs===st.claimSpouse)?'YES':'']);
       }
     } else {
-      o.push(['claim age','benefit $/mo','% of PIA','starts (year)','lifetime nominal','lifetime today $','vs optimal (today $)','optimal','current']);
+      o.push(['claim age','benefit $/mo','% of PIA','starts (year)','lifetime nominal (to plan age)','lifetime today $ (to plan age)','expected today $ (survival-weighted)','vs optimal (expected today $)','optimal','current']);
       for(const cp of ages){
         const A=ssAmountsFor(st,cp,cp,piaP,null);
         const tot=claimPairTotals(st,A,cp,cp);
         o.push([cp, Math.round(A.ssPrimaryAnnual/12), Math.round(100*claimAdjust(1,cp))+'%', NOW+(cp-st.ageNow),
-          Math.round(tot.nom), Math.round(tot.real), Math.round(st.optClaim.total - tot.real),
+          Math.round(tot.nom), Math.round(tot.real), Math.round(tot.exp), Math.round(st.optClaim.total - tot.exp),
           (cp===st.optClaim.claimP)?'YES':'', (cp===st.claim)?'YES':'']);
       }
     }
