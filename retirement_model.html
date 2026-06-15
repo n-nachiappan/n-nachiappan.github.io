@@ -53,6 +53,21 @@ h1.title em{font-style:italic;font-weight:600;color:var(--green);}
 .v-estate{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--paper2);border:1px solid var(--rule);font-size:13.5px;line-height:1.5;}
 .v-estate.warn{background:rgba(168,54,42,.07);border-color:var(--red);}
 .v-estate .et{font-weight:600;color:var(--red);}
+.v-fix{margin-top:14px;padding:13px 15px;border-radius:8px;background:var(--bluebg);border:1px solid var(--blue);font-size:13.5px;line-height:1.55;}
+.v-fix .fh{font-weight:700;color:var(--blue);display:block;margin-bottom:4px;}
+.v-fix ul{margin:8px 0 6px;padding-left:0;list-style:none;}
+.v-fix li{position:relative;padding:5px 0 5px 26px;border-top:1px solid rgba(47,93,131,.18);}
+.v-fix li:first-child{border-top:none;}
+.v-fix li .ic{position:absolute;left:0;top:5px;}
+.v-fix .note{color:var(--ink2);display:block;margin-top:7px;font-size:12.5px;}
+/* Collapsible callouts: a one-line summary in the verdict, full detail revealed on click. */
+.v-sum{display:flex;justify-content:space-between;align-items:baseline;gap:14px;}
+.v-sum>span{flex:1 1 auto;}
+.v-toggle{flex:none;cursor:pointer;font-weight:600;font-size:11.5px;white-space:nowrap;color:var(--link);font-family:'IBM Plex Mono',monospace;letter-spacing:.02em;}
+.v-toggle::after{content:" \25be";}
+.v-toggle.open::after{content:" \25b4";}
+.v-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);}
+.v-fix .v-detail{border-top-color:rgba(47,93,131,.22);}
 .v-actions{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .v-actions-note{font-size:12px;color:var(--ink2);flex:1 1 240px;min-width:200px;line-height:1.45;}
 .preset-bar{margin:22px 0 6px;padding:14px 16px;border:1px solid var(--rule2);border-radius:10px;background:var(--card);}
@@ -201,6 +216,7 @@ canvas{max-width:100%;}
     <div class="v-estate" id="vClaim" style="display:none;"></div>
     <div class="v-estate" id="vTax" style="display:none;"></div>
     <div class="v-estate" id="vStress" style="display:none;"></div>
+    <div class="v-fix" id="vFix" style="display:none;"></div>
     <div class="v-estate" id="vEstate" style="display:none;"></div>
     <div class="v-jump">
       <span class="lab">See the full detail</span>
@@ -1196,7 +1212,9 @@ function solveYear(st, S){
     } else if(retireAge>=55 && retireAge<59.5){ mode='r55'; } // flexible 401k
   }
 
-  const target = st.target*infF;
+  // A cash-reserve year (set by the stress-test "how to pass" solver) covers part of the net target from an
+  // out-of-market buffer, so this year's spending pulled from market accounts is reduced by S.targetOverride.
+  const target = (S.targetOverride!=null? S.targetOverride : st.target)*infF;
   // ordinary-income pool drains pre-tax first, then leftover HSA (65+); tax-free Roth and taxable savings follow
   const ordPool = S.pretax + hsaForIncome;
   const rothAvail = S.roth;
@@ -1318,11 +1336,18 @@ function simulateCore(st, startBalances, startAge, startSage, reserveByT){
   }
   if(isNaN(loopEnd)) loopEnd = st.endAge;
   loopEnd = Math.max(loopEnd, startAge); // always produce at least one year
+  // Out-of-market cash reserve (today's $). When present it is drawn FIRST in down-market years to fund spending so
+  // the portfolio isn't sold at a loss — the classic sequence-of-returns buffer. It earns 0% real (cash), is not
+  // replenished, and is inert in the steady-return plan (no down years). Only the stress "how to pass" solver sets it.
+  let cashReal = st.cashReserve||0;
   for(let age=startAge; age<=loopEnd; age++){
     const t = age - st.ageNow;
     const sage = startSage!=null? startSage + (age-startAge) : null;
     const hsaReserve = reserveByT? (reserveByT[t]||0) : undefined; // undefined => solveYear reserves all HSA
-    const S = {age, sage, t, pretax, roth, savPrin, savGain, hsa, hsaReserve, magiHist};
+    const yRet=(st.retSeq && st.retSeq[t]!=null)? st.retSeq[t] : st.ret; // this year's market return (path or steady)
+    let targetOverride=null;
+    if(cashReal>1e-6 && yRet<0){ const cover=Math.min(cashReal, st.target); cashReal-=cover; targetOverride=st.target-cover; }
+    const S = {age, sage, t, pretax, roth, savPrin, savGain, hsa, hsaReserve, magiHist, targetOverride};
     const y = solveYear(st, S);
     magiHist[t] = y.magi;
     // apply withdrawals
@@ -1334,8 +1359,7 @@ function simulateCore(st, startBalances, startAge, startSage, reserveByT){
     // surplus reinvest (if RMD forced more than target needed): bank the after-tax surplus into savings
     if(y.spendable>y.target+1){ savPrin += (y.spendable-y.target); }
     const shortfall = Math.max(0, y.target - y.spendable);
-    // grow remaining at return (per-year path return when stress-testing); savings growth accrues as unrealized gains
-    const yRet=(st.retSeq && st.retSeq[t]!=null)? st.retSeq[t] : st.ret;
+    // grow remaining at return (per-year path return when stress-testing; yRet computed above); savings growth accrues as unrealized gains
     pretax*=(1+yRet); roth*=(1+yRet); hsa*=(1+yRet);
     const savTot=(savPrin+savGain)*(1+yRet); savGain = savTot - savPrin; if(savGain<0){savPrin=savTot;savGain=0;}
     rows.push({...y, t, endPretax:Math.max(0,pretax), endRoth:Math.max(0,roth), endSav:Math.max(0,savPrin+savGain), endHsa:Math.max(0,hsa), shortfall, year:NOW+t});
@@ -1442,6 +1466,7 @@ function scheduleStress(st, balances, startSage, note){
   if(!(st.vol>0)){
     el.className='v-estate';
     el.innerHTML='<b>Volatility stress test:</b> return volatility is set to 0%, so every market path equals the smooth-return plan above. Set a volatility under <b>Advanced &rsaquo; Market &amp; horizon</b> to stress-test sequence-of-returns risk.';
+    const f=$('vFix'); if(f) f.style.display='none';
     return;
   }
   el.className='v-estate';
@@ -1466,7 +1491,11 @@ function scheduleStress(st, balances, startSage, note){
       res.ends.push((last.endPretax+last.endRoth+last.endSav+(last.endHsa||0))/Math.pow(1+st.infl,last.t)); // today's $
     }
     if(i<STRESS_N){ setTimeout(batch,0); }
-    else if(token===stressToken){ const sum=summarizeStress(res, st); if(lr) lr.stress=sum; renderStress(sum, st, note); }
+    else if(token===stressToken){
+      const sum=summarizeStress(res, st); if(lr) lr.stress=sum; renderStress(sum, st, note);
+      if(sum.pct<STRESS_GREEN) scheduleFix(st, balances, startSage, sum.pct);   // below the green band — reverse-engineer how to pass
+      else { const f=$('vFix'); if(f) f.style.display='none'; }
+    }
   })();
 }
 function summarizeStress(res, st){
@@ -1512,18 +1541,123 @@ function renderStress(s, st, note){
   el.className='v-estate'+(s.pct<75?' warn':''); el.style.display='block';
   const grade = s.pct>=90? 'robust' : s.pct>=80? 'reasonably resilient' : s.pct>=65? 'workable but exposed' : s.pct>=45? 'fragile under bad market sequences' : 'unlikely to survive volatile markets';
   const word={green:'a go',yellow:'borderline',red:'not yet'};
-  let lead='';
-  if(lastRun && lastRun.detCls){
-    const det=lastRun.detCls;
-    lead = (overall!==det)
-      ? `<b>Overall decision (volatility-adjusted):</b> the steady-return verdict above reads <b>${word[det]}</b>, but at ${s.pct}% stress success the realistic call is <b>${word[overall]}</b> — the banner now reflects this. `
-      : `<b>Overall decision:</b> the stress test <b>confirms</b> the verdict above. `;
+  // Summary line: the overall (volatility-adjusted) decision + headline success rate.
+  let summary;
+  if(lastRun && lastRun.detCls && overall!==lastRun.detCls){
+    summary = `<b>Overall decision (volatility-adjusted):</b> <b>${word[overall]}</b> — funds the full target in only <b>${s.pct}%</b> of volatile market paths.`;
+  } else if(lastRun && lastRun.detCls){
+    summary = `<b>Overall decision:</b> the stress test <b>confirms</b> the verdict above — <b>${s.pct}%</b> of volatile market paths fund the full target.`;
+  } else {
+    summary = `<b>Volatility stress test:</b> <b>${s.pct}%</b> of volatile market paths fund the full target — ${grade}.`;
   }
-  let h=lead+`<b>Volatility stress test:</b> with <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan funds the full target in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
-  if(s.medianDep!=null) h+=` In the failing paths, savings typically run dry around age <b>${s.medianDep}</b>.`;
-  if(note) h+=` <span style="color:var(--ink2);">(${note}.)</span>`;
-  h+=` <span style="color:var(--ink2);">The verdict above assumes the same return every year; this adds sequence-of-returns risk. Here ≥${STRESS_GREEN}% keeps the verdict, ${STRESS_YELLOW}–${STRESS_GREEN-1}% caps it at caution, and below ${STRESS_YELLOW}% downgrades it.</span>`;
-  el.innerHTML=h;
+  // Detail: the calibration, distribution of outcomes, and how the bands map to the banner.
+  let lead='';
+  if(lastRun && lastRun.detCls && overall!==lastRun.detCls){
+    lead = `The steady-return verdict above reads <b>${word[lastRun.detCls]}</b>, but at ${s.pct}% stress success the realistic call is <b>${word[overall]}</b> — the banner now reflects this. `;
+  }
+  let d=lead+`With <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan funds the full target in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
+  if(s.medianDep!=null) d+=` In the failing paths, savings typically run dry around age <b>${s.medianDep}</b>.`;
+  if(note) d+=` <span style="color:var(--ink2);">(${note}.)</span>`;
+  d+=` <span style="color:var(--ink2);">The verdict above assumes the same return every year; this adds sequence-of-returns risk. Here ≥${STRESS_GREEN}% keeps the verdict, ${STRESS_YELLOW}–${STRESS_GREEN-1}% caps it at caution, and below ${STRESS_YELLOW}% downgrades it.</span>`;
+  el.innerHTML=summaryBox(summary, d);
+}
+
+/* ===================== "HOW TO PASS THE STRESS TEST" RECOMMENDATION ENGINE =====================
+   When the stress test lands below the green band, reverse-engineer the SMALLEST single change on each
+   independent lever that lifts the success rate back to STRESS_GREEN. Each lever re-runs the same seeded
+   sequence-of-returns engine over a fixed set of market paths and binary-searches the threshold:
+     • Cash reserve  — an out-of-market buffer drawn first in down years (sequence-risk shield), found by search.
+     • Trim spending — the highest target income that still passes (a "guardrails" cut).
+     • Work longer   — the fewest extra years of compounding + shorter drawdown that passes.
+   Runs in async chunks (each lever yields to the browser) so typing stays responsive; a token cancels stale runs. */
+let fixToken=0;
+function roundUpTo(x,step){ return Math.ceil(x/step)*step; }
+function roundDnTo(x,step){ return Math.floor(x/step)*step; }
+function scheduleFix(st, balances, startSage, headlinePct){
+  const token=++fixToken, el=$('vFix'); if(!el) return;
+  if(!(st.vol>0) || !(st.target>0)){ el.style.display='none'; return; }
+  el.style.display='block'; el.className='v-fix';
+  el.innerHTML='<span class="fh">How to pass the stress test</span>Reverse-engineering the smallest cushion that would get you there…';
+  const N=STRESS_N;                             // same path count as the headline so the reverse-engineered amounts clear the bar shown above
+  const t0=st.retireAge-st.ageNow;
+  const mu=Math.log(1+st.ret)-st.vol*st.vol/2;  // same lognormal drift + seed family as scheduleStress
+  const seqs=[];
+  for(let i=0;i<N;i++){ const rnd=mulberry32(0x51ab1e ^ Math.imul(i+1, 2654435761)); const seq=[]; for(let t=t0;t<=t0+110;t++) seq[t]=Math.exp(mu+st.vol*gaussian(rnd))-1; seqs.push(seq); }
+  function rate(modSt, modBal, modSage){
+    let ok=0;
+    for(let i=0;i<N;i++){ const s={...modSt, retSeq:seqs[i]}; const rows=simulate(s, modBal, modSt.retireAge, modSage===undefined?startSage:modSage, 1);
+      if(rows.every(r=> r.shortfall < Math.max(50, r.target*0.005))) ok++; }
+    return 100*ok/N;
+  }
+  const PASS=STRESS_GREEN;
+  const portTot=balances.pretax+balances.roth+balances.savPrin+balances.savGain+(balances.hsa||0);
+  const out={base: (headlinePct!=null? headlinePct : Math.round(rate(st, balances)))};  // show the same % as the headline stress panel
+  const tasks=[];
+  // Lever 1 — out-of-market cash reserve drawn in down years
+  tasks.push(()=>{
+    const big=Math.max(st.target*10, portTot*0.6, 1);
+    if(rate({...st, cashReserve:big}, balances) < PASS){ out.cash={feasible:false}; return; }
+    let lo=0, hi=big; for(let k=0;k<8;k++){ const m=(lo+hi)/2; if(rate({...st, cashReserve:m}, balances)>=PASS) hi=m; else lo=m; }
+    out.cash={feasible:true, amount:roundUpTo(hi, 5000)};
+  });
+  // Lever 2 — trim spending to the highest target that still passes
+  tasks.push(()=>{
+    let lo=0, hi=st.target; for(let k=0;k<9;k++){ const m=(lo+hi)/2; if(rate({...st, target:m}, balances)>=PASS) lo=m; else hi=m; }
+    const T=roundDnTo(lo, 1000); out.spend={feasible:T>0, newTarget:T, cut:st.target-T, cutPct:Math.round(100*(st.target-T)/st.target)};
+  });
+  // Lever 3 — work longer (more compounding + shorter drawdown); ignores extra contributions, so this is conservative
+  tasks.push(()=>{
+    let found=null;
+    for(let w=1; w<=10 && st.retireAge+w<=72; w++){
+      const g=Math.pow(1+st.ret,w);
+      const bal={pretax:balances.pretax*g, roth:balances.roth*g, savPrin:balances.savPrin*g, savGain:balances.savGain*g + balances.savPrin*(g-1), hsa:(balances.hsa||0)*g};
+      const sage = startSage==null? null : startSage+w;
+      if(rate({...st, retireAge:st.retireAge+w}, bal, sage)>=PASS){ found={years:w, age:st.retireAge+w}; break; }
+    }
+    out.work = found? {feasible:true, ...found} : {feasible:false};
+  });
+  tasks.push(()=> renderFix(out, st));
+  (function step(){ if(token!==fixToken) return; const f=tasks.shift(); if(!f) return; f(); if(tasks.length) setTimeout(step,0); })();
+}
+function renderFix(o, st){
+  const el=$('vFix'); if(!el) return;
+  const items=[];
+  if(o.cash){
+    items.push(o.cash.feasible
+      ? `<li><span class="ic">💵</span><b>Hold a cash reserve of about ${fmt(o.cash.amount)}</b> outside the market (high-yield savings, money-market or short T-bills) and spend from it during down-market years instead of selling — the classic buffer against a bad sequence of early returns. Set aside on top of the portfolio above, or carve it from it (slightly less protective, since it lowers the growth sleeve).</li>`
+      : `<li><span class="ic">💵</span><b>A cash reserve alone won't close the gap.</b> The target outruns the portfolio even in calm markets, so a finite buffer only delays depletion — pair it with a spending trim or more years of saving.</li>`);
+  }
+  if(o.spend && o.spend.feasible){
+    items.push(`<li><span class="ic">✂️</span><b>Trim planned spending to about ${fmt(o.spend.newTarget)}/yr</b> (−${fmt(o.spend.cut)}, ${o.spend.cutPct}%). Even applying the cut only in down years — a "guardrails" rule — gets most of the way there while letting you spend more when markets cooperate.</li>`);
+  }
+  if(o.work && o.work.feasible){
+    items.push(`<li><span class="ic">🕒</span><b>Retire at ${o.work.age}</b> — about ${o.work.years} more year${o.work.years>1?'s':''}. The portfolio compounds longer and the drawdown is shorter; counting the extra saving you'd also do, the real cushion is bigger than this.</li>`);
+  }
+  // Compact one-liner for the verdict; the full lever breakdown lives behind the toggle.
+  const hints=[];
+  if(o.cash && o.cash.feasible) hints.push(`hold ${fmt(o.cash.amount)} in cash`);
+  if(o.spend && o.spend.feasible) hints.push(`trim to ${fmt(o.spend.newTarget)}/yr`);
+  if(o.work && o.work.feasible) hints.push(`retire at ${o.work.age}`);
+  const summary=`<span class="fh" style="display:inline">How to pass the stress test:</span> at <b>${o.base}%</b> you're below the ${STRESS_GREEN}% line`
+    + (hints.length? ` — e.g. ${hints.join(', ')}` : ' — see options') + `.`;
+  let detail=`Here's the smallest single move on each lever that lifts stress success to <b>${STRESS_GREEN}%+</b>, each on its own. Combine them and you'd need less of each:`;
+  detail+=`<ul>${items.join('')}</ul>`;
+  detail+=`<span class="note">Why these work: sequence-of-returns risk comes from selling assets while they're down early in retirement. A cash buffer, flexible spending, and a later start all reduce how much you must sell into a downturn. Delaying Social Security (toward 70) does the same by lifting your guaranteed, market-proof income floor. Amounts are reverse-engineered from the same ${STRESS_N} randomized market paths as the stress test above and are independent estimates — not a single combined plan.</span>`;
+  el.innerHTML=summaryBox(summary, detail); el.style.display='block';
+}
+// Render a collapsible callout: a one-line summary always visible, the full detail revealed by a "Details" toggle.
+function summaryBox(summaryHTML, detailHTML){
+  return `<div class="v-sum"><span>${summaryHTML}</span>`
+    + (detailHTML ? `<a class="v-toggle" onclick="toggleDetail(this)">Details</a></div><div class="v-detail" style="display:none">${detailHTML}</div>`
+                  : `</div>`);
+}
+function toggleDetail(a){
+  const box=a.closest('.v-estate, .v-fix'); if(!box) return;
+  const d=box.querySelector('.v-detail'); if(!d) return;
+  const open=d.style.display!=='none';
+  d.style.display=open?'none':'block';
+  a.classList.toggle('open',!open);
+  a.textContent=open?'Details':'Hide';
 }
 
 /* ============================ RUN + RENDER ============================ */
@@ -1736,50 +1870,55 @@ function run(){
   // ---- Optimal Social Security claiming callout ----
   (function(){
     const vc=$('vClaim'); if(!vc) return;
+    vc.className='v-estate';
     const noneInsured = st.married? (!st.piaInsured && !st.spousePiaInsured) : !st.piaInsured;
     if(noneInsured){
-      vc.innerHTML = `<b>No Social Security benefit applies.</b> A retirement benefit requires <b>40 credits — about 10 years of covered work</b>, which ${st.married?'neither spouse reaches':'this earnings record doesn\'t reach'} here, so $0 is included in the plan. If you actually qualify (e.g. earlier work not captured), lower the <b>career-start age</b> or enter a <b>benefit override</b> under the Social Security section.`;
-      vc.style.display='block'; return;
+      const sum = `<b>No Social Security benefit applies</b> — under 10 years of covered work, so $0 is included.`;
+      const det = `A retirement benefit requires <b>40 credits — about 10 years of covered work</b>, which ${st.married?'neither spouse reaches':'this earnings record doesn\'t reach'} here. If you actually qualify (e.g. earlier work not captured), lower the <b>career-start age</b> or enter a <b>benefit override</b> under the Social Security section.`;
+      vc.innerHTML = summaryBox(sum, det); vc.style.display='block'; return;
     }
     const optL = opt.total;
     const cur = lifeSSrealPair(st, st.claim, st.claimSpouse, piaMonthly, spousePia).total;
     const early = lifeSSrealPair(st, 62, 62, piaMonthly, spousePia).total;
-    const claimTxt = st.married? `<b>you at ${opt.claimP}</b> and <b>your spouse at ${opt.claimS}</b>` : `<b>age ${opt.claimP}</b>`;
-    let h = `<b>Optimal Social Security claiming:</b> claim ${claimTxt}. It is projected to deliver about <b>${fmt(optL)}</b> of lifetime household benefits in today's dollars over your planning horizon`;
+    const claimTxt = st.married? `<b>you at ${opt.claimP}</b> and <b>spouse at ${opt.claimS}</b>` : `<b>age ${opt.claimP}</b>`;
     const gain = optL - early;
-    h += (gain>500)? ` — roughly <b>${fmt(gain)}</b> more than claiming as early as possible (62).` : `.`;
+    let sum = `<b>Optimal Social Security:</b> claim ${claimTxt} → about <b>${fmt(optL)}</b> lifetime in today's dollars`
+      + ((gain>500)? ` (~${fmt(gain)} more than claiming at 62).` : `.`);
+    let det = `Projected over your planning horizon. The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.`;
     if(overridden){
       const diff = optL - cur;
-      h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
+      det += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to you ${st.claim}${st.married?' / spouse '+st.claimSpouse:''} (≈ ${fmt(cur)} in today's $, ${diff>1?fmt(diff)+' less':'about the same'}). Use "Use optimal ages" in Advanced to restore.</span>`;
     }
-    h += ` <span style="color:var(--ink2);">The higher earner is usually nudged to delay because it also lifts the survivor benefit; the lower earner may claim earlier.</span>`;
     if(st.married && (!st.piaInsured || !st.spousePiaInsured)){
-      h += ` <span style="color:var(--ink2);">${st.piaInsured?'Your spouse has':'You have'} under 10 years of covered work, so that person draws a <b>spousal benefit</b> (up to 50% of the other's PIA), not an own benefit.</span>`;
+      det += ` <span style="color:var(--ink2);">${st.piaInsured?'Your spouse has':'You have'} under 10 years of covered work, so that person draws a <b>spousal benefit</b> (up to 50% of the other's PIA), not an own benefit.</span>`;
     }
-    h += ` <a onclick="showResultTab('t2');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the full claiming-age comparison ↗</a>`;
-    vc.innerHTML = h; vc.style.display='block';
+    det += ` <a onclick="showResultTab('t2');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the full claiming-age comparison ↗</a>`;
+    vc.innerHTML = summaryBox(sum, det); vc.style.display='block';
   })();
   // ---- Optimal tax-strategy callout ----
   (function(){
     const vt=$('vTax'); if(!vt) return;
+    vt.className='v-estate';
     const b=taxOpt.best, base=taxOpt.baseline;
     const convTxt = idx => idx>=0? `Roth conversions filling the <b>${({2:'12%',3:'22%',4:'24%'})[idx]}</b> bracket` : null;
     const smTxt = b.smooth? `<b>bracket &amp; IRMAA smoothing</b>` : null;
     const parts = [smTxt, convTxt(b.rothConvIdx)].filter(Boolean);
+    const shortStrat = parts.length? parts.join(' + ') : `<b>no smoothing or conversions</b>`;
     let strategy;
     if(parts.length===0) strategy = `drawing pre-tax straight down with <b>no smoothing or conversions</b> (already the most tax-efficient here)`;
     else if(parts.length===1) strategy = parts[0];
     else strategy = parts.join(' plus ');
-    let h = `<b>Optimal tax strategy:</b> ${strategy}. Projected lifetime taxes — income tax, IRMAA surcharges and heirs' tax — total about <b>${fmt(b.total)}</b> in today's dollars`;
     const save = (base? base.total : b.total) - b.total;
-    h += (save>500)? ` — roughly <b>${fmt(save)}</b> less than taking no smoothing or conversions.` : `.`;
+    let sum = `<b>Optimal tax strategy:</b> ${shortStrat} → about <b>${fmt(b.total)}</b> lifetime taxes in today's dollars`
+      + ((save>500)? ` (~${fmt(save)} less).` : `.`);
+    let det = `The optimizer picks ${strategy}. The total covers income tax, IRMAA surcharges and heirs' tax, deflated to today's dollars.`;
     if(taxOverridden){
       const curIdx = st.rothConvIdx, curSm = st.smooth;
       const curParts=[curSm?'smoothing on':'smoothing off', curIdx>=0?('Roth→'+({2:'12%',3:'22%',4:'24%'}[curIdx])):'no conversions'];
-      h += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to ${curParts.join(', ')}. Use "Use optimal tax strategy" in Advanced to restore.</span>`;
+      det += ` <span style="color:var(--brass);font-weight:600;">You've overridden this to ${curParts.join(', ')}. Use "Use optimal tax strategy" in Advanced to restore.</span>`;
     }
-    h += ` <a onclick="showResultTab('t3');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the year-by-year tax ledger ↗</a>`;
-    vt.innerHTML = h; vt.style.display='block';
+    det += ` <a onclick="showResultTab('t3');return false;" style="cursor:pointer;font-weight:600;white-space:nowrap;">See the year-by-year tax ledger ↗</a>`;
+    vt.innerHTML = summaryBox(sum, det); vt.style.display='block';
   })();
   // Estate & heirs callout (highlighted when federal estate tax applies)
   const est = estateEstimate(st, rows);
@@ -1787,10 +1926,14 @@ function run(){
   if(est && est.gross>1){
     if(est.estateTax>0){
       ve.className='v-estate warn';
-      ve.innerHTML = `<span class="et">⚠ Federal estate tax may apply.</span> The projected estate of <b>${fmt(est.gross)}</b> at age ${est.deathAge} exceeds the ~${fmt(est.exemption)} exemption${est.persons>1?' (two exemptions via portability)':''}, so heirs may owe about <b>${fmt(est.estateTax)}</b> in estate tax, plus roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax/HSA balances. Estimated <b>${fmt(est.net)}</b> would pass to heirs.`;
+      const sum = `<span class="et">⚠ Federal estate tax may apply:</span> estate ~<b>${fmt(est.gross)}</b> at age ${est.deathAge} → about <b>${fmt(est.net)}</b> to heirs.`;
+      const det = `The projected estate of <b>${fmt(est.gross)}</b> exceeds the ~${fmt(est.exemption)} exemption${est.persons>1?' (two exemptions via portability)':''}, so heirs may owe about <b>${fmt(est.estateTax)}</b> in estate tax, plus roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax/HSA balances.`;
+      ve.innerHTML = summaryBox(sum, det);
     } else {
       ve.className='v-estate';
-      ve.innerHTML = `<b>Estate &amp; heirs:</b> about <b>${fmt(est.gross)}</b> at age ${est.deathAge} — below the ~${fmt(est.exemption)} federal estate-tax exemption, so no estate tax. Heirs owe roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax accounts (10-year rule) and any HSA${est.incomeTax<1?'':''}; Roth and the stepped-up taxable account pass tax-free. Net to heirs ≈ <b>${fmt(est.net)}</b>.`;
+      const sum = `<b>Estate &amp; heirs:</b> ~<b>${fmt(est.gross)}</b> at age ${est.deathAge} → about <b>${fmt(est.net)}</b> to heirs (no estate tax).`;
+      const det = `Below the ~${fmt(est.exemption)} federal estate-tax exemption, so no estate tax. Heirs owe roughly <b>${fmt(est.incomeTax)}</b> of income tax on inherited pre-tax accounts (10-year rule) and any HSA; Roth and the stepped-up taxable account pass tax-free.`;
+      ve.innerHTML = summaryBox(sum, det);
     }
     ve.style.display='block';
   } else { ve.style.display='none'; }
