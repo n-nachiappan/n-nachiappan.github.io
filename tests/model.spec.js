@@ -129,13 +129,13 @@ test.describe('3. Readiness verdict — sustainability invariant', () => {
 });
 
 test.describe('4. Optimal Social Security claiming', () => {
-  test('single: optimizer pick equals the brute-force argmax', async ({ page }) => {
+  test('single: optimizer pick equals the survival-weighted argmax', async ({ page }) => {
     await load(page);
     const r = await page.evaluate(() => {
       const st = lastRun.st, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
       let best = { age: 0, v: -1 };
       for (let c = 62; c <= 70; c++) {
-        const v = lifeSSrealPair(st, c, c, pia, null).total;
+        const v = lifeSSexpectedPair(st, c, c, pia, null).total;   // expected (survival-weighted) PV is the objective
         if (v > best.v) best = { age: c, v };
       }
       return { picked: st.optClaim.claimP, argmax: best.age };
@@ -143,7 +143,7 @@ test.describe('4. Optimal Social Security claiming', () => {
     expect(r.picked).toBe(r.argmax);
   });
 
-  test('married: optimizer pick equals the brute-force argmax over the 9x9 grid', async ({ page }) => {
+  test('married: optimizer pick equals the survival-weighted argmax over the 9x9 grid', async ({ page }) => {
     await load(page);
     await setInputs(page, { sage: '58', sSalary: '90,000' });
     const r = await page.evaluate(() => {
@@ -151,7 +151,7 @@ test.describe('4. Optimal Social Security claiming', () => {
       const pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia, sp = computePIA(SWAGES, st.sageNow, st.infl, st.wageGrow).pia;
       let best = { cp: 0, cs: 0, v: -1 };
       for (let cp = 62; cp <= 70; cp++) for (let cs = 62; cs <= 70; cs++) {
-        const v = lifeSSrealPair(st, cp, cs, pia, sp).total;
+        const v = lifeSSexpectedPair(st, cp, cs, pia, sp).total;
         if (v > best.v) best = { cp, cs, v };
       }
       return { picked: [st.optClaim.claimP, st.optClaim.claimS], argmax: [best.cp, best.cs] };
@@ -159,17 +159,65 @@ test.describe('4. Optimal Social Security claiming', () => {
     expect(r.picked).toEqual(r.argmax);
   });
 
-  test('boundary: short life favors early; long life favors delaying', async ({ page }) => {
+  // The whole point of the survival-weighted model: the claiming optimum no longer depends on the plan-to age
+  // (which is only the drawdown horizon, set by the preset).
+  test('claiming optimum is independent of the plan-to age', async ({ page }) => {
     await load(page);
     const r = await page.evaluate(() => {
       const st = lastRun.st, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
       return {
-        short: optimizeClaiming({ ...st, endAge: 74 }, pia, null).claimP,
-        long: optimizeClaiming({ ...st, endAge: 95 }, pia, null).claimP,
+        shortHorizon: optimizeClaiming({ ...st, married: false, endAge: 74 }, pia, null).claimP,
+        longHorizon:  optimizeClaiming({ ...st, married: false, endAge: 99 }, pia, null).claimP,
       };
     });
-    expect(r.short).toBeLessThanOrEqual(64);
-    expect(r.long).toBe(70);
+    expect(r.shortHorizon).toBe(r.longHorizon);   // plan-to age does not move the SS claiming decision
+  });
+
+  // Longevity DOES matter — through the sex-specific survival curve. A longer-lived profile delays at least as much.
+  test('longer life expectancy (female) favors delaying at least as much as male', async ({ page }) => {
+    await load(page);
+    const r = await page.evaluate(() => {
+      const st = { ...lastRun.st, married: false, sageNow: null }, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
+      return {
+        male:   optimizeClaiming({ ...st, sex: 'm' }, pia, null).claimP,
+        female: optimizeClaiming({ ...st, sex: 'f' }, pia, null).claimP,
+      };
+    });
+    expect(r.female).toBeGreaterThanOrEqual(r.male);
+    expect(r.male).toBeGreaterThanOrEqual(62);
+    expect(r.female).toBeLessThanOrEqual(70);
+  });
+
+  // Best practice: a higher real discount rate discounts later (delayed) benefits more, so it favors claiming earlier.
+  test('a higher real discount rate favors claiming earlier', async ({ page }) => {
+    await load(page);
+    const r = await page.evaluate(() => {
+      const st = { ...lastRun.st, married: false, sageNow: null }, pia = computePIA(WAGES, st.ageNow, st.infl, st.wageGrow).pia;
+      return {
+        low:  optimizeClaiming({ ...st, realDisc: 0 },    pia, null).claimP,
+        high: optimizeClaiming({ ...st, realDisc: 0.08 }, pia, null).claimP,
+      };
+    });
+    expect(r.high).toBeLessThanOrEqual(r.low);   // more discounting → not later (usually earlier)
+    expect(r.high).toBeLessThan(r.low);          // for a realistic earner the move is strict
+  });
+
+  // The Gompertz survival model is calibrated to the SSA period life table.
+  test('survival model is monotonic and matches SSA life-expectancy anchors', async ({ page }) => {
+    await load(page);
+    const r = await page.evaluate(() => {
+      const ex = (a, sex) => { let s = 0; for (let t = 0.5; t < 70; t += 1) s += surviveProb(a, t, sex); return s + 0.5; };
+      return {
+        s0: surviveProb(65, 0, 'm'), s10: surviveProb(65, 10, 'm'), s30: surviveProb(65, 30, 'm'),
+        fGTm: surviveProb(65, 25, 'f') > surviveProb(65, 25, 'm'),
+        e65m: ex(65, 'm'), e65f: ex(65, 'f'),
+      };
+    });
+    expect(r.s0).toBeCloseTo(1, 6);
+    expect(r.s10).toBeGreaterThan(r.s30);            // survival decreases with horizon
+    expect(r.fGTm).toBe(true);                       // women outlive men at the same age
+    expect(r.e65m).toBeGreaterThan(16.5); expect(r.e65m).toBeLessThan(18.5);   // SSA male e65 ≈ 17.5
+    expect(r.e65f).toBeGreaterThan(19.0); expect(r.e65f).toBeLessThan(21.0);   // SSA female e65 ≈ 20.2
   });
 });
 
