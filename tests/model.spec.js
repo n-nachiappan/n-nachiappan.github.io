@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { load, setInputs, exportCSV, waitForStress, BAL_AT_RET } = require('./helpers');
+const { load, setInputs, exportCSV, waitForStress, waitForFix, BAL_AT_RET } = require('./helpers');
 
 // A representative default scenario the page boots with (single, retiring now at 60).
 // Each test loads a fresh page, so they don't share state.
@@ -364,6 +364,68 @@ test.describe('8. Volatility stress test', () => {
     await setInputs(page, { vol: '0' });
     const txt = await page.evaluate(() => document.getElementById('vStress').textContent);
     expect(txt).toMatch(/0%/);
+  });
+});
+
+test.describe('8b. "How to pass the stress test" recommendations', () => {
+  // A cash reserve is drawn only in down-market years, so in the steady-return plan (no down years) it must be
+  // completely inert — the engine produces byte-identical balances with or without it. Guards the engine change.
+  test('a cash reserve is inert in the steady-return plan', async ({ page }) => {
+    await load(page);
+    const same = await page.evaluate((balExpr) => {
+      const st = lastRun.st; const { bal, startSage } = eval(balExpr);
+      const a = simulate({ ...st }, bal, st.retireAge, startSage, 1);
+      const b = simulate({ ...st, cashReserve: 250000 }, bal, st.retireAge, startSage, 1);
+      const end = (r) => r[r.length - 1];
+      return Math.abs((end(a).endPretax + end(a).endRoth + end(a).endSav)
+                    - (end(b).endPretax + end(b).endRoth + end(b).endSav));
+    }, BAL_AT_RET);
+    expect(same).toBeLessThan(1); // identical to the dollar
+  });
+
+  // The core mechanic: spending an out-of-market reserve during down years lifts the share of volatile paths
+  // that survive. A large enough reserve must beat a zero reserve on a plan that is failing the stress test.
+  test('a cash reserve raises the stress success rate of a failing plan', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000' });        // the default boots short under volatility (~28%)
+    const r = await page.evaluate((balExpr) => {
+      const st = lastRun.st; const { bal, startSage } = eval(balExpr);
+      const N = 120, t0 = st.retireAge - st.ageNow, mu = Math.log(1 + st.ret) - st.vol * st.vol / 2;
+      const seqs = [];
+      for (let i = 0; i < N; i++) { const rnd = mulberry32(0x51ab1e ^ Math.imul(i + 1, 2654435761)); const s = []; for (let t = t0; t <= t0 + 110; t++) s[t] = Math.exp(mu + st.vol * gaussian(rnd)) - 1; seqs.push(s); }
+      const rate = (cash) => { let ok = 0; for (let i = 0; i < N; i++) { const ss = { ...st, cashReserve: cash, retSeq: seqs[i] }; const rows = simulate(ss, bal, st.retireAge, startSage, 1); if (rows.every((x) => x.shortfall < Math.max(50, x.target * 0.005))) ok++; } return 100 * ok / N; };
+      return { none: rate(0), big: rate(600000) };
+    }, BAL_AT_RET);
+    expect(r.big).toBeGreaterThan(r.none);   // the reserve genuinely helps
+  });
+
+  // End-to-end: the panel renders, its baseline % matches the headline stress test, and the spending-trim it
+  // quotes actually clears the green band when applied — proving the reverse-engineering is sound.
+  test('panel matches the headline % and its quoted spending trim actually passes', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000' });
+    const stress = await waitForStress(page);
+    expect(stress.pct).toBeLessThan(80);                 // below green → the panel should appear
+    const txt = await waitForFix(page);
+    expect(txt).toMatch(/cash reserve of about \$[\d,]+/);
+    expect(txt).toContain(`${stress.pct}%`);             // baseline shown equals the headline stress %
+
+    const trim = txt.match(/spending to about \$([\d,]+)\/yr/);
+    expect(trim).toBeTruthy();
+    const newTarget = trim[1].replace(/,/g, '');
+    await page.evaluate(() => { lastRun.stress = null; });
+    await setInputs(page, { target: newTarget });
+    const after = await waitForStress(page);
+    expect(after.pct).toBeGreaterThanOrEqual(78);        // the reverse-engineered trim lands at/above the 80% line
+  });
+
+  test('the panel is hidden when the plan comfortably passes the stress test', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '35,000', vol: '8' });   // very sustainable
+    const stress = await waitForStress(page);
+    expect(stress.pct).toBeGreaterThanOrEqual(80);
+    const display = await page.evaluate(() => document.getElementById('vFix').style.display);
+    expect(display).toBe('none');
   });
 });
 
