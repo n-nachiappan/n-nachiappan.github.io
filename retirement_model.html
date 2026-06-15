@@ -68,8 +68,9 @@ h1.title em{font-style:italic;font-weight:600;color:var(--green);}
 .v-toggle.open::after{content:" \25b4";}
 .v-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);}
 .v-fix .v-detail{border-top-color:rgba(47,93,131,.22);}
-.v-actions{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-.v-actions-note{font-size:12px;color:var(--ink2);flex:1 1 240px;min-width:200px;line-height:1.45;}
+.v-actions{margin-top:18px;padding:13px 15px;border-radius:9px;background:var(--paper2);border:1px solid var(--rule2);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.v-actions-lab{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:600;}
+.v-actions-note{font-size:12px;color:var(--ink2);flex:1 1 220px;min-width:180px;line-height:1.45;}
 .preset-bar{margin:22px 0 6px;padding:14px 16px;border:1px solid var(--rule2);border-radius:10px;background:var(--card);}
 .preset-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .preset-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);}
@@ -171,6 +172,11 @@ td.cmp-cur{outline:2px solid var(--blue);outline-offset:-2px;}
 
 .btn{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 14px;border:1px solid var(--rule2);border-radius:7px;background:var(--paper2);color:var(--ink);cursor:pointer;}
 .btn:hover{border-color:var(--green);color:var(--green);}
+/* Prominent save/restore actions: filled primary (Export) + outlined secondary (Import). */
+.btn-primary{padding:9px 18px;font-size:12.5px;font-weight:600;background:var(--green);border-color:var(--green);color:#fbf8f0;}
+.btn-primary:hover{background:var(--green2);border-color:var(--green2);color:#fff;}
+.btn-secondary{padding:9px 18px;font-size:12.5px;font-weight:600;background:var(--card);border-color:var(--green);color:var(--green);}
+.btn-secondary:hover{background:var(--greenbg);border-color:var(--green2);color:var(--green);}
 .toolbar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;flex-wrap:wrap;}
 .legend{font-size:11.5px;color:var(--ink2);margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;}
 .chip{display:inline-flex;align-items:center;gap:6px;}
@@ -225,10 +231,11 @@ canvas{max-width:100%;}
       <a onclick="showResultTab('t3');return false;">Income &amp; tax ledger</a>
     </div>
     <div class="v-actions">
-      <button class="btn" id="exportBtn">↓ Export scenario (CSV)</button>
-      <button class="btn" id="importBtn">↑ Import scenario</button>
+      <span class="v-actions-lab">💾 Save / restore</span>
+      <button class="btn btn-primary" id="exportBtn">↓ Export scenario (CSV)</button>
+      <button class="btn btn-secondary" id="importBtn">↑ Import scenario</button>
       <input type="file" id="importFile" accept=".csv,text/csv,.txt" style="display:none">
-      <span class="v-actions-note">Saves every input and all output tables in one CSV. Re-import a saved file to restore your inputs; or open it in Excel / Google Sheets to work with the tables.</span>
+      <span class="v-actions-note">Nothing is saved automatically — <b>Export</b> downloads every input and all output tables as one CSV. <b>Import</b> a saved file to restore your inputs; or open it in Excel / Google Sheets.</span>
     </div>
   </div>
 
