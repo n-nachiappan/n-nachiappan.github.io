@@ -56,7 +56,7 @@ async function waitForFix(page) {
   // and key off a phrase that only appears in the final render, not the "reverse-engineering…" placeholder.
   await page.waitForFunction(() => {
     const f = document.getElementById('vFix');
-    return f && f.style.display !== 'none' && /smallest single move/.test(f.textContent);
+    return f && f.style.display !== 'none' && /Each item below/.test(f.textContent);
   }, null, { timeout: 25_000 });
   return page.evaluate(() => document.getElementById('vFix').textContent);
 }

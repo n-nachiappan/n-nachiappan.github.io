@@ -427,6 +427,60 @@ test.describe('8b. "How to pass the stress test" recommendations', () => {
     const display = await page.evaluate(() => document.getElementById('vFix').style.display);
     expect(display).toBe('none');
   });
+
+  // The cash lever is capped at ~7 years of spending so it can't balloon into "just hold 40% more money".
+  test('the quoted cash reserve never exceeds ~7 years of spending', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000' });
+    await waitForStress(page);                    // sync to the current run before reading its recommendation panel
+    const txt = await waitForFix(page);
+    const m = txt.match(/cash reserve of about \$([\d,]+)/);
+    if (m) {                                                  // feasible case: must be within the buffer cap
+      const amt = Number(m[1].replace(/,/g, ''));
+      expect(amt).toBeLessThanOrEqual(7 * 90000);
+    } else {                                                  // infeasible case: must say a buffer alone won't fix it
+      expect(txt).toMatch(/cash buffer alone won't fix/i);
+    }
+  });
+
+  // A failing plan with multiple working levers is offered a balanced blend that actually clears the bar.
+  test('offers a balanced combined option that clears 80% on the engine', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000' });
+    await waitForStress(page);                    // sync to the current run before reading its recommendation panel
+    const txt = await waitForFix(page);
+    expect(txt).toMatch(/balance all three|combine them/);
+    expect(txt).toMatch(/about \d+% of what it would take/);   // each lever is a partial dose
+
+    // Apply the blend (cash + trim + retire-later) and confirm the headline stress test reaches the green band.
+    const combo = txt.match(/(?:balance all three|combine them):(.*?)— together/);
+    expect(combo).toBeTruthy();
+    const seg = combo[1];
+    const cash = (seg.match(/\$([\d,]+) in cash/) || [0, '0'])[1].replace(/,/g, '');
+    const trim = (seg.match(/trim to about \$([\d,]+)\/yr/) || [])[1];
+    const age = (seg.match(/retire at (\d+)/) || [])[1];
+    const pct = await page.evaluate(({ cash, trim, age }) => {
+      const st = lastRun.st;
+      const y2r = Math.max(0, st.retireAge - st.ageNow), g0 = Math.pow(1 + st.ret, y2r);
+      let bal = { pretax: st.pretax0*g0, roth: st.roth0*g0, savPrin: st.savPrin0*g0, savGain: st.savGain0*g0 + st.savPrin0*(g0-1), hsa: st.hsa0*g0 };
+      const startSage = st.married ? st.sageNow + y2r : null;
+      const w = age ? Number(age) - st.retireAge : 0, gw = Math.pow(1 + st.ret, w);
+      if (w > 0) bal = { pretax: bal.pretax*gw, roth: bal.roth*gw, savPrin: bal.savPrin*gw, savGain: bal.savGain*gw + bal.savPrin*(gw-1), hsa: (bal.hsa||0)*gw };
+      const N = 200, t0 = st.retireAge - st.ageNow, mu = Math.log(1 + st.ret) - st.vol*st.vol/2;
+      const mod = { cashReserve: Number(cash) || 0, retireAge: age ? Number(age) : st.retireAge };
+      if (trim) mod.target = Number(trim.replace(/,/g, ''));
+      let ok = 0;
+      for (let i = 0; i < N; i++) {
+        const rnd = mulberry32(0x51ab1e ^ Math.imul(i + 1, 2654435761)); const seq = [];
+        for (let t = t0; t <= t0 + 110; t++) seq[t] = Math.exp(mu + st.vol*gaussian(rnd)) - 1;
+        const s = { ...st, ...mod, retSeq: seq };
+        const rows = simulate(s, bal, s.retireAge, age ? (startSage==null?null:startSage+w) : startSage, 1);
+        if (rows.every((r) => r.shortfall < Math.max(50, r.target*0.005))) ok++;
+      }
+      return Math.round(100 * ok / N);
+    }, { cash, trim, age });
+    expect(pct).toBeGreaterThanOrEqual(78);
+  });
 });
 
 test.describe('9. Estate, filing status', () => {
