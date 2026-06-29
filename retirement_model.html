@@ -192,6 +192,73 @@ canvas{max-width:100%;}
 .note-inline{font-size:11.5px;color:var(--blue);}
 .privacy{margin-top:14px;font-size:12.5px;color:var(--ink2);background:var(--greenbg);border:1px solid var(--rule2);border-radius:8px;padding:9px 13px;line-height:1.5;}
 .privacy b{color:var(--green);}
+
+/* ============ guided wizard ============ */
+#wizard{margin-top:28px;}
+.wiz-steps{display:flex;flex-wrap:wrap;gap:2px 0;list-style:none;margin:0 0 26px;padding:0;counter-reset:none;border-bottom:1px solid var(--rule);}
+.wiz-steps li{flex:1 1 0;min-width:84px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 4px 12px;cursor:pointer;position:relative;color:var(--ink2);}
+.wiz-steps li .wiz-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;background:var(--paper2);border:1.5px solid var(--rule2);color:var(--ink2);transition:all .15s ease;}
+.wiz-steps li .wiz-lab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:center;line-height:1.2;}
+.wiz-steps li::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:transparent;}
+.wiz-steps li:hover .wiz-dot{border-color:var(--green);color:var(--green);}
+.wiz-steps li.done .wiz-dot{background:var(--greenbg);border-color:var(--green);color:var(--green);}
+.wiz-steps li.on .wiz-dot{background:var(--green);border-color:var(--green);color:#fbf8f0;}
+.wiz-steps li.on{color:var(--ink);}
+.wiz-steps li.on::after{background:var(--green);}
+.wiz-steps li.on .wiz-lab{font-weight:600;}
+.step{display:none;animation:wizfade .28s ease;}
+.step.on{display:block;}
+@keyframes wizfade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.step-kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin-bottom:12px;}
+.step-q{font-size:clamp(24px,4vw,33px);font-weight:600;letter-spacing:-.01em;line-height:1.1;margin-bottom:10px;}
+.step-help{font-size:14.5px;color:var(--ink2);max-width:680px;margin:0 0 22px;line-height:1.55;}
+.step-field{margin-bottom:8px;}
+.step .step-field input[type=number],.step .step-field .inwrap input{max-width:none;}
+.step>.field.step-field{max-width:340px;}
+.step .step-field .inwrap .pre + input,.step .step-field input{font-size:17px;padding-top:12px;padding-bottom:12px;}
+.wiz-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--rule);}
+.wiz-spacer{flex:1;}
+.wiz-nav .wiz-back{margin-right:auto;}
+.wiz-nav .wiz-next,.wiz-nav .wiz-see{margin-left:auto;}
+.btn-lg{padding:12px 26px;font-size:14px;}
+.results-topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 4px;}
+.results-topbar-note{font-size:12.5px;color:var(--ink2);}
+#resultsView[hidden]{display:none;}
+@media(max-width:560px){.wiz-steps li .wiz-lab{display:none;}.wiz-steps li{min-width:0;}}
+
+/* prominent "how the model works" link */
+.how-link{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.01em;color:var(--green);background:var(--greenbg);border:1px solid var(--green);border-radius:8px;padding:8px 15px;transition:background .15s,color .15s;}
+.how-link:hover{background:var(--green);color:#fbf8f0;}
+
+/* import-to-prefill bar at the wizard start */
+.wiz-import{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap;background:var(--paper2);border:1px dashed var(--rule2);border-radius:9px;padding:11px 15px;margin-bottom:22px;}
+.wiz-import-txt{font-size:13px;color:var(--ink2);}
+.wiz-import-txt b{color:var(--ink);}
+
+/* clearer "this collapsible holds editable inputs" affordance */
+.adv-toggle{background:var(--paper2);border:1px solid var(--rule2);border-radius:9px;border-top:1px solid var(--rule2);padding:14px 16px;letter-spacing:.02em;text-transform:none;font-size:12.5px;transition:border-color .15s,background .15s;}
+.adv-toggle:hover{border-color:var(--green);background:var(--greenbg);}
+.adv-toggle .adv-tri{font-size:13px;}
+.adv-open-hint{color:var(--brass);font-weight:400;}
+#ssRecSection,.rstep .adv-section{margin-top:16px;}
+
+/* preset = an obvious selectable input with a pre-selected default */
+.field-label-strong{font-size:14.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:10px;}
+.preset-pre{font-weight:400;font-size:12.5px;color:var(--ink2);}
+.seg-lg button{padding:13px 10px;font-size:13.5px;}
+#presetSeg button.on::after{content:" ✓";font-weight:700;}
+.preset-bar .preset-head{display:block;}
+
+/* results sub-wizard */
+.rstep{display:none;}
+.rstep.on{display:block;animation:wizfade .28s ease;}
+.rwiz-steps{margin-top:18px;}
+.rstep-kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:0 0 14px;}
+.save-panel{background:var(--card);border:1px solid var(--rule2);border-radius:12px;padding:26px 24px 28px;text-align:center;max-width:640px;margin:10px auto 0;box-shadow:0 12px 28px -22px rgba(31,92,61,.55);}
+.save-h{font-size:22px;margin-bottom:10px;}
+.save-sub{font-size:14.5px;color:var(--ink2);line-height:1.55;margin:0 auto 20px;max-width:540px;}
+.save-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.save-note{font-size:12px;color:var(--ink2);margin:18px auto 0;max-width:540px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -203,399 +270,491 @@ canvas{max-width:100%;}
     <div>
       <div class="kicker">An Interactive Retirement Model</div>
       <h1 class="title">The Retirement <em>Drawdown</em></h1>
-      <p class="dek">Start from the income you want to live on — then watch it funded, year by year, from a waterfall of retirement accounts, Social Security and personal savings, net of taxes, Medicare, out-of-pocket medical costs and pre-65 health premiums. A readiness verdict tells you where you stand.</p>
+      <p class="dek">Will your savings last through retirement? Answer a few plain questions — one at a time — about the income you want, when you'd like to retire and what you've saved. The model then projects every year ahead: it funds your target income from a sensible waterfall of accounts, Social Security and savings, net of taxes, Medicare and medical costs — and ends with a clear readiness verdict and what to change if you fall short.</p>
+      <p class="dek" style="font-style:normal;font-size:13.5px;margin-top:8px;">No sign-up, no jargon to start. It takes about two minutes, and you can refine any assumption afterward.</p>
       <div class="byline">By <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener">Nachiappan</a> in collaboration with Claude · A hypothetical, educational model — not financial advice.</div>
-      <div class="byline" style="margin-top:8px;"><a href="how_the_model_works.html" target="_blank" rel="noopener">How the model works →</a></div>
+      <div style="margin-top:14px;"><a class="how-link" href="how_the_model_works.html" target="_blank" rel="noopener">📖 How the model works</a></div>
       <div class="privacy">🔒 <b>Everything runs in your browser.</b> Nothing you type or import is sent to any server, and nothing is saved — refresh the page and it's gone. Your numbers stay on your device; use <b>Export scenario</b> if you want to keep them.</div>
     </div>
     <a href="https://www.linkedin.com/in/nachiappan/" target="_blank" rel="noopener" class="avatar-link"><img class="avatar" src="data:image/jpeg;base64,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" alt="Nachiappan"></a>
   </div>
 
-  <!-- VERDICT -->
-  <div id="verdict" class="verdict green">
-    <div class="verdict-head">
-      <span class="v-badge" id="vBadge">—</span>
-      <span class="v-title" id="vTitle">Calculating…</span>
+  <!-- ============ GUIDED INPUT WIZARD ============ -->
+  <div id="wizard">
+    <div class="wiz-import">
+      <span class="wiz-import-txt">Done this before? <b>Import a saved file</b> to pre-fill every step.</span>
+      <button class="btn btn-secondary" id="importBtnStart" type="button">↑ Import a saved scenario</button>
     </div>
-    <div class="v-body" id="vBody"></div>
-    <div class="v-stats" id="vStats"></div>
-    <div class="v-estate" id="vClaim" style="display:none;"></div>
-    <div class="v-estate" id="vTax" style="display:none;"></div>
-    <div class="v-estate" id="vStress" style="display:none;"></div>
-    <div class="v-fix" id="vFix" style="display:none;"></div>
-    <div class="v-estate" id="vEstate" style="display:none;"></div>
-    <div class="v-jump">
-      <span class="lab">See the full detail</span>
-      <a onclick="showResultTab('t1');return false;">Accounts over time</a>
-      <a onclick="showResultTab('t2');return false;">Social Security summary</a>
-      <a onclick="showResultTab('t3');return false;">Income &amp; tax ledger</a>
-    </div>
-    <div class="v-actions">
-      <span class="v-actions-lab">💾 Save / restore</span>
-      <button class="btn btn-primary" id="exportBtn">↓ Export scenario (CSV)</button>
-      <button class="btn btn-secondary" id="importBtn">↑ Import scenario</button>
-      <input type="file" id="importFile" accept=".csv,text/csv,.txt" style="display:none">
-      <span class="v-actions-note">Nothing is saved automatically — <b>Export</b> downloads every input and all output tables as one CSV. <b>Import</b> a saved file to restore your inputs; or open it in Excel / Google Sheets.</span>
-    </div>
-  </div>
+    <ol class="wiz-steps" id="wizBar">
+      <li data-go="1" class="on"><span class="wiz-dot">1</span><span class="wiz-lab">Income</span></li>
+      <li data-go="2"><span class="wiz-dot">2</span><span class="wiz-lab">Retire age</span></li>
+      <li data-go="3"><span class="wiz-dot">3</span><span class="wiz-lab">About you</span></li>
+      <li data-go="4"><span class="wiz-dot">4</span><span class="wiz-lab">Savings</span></li>
+      <li data-go="5"><span class="wiz-dot">5</span><span class="wiz-lab">Other income</span></li>
+      <li data-go="6"><span class="wiz-dot">6</span><span class="wiz-lab">Social Security</span></li>
+      <li data-go="7"><span class="wiz-dot">7</span><span class="wiz-lab">Assumptions</span></li>
+    </ol>
 
-  <div id="savingsPlan" class="savings-plan" style="display:none;"></div>
+    <!-- STEP 1 — target income -->
+    <section class="step on" data-step="1">
+      <div class="step-kicker">Step 1 of 7 · The goal</div>
+      <h2 class="step-q">How much yearly income do you want in retirement?</h2>
+      <p class="step-help">Think in today's dollars — what you'd want to spend each year <b>after</b> federal tax, Medicare and health premiums. Don't overthink it; you can change it anytime.</p>
+      <div class="field step-field"><label>Target annual income</label>
+        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="target" placeholder="90,000"></div>
+        <div class="hint">A common rule of thumb is 70–85% of what you spend now.</div>
+      </div>
+      <div class="wiz-nav"><span class="wiz-spacer"></span><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
 
-  <div class="preset-bar">
-    <div class="preset-head">
-      <span class="preset-label">Assumption preset</span>
-      <div class="seg" id="presetSeg">
-        <button data-v="conservative">Conservative</button>
-        <button data-v="average" class="on">Average</button>
-        <button data-v="lenient">Lenient</button>
-      </div>
-    </div>
-    <div class="preset-hint" id="presetHint">Middle-of-the-road: 6% return, 2.5% inflation, average medical-cost trends, and mean life expectancy. Sets returns, inflation, medical trends, out-of-pocket costs and planning age together — you can still fine-tune any field below.</div>
-  </div>
-
-  <!-- PRIMARY INPUTS -->
-  <div class="sec-label">1 · The essentials</div>
-  <div class="panel">
-    <h3>You &amp; your household</h3>
-    <div class="sub">We compute your birth year from your age. Enter a spouse age to switch the whole model to <b>married filing jointly</b> — Social Security, Medicare and taxes all adjust automatically.</div>
-    <div class="grid g3">
-      <div class="field"><label>Your age now</label>
-        <div class="inwrap"><input type="number" id="age" value="60" min="25" max="90"><span class="suf" id="byBirth">b. 1966</span></div>
-      </div>
-      <div class="field"><label>Spouse age now <span class="hint">— leave blank if single</span></label>
-        <input type="number" id="sage" placeholder="—" min="25" max="100">
-      </div>
-      <div class="field"><label>Retirement age</label>
-        <input type="number" id="rage" value="60" min="40" max="80">
+    <!-- STEP 2 — retirement age -->
+    <section class="step" data-step="2">
+      <div class="step-kicker">Step 2 of 7 · Timing</div>
+      <h2 class="step-q">At what age do you want to retire?</h2>
+      <p class="step-help">The age you stop working and begin drawing from savings. If it's your current age, we check whether you can retire <b>today</b>; if it's later, we work out how much more to save.</p>
+      <div class="field step-field"><label>Retirement age</label>
+        <input type="number" id="rage" placeholder="60" min="40" max="80">
         <div class="hint" id="rageHint">Retiring now.</div>
       </div>
-      <div class="field" style="grid-column:1/-1;"><label>Target annual income <span class="hint">— what you want to spend, after federal tax, Medicare &amp; health premiums (today's dollars)</span></label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="target" value="90,000"></div>
-      </div>
-    </div>
-  </div>
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
 
-  <div class="panel">
-    <h3>What you've saved</h3>
-    <div class="sub">Enter actual dollar balances. Pre-tax and Roth are tracked separately (taxes differ), and your taxable brokerage splits into already-taxed principal and unrealized capital gains.</div>
-    <div class="grid g2">
-      <div class="field"><label>Pre-tax retirement (401k / Traditional IRA)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="pretax" value="900,000"></div>
-        <div class="hint" id="rmdHint">Withdrawals taxed as ordinary income; RMDs apply from 73.</div>
-      </div>
-      <div class="field"><label>Roth retirement (Roth 401k / Roth IRA)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="roth" value="150,000"></div>
-        <div class="hint">Qualified withdrawals are tax-free; no RMDs.</div>
-      </div>
-      <div class="field"><label>Personal savings — principal (already taxed)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savPrin" value="150,000"></div>
-        <div class="hint">Brokerage / cash basis — spendable with no tax.</div>
-      </div>
-      <div class="field"><label>Personal savings — unrealized capital gains</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savGain" value="100,000"></div>
-        <div class="hint">Realized proportionally on withdrawal, taxed at long-term rates.</div>
-      </div>
-      <div class="field"><label>Health Savings Account (HSA)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hsa" value="0"></div>
-        <div class="hint">Pays Medicare premiums tax-free from 65; any leftover is then an ordinary-income account.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h3>Other income in retirement</h3>
-    <div class="sub">Pensions, annuities, rental or part-time income, dividends — anything beyond Social Security and your accounts. Split out the portion that is qualified dividends or long-term capital gains (taxed at preferential rates).</div>
-    <div class="grid g2">
-      <div class="field"><label>Other taxable income (per year)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="other" value="0"></div>
-      </div>
-      <div class="field"><label>…of which qualified dividends / LTCG</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="otherQual" value="0"></div>
-        <div class="hint">The remainder is taxed as ordinary income.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SS + TAX + ADVANCED -->
-  <div class="sec-label">2 · Social Security, taxes &amp; assumptions</div>
-
-  <div class="panel">
-    <h3>Social Security</h3>
-    <div class="sub">We estimate your benefit from a career earnings record. Years worked run from your career-start age to your retirement age. <b>Claiming ages are optimized for you</b> (see the verdict) and can be overridden in <b>Advanced assumptions</b>. Expand the earnings records below to type your actual SSA wages for precision.</div>
-    <div class="grid g3">
-      <div class="field"><label>Current / final salary</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="salary" value="120,000"></div>
-        <div class="hint">Seeds the earnings record (back-projected by wage growth).</div>
-      </div>
-      <div class="field"><label>Career start age</label>
-        <input type="number" id="careerStart" value="22" min="16" max="40">
-        <div class="hint">First year of earnings — when your work history begins.</div>
-      </div>
-      <div class="field"><label>Est. benefit at full retirement age <span class="computed" id="piaShow"></span></label>
-        <input type="text" inputmode="numeric" class="money" id="piaOverride" placeholder="auto">
-        <div class="hint">Optional override of the computed PIA (monthly, today's $).</div>
-      </div>
-    </div>
-    <div id="spouseSS" style="margin-top:16px;display:none;">
-      <div class="wage-col-label" style="margin-bottom:8px;">Spouse's earnings &amp; benefit</div>
-      <div class="grid g3">
-        <div class="field"><label>Spouse current / final salary</label>
-          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="sSalary" value="80,000"></div>
-          <div class="hint">Seeds the spouse's earnings record (back-projected by wage growth).</div>
+    <!-- STEP 3 — current age + spouse -->
+    <section class="step" data-step="3">
+      <div class="step-kicker">Step 3 of 7 · You &amp; your household</div>
+      <h2 class="step-q">How old are you today?</h2>
+      <p class="step-help">Your age sets your birth year, RMD start and Social Security timing. Add a spouse's age to switch the whole model to <b>married filing jointly</b> — Social Security, Medicare and taxes all adjust automatically. Leave it blank if you're single.</p>
+      <div class="grid g2 step-field">
+        <div class="field"><label>Your age now</label>
+          <div class="inwrap"><input type="number" id="age" placeholder="60" min="25" max="90"><span class="suf" id="byBirth">b. 1966</span></div>
         </div>
-        <div class="field"><label>Spouse career start age</label>
-          <input type="number" id="sCareerStart" value="22" min="16" max="40">
-          <div class="hint">First year of the spouse's earnings history.</div>
-        </div>
-        <div class="field"><label>Spouse est. benefit at full retirement age <span class="computed" id="sPiaShow"></span></label>
-          <input type="text" inputmode="numeric" class="money" id="sPiaOverride" placeholder="auto">
-          <div class="hint">Optional override of the spouse's computed PIA (monthly, today's $). Whoever earned less automatically gets their own benefit plus a spousal top-up toward 50% of the higher earner's PIA once both have filed (deemed-filing rules) — no need to choose.</div>
+        <div class="field"><label>Spouse age now <span class="hint">— leave blank if single</span></label>
+          <input type="number" id="sage" placeholder="—" min="25" max="100">
+          <div class="hint">Currently filing as <b id="filingShow">Single</b>.</div>
         </div>
       </div>
-    </div>
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
 
-    <!-- Earnings records (expandable, sub-tabbed You / Spouse) -->
-    <div class="adv-section" id="ssRecSection">
-      <button class="adv-toggle" id="ssRecToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>Earnings records — edit your &amp; your spouse's wages</span><span class="adv-note">Optional — type actual SSA wages for a precise benefit.</span></button>
-      <div id="ssRecWrap" class="adv-wrap" hidden>
-        <div style="font-size:13px;color:var(--ink2);margin:4px 0 12px;">Estimated earnings record (capped at the Social Security wage base). Edit any year; figures index to wage growth, feed the AIME → PIA benefit formula, and update everything. <button class="btn" id="ssReset" style="margin-left:8px;">Reset wages</button></div>
-        <div class="tabs" id="ssRecTabs" style="margin:0;"></div>
-        <div id="wageWrap" style="padding-top:14px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h3>Taxes</h3>
-    <div class="sub" id="filingSub">Filing status: <b id="filingShow">Single</b> (set automatically by whether a spouse age is entered). Federal brackets, standard deduction, taxable-Social-Security, long-term capital-gains rates and the Net Investment Income Tax are all modeled. <b>Bracket/IRMAA smoothing and Roth conversions are auto-optimized</b> (see the verdict) and can be overridden under <b>Advanced</b>.</div>
-    <div class="grid g2">
-      <div class="field"><label>State income tax</label>
-        <select id="stateMode">
-          <option value="none">No state income tax (AK, FL, NH, NV, SD, TN, TX, WA, WY)</option>
-          <optgroup label="Progressive brackets">
-            <option value="al">Alabama</option>
-            <option value="ar">Arkansas</option>
-            <option value="ca">California</option>
-            <option value="ct">Connecticut</option>
-            <option value="de">Delaware</option>
-            <option value="dc">District of Columbia</option>
-            <option value="hi">Hawaii</option>
-            <option value="ks">Kansas</option>
-            <option value="me">Maine</option>
-            <option value="md">Maryland</option>
-            <option value="mn">Minnesota</option>
-            <option value="mo">Missouri</option>
-            <option value="mt">Montana</option>
-            <option value="ne">Nebraska</option>
-            <option value="nj">New Jersey</option>
-            <option value="nm">New Mexico</option>
-            <option value="ny">New York</option>
-            <option value="nd">North Dakota</option>
-            <option value="oh">Ohio</option>
-            <option value="ok">Oklahoma</option>
-            <option value="or">Oregon</option>
-            <option value="ri">Rhode Island</option>
-            <option value="sc">South Carolina</option>
-            <option value="vt">Vermont</option>
-            <option value="va">Virginia</option>
-            <option value="wv">West Virginia</option>
-            <option value="wi">Wisconsin</option>
-          </optgroup>
-          <optgroup label="Flat rate">
-            <option value="az">Arizona (2.5%)</option>
-            <option value="co">Colorado (4.4%)</option>
-            <option value="ga">Georgia (5.39%)</option>
-            <option value="ia">Iowa (3.8%)</option>
-            <option value="id">Idaho (5.7%)</option>
-            <option value="il">Illinois (4.95%)</option>
-            <option value="in">Indiana (3.0%)</option>
-            <option value="ky">Kentucky (4.0%)</option>
-            <option value="la">Louisiana (3.0%)</option>
-            <option value="ma">Massachusetts (5.0%)</option>
-            <option value="mi">Michigan (4.25%)</option>
-            <option value="ms">Mississippi (4.4%)</option>
-            <option value="nc">North Carolina (4.25%)</option>
-            <option value="pa">Pennsylvania (3.07%)</option>
-            <option value="ut">Utah (4.55%)</option>
-          </optgroup>
-          <option value="flat">Other — enter a flat rate</option>
-        </select>
-        <div class="hint" id="stateHint">Social Security is treated as exempt in every state shown (only nine states tax it, mostly via income limits). Capital gains are taxed as ordinary income.</div>
-      </div>
-      <div class="field" id="flatRateField" style="display:none;"><label>Flat state rate</label>
-        <div class="inwrap"><input type="number" id="stateRate" value="0" step="0.5" min="0" max="15"><span class="suf">%</span></div>
-        <div class="hint">For a state not listed (e.g. NY, NJ, OH): enter its approximate effective rate. Applied to all income including Social Security.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="adv-section">
-    <button class="adv-toggle" id="advToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>Advanced — optimized claiming &amp; tax strategy, plus return, inflation, healthcare &amp; longevity</span><span class="adv-note">Claiming ages and tax options are auto-optimized; expand to review or override.</span></button>
-    <div id="advWrap" class="adv-wrap" hidden>
-  <div class="panel" id="stratPanel">
-    <h3>Withdrawal strategy</h3>
-    <div class="sub">By default the model solves each year's withdrawals to hit your <b>target income</b>. Switch to a plain percentage rule to use a fixed withdrawal rate instead.</div>
-    <div class="grid g2">
-      <div class="field"><label>Strategy</label>
-        <div class="seg" id="stratSeg">
-          <button data-v="target" class="on">Target income</button>
-          <button data-v="pct">Plain rule</button>
+    <!-- STEP 4 — savings -->
+    <section class="step" data-step="4">
+      <div class="step-kicker">Step 4 of 7 · What you've saved</div>
+      <h2 class="step-q">What have you saved so far?</h2>
+      <p class="step-help">Enter the balances you have today. Pre-tax and Roth are tracked separately (their taxes differ), and your taxable brokerage splits into already-taxed principal and unrealized gains. Leave anything you don't have blank.</p>
+      <div class="grid g2 step-field">
+        <div class="field"><label>Pre-tax retirement (401k / Traditional IRA)</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="pretax" placeholder="900,000"></div>
+          <div class="hint" id="rmdHint">Withdrawals taxed as ordinary income; RMDs apply from 73.</div>
         </div>
-        <div class="hint" id="stratHint">Solve withdrawals to deliver the target income above.</div>
-      </div>
-      <div class="field"><label>Plan withdrawal rate <span class="hint">— used in “Plain rule” mode</span></label>
-        <div class="inwrap"><input type="number" id="wrate" value="4" step="0.1" min="1" max="12"><span class="suf">%</span></div>
-        <div class="hint">Year 1 = rate × starting balance, then grown by inflation. The classic “4% rule.”</div>
-      </div>
-    </div>
-  </div>
-  <div class="panel" id="claimPanel">
-    <h3>Social Security claiming ages <span class="computed" id="claimOptShow"></span></h3>
-    <div class="sub">By default these are set to the <b>optimal claiming strategy</b> — the ages that maximize the <b>expected</b> household benefit in today's dollars, weighting each future year by the probability of being alive to collect it (a male and a female survival curve from the SSA life table; the higher earner is also weighed for the survivor benefit). This doesn't depend on your plan-to age. Override either age below; click <b>Use optimal</b> to restore.</div>
-    <div class="grid g3">
-      <div class="field"><label>Claiming age — you</label>
-        <input type="number" id="claim" value="67" min="62" max="70">
-        <div class="hint" id="claimHint">62–70. FRA is 67; delaying adds ~8%/yr to age 70.</div>
-      </div>
-      <div class="field" id="sclaimWrap" style="display:none;"><label>Claiming age — spouse</label>
-        <input type="number" id="sclaim" value="67" min="62" max="70">
-        <div class="hint" id="sclaimHint">62–70. A spousal benefit can't begin until the other spouse has filed.</div>
-      </div>
-      <div class="field"><label>Real discount rate</label>
-        <div class="inwrap"><input type="number" id="realDisc" value="2.5" step="0.1" min="0" max="8"><span class="suf">%</span></div>
-        <div class="hint">Above inflation, for valuing future benefits. Default ≈ the 20-yr <b>TIPS</b> real yield (the safe asset given up to delay); a higher rate favors claiming earlier.</div>
-      </div>
-      <div class="field"><label>&nbsp;</label>
-        <button class="btn" id="claimOptBtn" type="button">↺ Use optimal ages</button>
-        <div class="hint">Re-applies the optimized claiming ages.</div>
-      </div>
-    </div>
-  </div>
-  <div class="panel" id="taxStratPanel">
-    <h3>Tax strategy <span class="computed" id="taxOptShow"></span></h3>
-    <div class="sub">By default these are set to the <b>tax-optimal combination</b> — the smoothing and Roth-conversion settings that minimize total lifetime taxes (income tax, IRMAA surcharges and the tax your heirs would owe) measured in today's dollars. Override either below; click <b>Use optimal</b> to restore.</div>
-    <div class="grid g3">
-      <div class="field"><label>Tax-bracket &amp; IRMAA smoothing</label>
-        <select id="smooth">
-          <option value="off">Off — drain pre-tax fully first</option>
-          <option value="on">On — cap pre-tax, top up from Roth / savings</option>
-        </select>
-        <div class="hint">When on, pre-tax draws are held under the first IRMAA cliff and the 24% bracket where possible, using already-taxed savings then Roth for the rest. Pre-tax is still drained first, just capped.</div>
-      </div>
-      <div class="field"><label>Roth conversions — fill the bracket</label>
-        <select id="rothConv">
-          <option value="off">Off</option>
-          <option value="12">Fill up to top of 12% bracket</option>
-          <option value="22">Fill up to top of 22% bracket</option>
-          <option value="24">Fill up to top of 24% bracket</option>
-        </select>
-        <div class="hint">In low-income years, convert pre-tax → Roth up to the chosen bracket top. Builds Roth for later (tax-free, no RMDs, doesn't raise IRMAA when drawn). Conversion tax is paid from taxable savings.</div>
-      </div>
-      <div class="field"><label>&nbsp;</label>
-        <button class="btn" id="taxOptBtn" type="button">↺ Use optimal tax strategy</button>
-        <div class="hint">Re-applies the tax-minimizing combination.</div>
-      </div>
-    </div>
-  </div>
-  <div class="panel" id="healthPanel">
-    <h3>Health care: premiums &amp; out-of-pocket</h3>
-    <div class="sub">Retiring before Medicare (65) means buying ACA coverage; we estimate an unsubsidized premium from your age(s) — early retirees with sizeable assets usually land above the subsidy cliff. From 65, Medicare carries its own premiums (modeled in the Taxes/IRMAA logic) plus real out-of-pocket costs. All of these grow at the medical trend you set, which runs well above general inflation.</div>
-    <div class="grid g3">
-      <div class="field"><label>Pre-65 annual household premium <span class="computed" id="hcAuto"></span></label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hcPrem" placeholder="auto"></div>
-        <div class="hint">ACA premium; computed from age &amp; household size, override for your plan. Cannot be paid from an HSA tax-free.</div>
-      </div>
-      <div class="field"><label>Pre-65 out-of-pocket, per person</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopPre" value="5,000"></div>
-        <div class="hint">Deductibles, copays &amp; coinsurance on a marketplace plan (avg. deductible ~$3,800, OOP max $10,600; KFF 2026). Paid from HSA first.</div>
-      </div>
-      <div class="field"><label>Out-of-pocket medical, per person (65+)</label>
-        <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopMed" value="4,000"></div>
-        <div class="hint">Cost-sharing, dental/vision/hearing &amp; uncovered care beyond Part B/D premiums (KFF: ~$6,460/yr incl. premiums). Paid from HSA first.</div>
-      </div>
-      <div class="field"><label>Healthcare cost inflation</label>
-        <div class="inwrap"><input type="number" id="hcInfl" value="6.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
-        <div class="hint">Drives ACA premiums &amp; out-of-pocket. Recent commercial trend ~7.5%/yr (PwC).</div>
-      </div>
-      <div class="field"><label>Medicare premium inflation</label>
-        <div class="inwrap"><input type="number" id="medPremInfl" value="5.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
-        <div class="hint">Drives Part B/D premiums. Part B has grown ~4.5%/yr over 20 yrs, ~5.8% recently (CMS); Trustees project ~5.5%.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h3>Market &amp; horizon assumptions</h3>
-    <div class="grid g3">
-      <div class="field"><label>Expected annual return</label>
-        <div class="inwrap"><input type="number" id="ret" value="6" step="0.5" min="0" max="15"><span class="suf">%</span></div>
-        <div class="hint">Nominal, blended across accounts.</div>
-      </div>
-      <div class="field"><label>General inflation</label>
-        <div class="inwrap"><input type="number" id="infl" value="2.5" step="0.25" min="0" max="10"><span class="suf">%</span></div>
-        <div class="hint">Grows your target, SS COLA &amp; brackets.</div>
-      </div>
-      <div class="field"><label>Real wage growth</label>
-        <div class="inwrap"><input type="number" id="wageGrow" value="1.1" step="0.1" min="0" max="3"><span class="suf">%</span></div>
-        <div class="hint">Career earnings growth <b>above inflation</b> (SSA's Average Wage Index trend, ≈1.1%). Lifts Social Security for future retirees while keeping the benefit in today's dollars. Set 0 to freeze wages in real terms.</div>
-      </div>
-      <div class="field"><label>Plan to age — you</label>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <select id="sex"><option value="m">Male</option><option value="f">Female</option></select>
-          <input type="number" id="endAge" value="82" min="70" max="105" style="width:72px;">
+        <div class="field"><label>Roth retirement (Roth 401k / Roth IRA)</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="roth" placeholder="150,000"></div>
+          <div class="hint">Qualified withdrawals are tax-free; no RMDs.</div>
         </div>
-        <div class="hint">Defaults to SSA life-table life expectancy for your age &amp; sex; editable (≈50% live longer — consider 90+ to be safe).</div>
+        <div class="field"><label>Personal savings — principal (already taxed)</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savPrin" placeholder="150,000"></div>
+          <div class="hint">Brokerage / cash basis — spendable with no tax.</div>
+        </div>
+        <div class="field"><label>Personal savings — unrealized capital gains</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="savGain" placeholder="100,000"></div>
+          <div class="hint">Realized proportionally on withdrawal, taxed at long-term rates.</div>
+        </div>
+        <div class="field"><label>Health Savings Account (HSA)</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hsa" placeholder="0"></div>
+          <div class="hint">Pays Medicare premiums tax-free from 65; any leftover is then an ordinary-income account.</div>
+        </div>
       </div>
-      <div class="field"><label>Return volatility (std. dev.)</label>
-        <div class="inwrap"><input type="number" id="vol" value="12" step="1" min="0" max="30"><span class="suf">%</span></div>
-        <div class="hint">Annual swing around the expected return — drives the <b>volatility stress test</b> in the verdict. ≈9% for a 30/70 portfolio, ≈12% for 60/40, ≈17% for all-stock; the <b>assumption preset</b> sets it to match its return (9% / 12% / 16%). Set 0 to disable.</div>
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
+
+    <!-- STEP 5 — other income -->
+    <section class="step" data-step="5">
+      <div class="step-kicker">Step 5 of 7 · Other income</div>
+      <h2 class="step-q">Any other income in retirement?</h2>
+      <p class="step-help">Pensions, annuities, rental or part-time income, dividends — anything beyond Social Security and your accounts. Skip this step if you have none. Split out the portion that is qualified dividends or long-term capital gains (taxed at preferential rates).</p>
+      <div class="grid g2 step-field">
+        <div class="field"><label>Other taxable income (per year)</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="other" placeholder="0"></div>
+        </div>
+        <div class="field"><label>…of which qualified dividends / LTCG</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="otherQual" placeholder="0"></div>
+          <div class="hint">The remainder is taxed as ordinary income.</div>
+        </div>
       </div>
-    </div>
-    <div id="spouseHorizon" class="field" style="display:none;margin-top:10px;max-width:360px;"><label>Plan to age — spouse</label>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <select id="sexSpouse"><option value="f">Female</option><option value="m">Male</option></select>
-        <input type="number" id="endAgeSpouse" value="85" min="70" max="105" style="width:72px;">
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
+
+    <!-- STEP 6 — Social Security -->
+    <section class="step" data-step="6">
+      <div class="step-kicker">Step 6 of 7 · Social Security</div>
+      <h2 class="step-q">Your earnings, for Social Security</h2>
+      <p class="step-help">We estimate your benefit from a career earnings record and <b>optimize the claiming age for you</b> (you'll see it in the results). Just enter your current salary and when you started working — or expand the earnings records to type your actual SSA wages for precision.</p>
+      <div class="grid g3 step-field">
+        <div class="field"><label>Current / final salary</label>
+          <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="salary" placeholder="120,000"></div>
+          <div class="hint">Seeds the earnings record (back-projected by wage growth).</div>
+        </div>
+        <div class="field"><label>Career start age</label>
+          <input type="number" id="careerStart" placeholder="22" min="16" max="40">
+          <div class="hint">First year of earnings — when your work history begins.</div>
+        </div>
+        <div class="field"><label>Est. benefit at full retirement age <span class="computed" id="piaShow"></span></label>
+          <input type="text" inputmode="numeric" class="money" id="piaOverride" placeholder="auto">
+          <div class="hint">Optional override of the computed PIA (monthly, today's $).</div>
+        </div>
       </div>
-      <div class="hint">The projection runs until whoever lives longer. After the first spouse passes (at the earlier plan-to age), the survivor files as <b>single</b>, keeps only the <b>larger</b> Social Security benefit, and has <b>one-person</b> Medicare &amp; out-of-pocket costs.</div>
+      <div id="spouseSS" style="margin-top:16px;display:none;">
+        <div class="wage-col-label" style="margin-bottom:8px;">Spouse's earnings &amp; benefit</div>
+        <div class="grid g3">
+          <div class="field"><label>Spouse current / final salary</label>
+            <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="sSalary" placeholder="80,000"></div>
+            <div class="hint">Seeds the spouse's earnings record (back-projected by wage growth).</div>
+          </div>
+          <div class="field"><label>Spouse career start age</label>
+            <input type="number" id="sCareerStart" placeholder="22" min="16" max="40">
+            <div class="hint">First year of the spouse's earnings history.</div>
+          </div>
+          <div class="field"><label>Spouse est. benefit at full retirement age <span class="computed" id="sPiaShow"></span></label>
+            <input type="text" inputmode="numeric" class="money" id="sPiaOverride" placeholder="auto">
+            <div class="hint">Optional override of the spouse's computed PIA (monthly, today's $). Whoever earned less automatically gets their own benefit plus a spousal top-up toward 50% of the higher earner's PIA once both have filed (deemed-filing rules) — no need to choose.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Earnings records (expandable, sub-tabbed You / Spouse) -->
+      <div class="adv-section" id="ssRecSection">
+        <button class="adv-toggle" id="ssRecToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>✏️ Enter my actual year-by-year earnings <span class="adv-open-hint">(tap to open &amp; edit)</span></span><span class="adv-note">Optional — type real SSA wages for a more precise benefit.</span></button>
+        <div id="ssRecWrap" class="adv-wrap" hidden>
+          <div style="font-size:13px;color:var(--ink2);margin:4px 0 12px;">Estimated earnings record (capped at the Social Security wage base). Edit any year; figures index to wage growth, feed the AIME → PIA benefit formula, and update everything. <button class="btn" id="ssReset" style="margin-left:8px;">Reset wages</button></div>
+          <div class="tabs" id="ssRecTabs" style="margin:0;"></div>
+          <div id="wageWrap" style="padding-top:14px;"></div>
+        </div>
+      </div>
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary wiz-next" type="button">Next →</button></div>
+    </section>
+
+    <!-- STEP 7 — assumptions & taxes -->
+    <section class="step" data-step="7">
+      <div class="step-kicker">Step 7 of 7 · Assumptions &amp; taxes</div>
+      <h2 class="step-q">A few economic assumptions, then your results</h2>
+      <p class="step-help">Pick a preset for returns, inflation and longevity, set your state tax, and you're done. These are sensible defaults — you can fine-tune anything here or in <b>Advanced</b> on the results page.</p>
+
+      <div class="preset-bar step-field">
+        <div class="preset-head">
+          <label class="field-label-strong" for="presetSeg">Choose how optimistic the assumptions are <span class="preset-pre">— “Average” is pre-selected; tap another to change</span></label>
+        </div>
+        <div class="seg seg-lg" id="presetSeg" role="group" aria-label="Assumption preset">
+          <button data-v="conservative" type="button">Conservative</button>
+          <button data-v="average" class="on" type="button">Average</button>
+          <button data-v="lenient" type="button">Lenient</button>
+        </div>
+        <div class="preset-hint" id="presetHint">Middle-of-the-road: 6% return, 2.5% inflation, average medical-cost trends, and mean life expectancy. Sets returns, inflation, medical trends, out-of-pocket costs and planning age together — you can still fine-tune any field below.</div>
+      </div>
+
+      <div class="panel">
+        <h3>State income tax</h3>
+        <div class="sub">Federal brackets, the standard deduction, taxable-Social-Security, long-term capital-gains rates and the Net Investment Income Tax are always modeled. Set your state below; <b>bracket/IRMAA smoothing and Roth conversions are auto-optimized</b> (see the results) and can be overridden under <b>Advanced</b>.</div>
+        <div class="grid g2">
+          <div class="field"><label>State income tax</label>
+            <select id="stateMode">
+              <option value="none">No state income tax (AK, FL, NH, NV, SD, TN, TX, WA, WY)</option>
+              <optgroup label="Progressive brackets">
+                <option value="al">Alabama</option>
+                <option value="ar">Arkansas</option>
+                <option value="ca">California</option>
+                <option value="ct">Connecticut</option>
+                <option value="de">Delaware</option>
+                <option value="dc">District of Columbia</option>
+                <option value="hi">Hawaii</option>
+                <option value="ks">Kansas</option>
+                <option value="me">Maine</option>
+                <option value="md">Maryland</option>
+                <option value="mn">Minnesota</option>
+                <option value="mo">Missouri</option>
+                <option value="mt">Montana</option>
+                <option value="ne">Nebraska</option>
+                <option value="nj">New Jersey</option>
+                <option value="nm">New Mexico</option>
+                <option value="ny">New York</option>
+                <option value="nd">North Dakota</option>
+                <option value="oh">Ohio</option>
+                <option value="ok">Oklahoma</option>
+                <option value="or">Oregon</option>
+                <option value="ri">Rhode Island</option>
+                <option value="sc">South Carolina</option>
+                <option value="vt">Vermont</option>
+                <option value="va">Virginia</option>
+                <option value="wv">West Virginia</option>
+                <option value="wi">Wisconsin</option>
+              </optgroup>
+              <optgroup label="Flat rate">
+                <option value="az">Arizona (2.5%)</option>
+                <option value="co">Colorado (4.4%)</option>
+                <option value="ga">Georgia (5.39%)</option>
+                <option value="ia">Iowa (3.8%)</option>
+                <option value="id">Idaho (5.7%)</option>
+                <option value="il">Illinois (4.95%)</option>
+                <option value="in">Indiana (3.0%)</option>
+                <option value="ky">Kentucky (4.0%)</option>
+                <option value="la">Louisiana (3.0%)</option>
+                <option value="ma">Massachusetts (5.0%)</option>
+                <option value="mi">Michigan (4.25%)</option>
+                <option value="ms">Mississippi (4.4%)</option>
+                <option value="nc">North Carolina (4.25%)</option>
+                <option value="pa">Pennsylvania (3.07%)</option>
+                <option value="ut">Utah (4.55%)</option>
+              </optgroup>
+              <option value="flat">Other — enter a flat rate</option>
+            </select>
+            <div class="hint" id="stateHint">Social Security is treated as exempt in every state shown (only nine states tax it, mostly via income limits). Capital gains are taxed as ordinary income.</div>
+          </div>
+          <div class="field" id="flatRateField" style="display:none;"><label>Flat state rate</label>
+            <div class="inwrap"><input type="number" id="stateRate" value="0" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+            <div class="hint">For a state not listed (e.g. NY, NJ, OH): enter its approximate effective rate. Applied to all income including Social Security.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Market &amp; horizon assumptions</h3>
+        <div class="sub">The preset above sets these; adjust if you have a view. Return and volatility describe your portfolio mix; the plan-to age sets how long the money must last.</div>
+        <div class="grid g3">
+          <div class="field"><label>Expected annual return</label>
+            <div class="inwrap"><input type="number" id="ret" value="6" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+            <div class="hint">Nominal, blended across accounts.</div>
+          </div>
+          <div class="field"><label>General inflation</label>
+            <div class="inwrap"><input type="number" id="infl" value="2.5" step="0.25" min="0" max="10"><span class="suf">%</span></div>
+            <div class="hint">Grows your target, SS COLA &amp; brackets.</div>
+          </div>
+          <div class="field"><label>Real wage growth</label>
+            <div class="inwrap"><input type="number" id="wageGrow" value="1.1" step="0.1" min="0" max="3"><span class="suf">%</span></div>
+            <div class="hint">Career earnings growth <b>above inflation</b> (SSA's Average Wage Index trend, ≈1.1%). Lifts Social Security for future retirees while keeping the benefit in today's dollars. Set 0 to freeze wages in real terms.</div>
+          </div>
+          <div class="field"><label>Plan to age — you</label>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <select id="sex"><option value="m">Male</option><option value="f">Female</option></select>
+              <input type="number" id="endAge" value="82" min="70" max="105" style="width:72px;">
+            </div>
+            <div class="hint">Defaults to SSA life-table life expectancy for your age &amp; sex; editable (≈50% live longer — consider 90+ to be safe).</div>
+          </div>
+          <div class="field"><label>Return volatility (std. dev.)</label>
+            <div class="inwrap"><input type="number" id="vol" value="12" step="1" min="0" max="30"><span class="suf">%</span></div>
+            <div class="hint">Annual swing around the expected return — drives the <b>volatility stress test</b> in the results. ≈9% for a 30/70 portfolio, ≈12% for 60/40, ≈17% for all-stock; the <b>assumption preset</b> sets it to match its return (9% / 12% / 16%). Set 0 to disable.</div>
+          </div>
+        </div>
+        <div id="spouseHorizon" class="field" style="display:none;margin-top:10px;max-width:360px;"><label>Plan to age — spouse</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="sexSpouse"><option value="f">Female</option><option value="m">Male</option></select>
+            <input type="number" id="endAgeSpouse" value="85" min="70" max="105" style="width:72px;">
+          </div>
+          <div class="hint">The projection runs until whoever lives longer. After the first spouse passes (at the earlier plan-to age), the survivor files as <b>single</b>, keeps only the <b>larger</b> Social Security benefit, and has <b>one-person</b> Medicare &amp; out-of-pocket costs.</div>
+        </div>
+      </div>
+
+      <div class="wiz-nav"><button class="btn wiz-back" type="button">← Back</button><button class="btn btn-primary btn-lg wiz-see" type="button">See my results →</button></div>
+    </section>
+  </div>
+
+  <!-- ============ RESULTS (revealed after the wizard) ============ -->
+  <div id="resultsView" hidden>
+    <div class="results-topbar">
+      <button class="btn wiz-edit" type="button">← Edit my answers</button>
+      <span class="results-topbar-note">Change any answer and your results update instantly.</span>
     </div>
-  </div>
-    </div>
+
+    <ol class="wiz-steps rwiz-steps" id="rwizBar">
+      <li data-rgo="1" class="on"><span class="wiz-dot">1</span><span class="wiz-lab">Summary</span></li>
+      <li data-rgo="2"><span class="wiz-dot">2</span><span class="wiz-lab">Full details</span></li>
+      <li data-rgo="3"><span class="wiz-dot">3</span><span class="wiz-lab">Save / download</span></li>
+    </ol>
+
+    <!-- RESULTS STEP 1 — the verdict at a glance -->
+    <section class="rstep on" data-rstep="1">
+      <div class="rstep-kicker">Your results · 1 of 3 · The verdict at a glance</div>
+      <!-- VERDICT -->
+      <div id="verdict" class="verdict green">
+        <div class="verdict-head">
+          <span class="v-badge" id="vBadge">—</span>
+          <span class="v-title" id="vTitle">Calculating…</span>
+        </div>
+        <div class="v-body" id="vBody"></div>
+        <div class="v-stats" id="vStats"></div>
+        <!-- Overall decision first: readiness body + sustainable-income stats (above), then the volatility
+             stress test and how-to-pass — the core "will this plan survive" verdict — ABOVE the optimization callouts. -->
+        <div class="v-estate" id="vStress" style="display:none;"></div>
+        <div class="v-fix" id="vFix" style="display:none;"></div>
+        <div class="v-estate" id="vClaim" style="display:none;"></div>
+        <div class="v-estate" id="vTax" style="display:none;"></div>
+        <div class="v-estate" id="vEstate" style="display:none;"></div>
+        <div class="v-jump">
+          <span class="lab">Jump straight into the detail</span>
+          <a onclick="showResultTab('t1');return false;">Accounts over time</a>
+          <a onclick="showResultTab('t2');return false;">Social Security summary</a>
+          <a onclick="showResultTab('t3');return false;">Income &amp; tax ledger</a>
+        </div>
+      </div>
+      <div id="savingsPlan" class="savings-plan" style="display:none;"></div>
+      <div class="wiz-nav"><span class="wiz-spacer"></span><button class="btn btn-primary rwiz-next" type="button">View the full details →</button></div>
+    </section>
+
+    <!-- RESULTS STEP 2 — full projection & overrides -->
+    <section class="rstep" data-rstep="2">
+      <div class="rstep-kicker">Your results · 2 of 3 · The full projection</div>
+
+      <!-- ADVANCED — review or override the optimized strategy -->
+      <div class="adv-section">
+        <button class="adv-toggle" id="advToggle" type="button" aria-expanded="false"><span class="adv-tri">▸</span><span>Advanced — review or override the optimized claiming, tax &amp; withdrawal strategy and health costs</span><span class="adv-note">Tap to open · claiming ages and tax options are auto-optimized, but you can change them.</span></button>
+        <div id="advWrap" class="adv-wrap" hidden>
+          <div class="panel" id="stratPanel">
+            <h3>Withdrawal strategy</h3>
+            <div class="sub">By default the model solves each year's withdrawals to hit your <b>target income</b>. Switch to a plain percentage rule to use a fixed withdrawal rate instead.</div>
+            <div class="grid g2">
+              <div class="field"><label>Strategy</label>
+                <div class="seg" id="stratSeg">
+                  <button data-v="target" class="on">Target income</button>
+                  <button data-v="pct">Plain rule</button>
+                </div>
+                <div class="hint" id="stratHint">Solve withdrawals to deliver the target income above.</div>
+              </div>
+              <div class="field"><label>Plan withdrawal rate <span class="hint">— used in “Plain rule” mode</span></label>
+                <div class="inwrap"><input type="number" id="wrate" value="4" step="0.1" min="1" max="12"><span class="suf">%</span></div>
+                <div class="hint">Year 1 = rate × starting balance, then grown by inflation. The classic “4% rule.”</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" id="claimPanel">
+            <h3>Social Security claiming ages <span class="computed" id="claimOptShow"></span></h3>
+            <div class="sub">By default these are set to the <b>optimal claiming strategy</b> — the ages that maximize the <b>expected</b> household benefit in today's dollars, weighting each future year by the probability of being alive to collect it (a male and a female survival curve from the SSA life table; the higher earner is also weighed for the survivor benefit). This doesn't depend on your plan-to age. Override either age below; click <b>Use optimal</b> to restore.</div>
+            <div class="grid g3">
+              <div class="field"><label>Claiming age — you</label>
+                <input type="number" id="claim" value="67" min="62" max="70">
+                <div class="hint" id="claimHint">62–70. FRA is 67; delaying adds ~8%/yr to age 70.</div>
+              </div>
+              <div class="field" id="sclaimWrap" style="display:none;"><label>Claiming age — spouse</label>
+                <input type="number" id="sclaim" value="67" min="62" max="70">
+                <div class="hint" id="sclaimHint">62–70. A spousal benefit can't begin until the other spouse has filed.</div>
+              </div>
+              <div class="field"><label>Real discount rate</label>
+                <div class="inwrap"><input type="number" id="realDisc" value="2.5" step="0.1" min="0" max="8"><span class="suf">%</span></div>
+                <div class="hint">Above inflation, for valuing future benefits. Default ≈ the 20-yr <b>TIPS</b> real yield (the safe asset given up to delay); a higher rate favors claiming earlier.</div>
+              </div>
+              <div class="field"><label>&nbsp;</label>
+                <button class="btn" id="claimOptBtn" type="button">↺ Use optimal ages</button>
+                <div class="hint">Re-applies the optimized claiming ages.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" id="taxStratPanel">
+            <h3>Tax strategy <span class="computed" id="taxOptShow"></span></h3>
+            <div class="sub">By default these are set to the <b>tax-optimal combination</b> — the smoothing and Roth-conversion settings that minimize total lifetime taxes (income tax, IRMAA surcharges and the tax your heirs would owe) measured in today's dollars. Override either below; click <b>Use optimal</b> to restore.</div>
+            <div class="grid g3">
+              <div class="field"><label>Tax-bracket &amp; IRMAA smoothing</label>
+                <select id="smooth">
+                  <option value="off">Off — drain pre-tax fully first</option>
+                  <option value="on">On — cap pre-tax, top up from Roth / savings</option>
+                </select>
+                <div class="hint">When on, pre-tax draws are held under the first IRMAA cliff and the 24% bracket where possible, using already-taxed savings then Roth for the rest. Pre-tax is still drained first, just capped.</div>
+              </div>
+              <div class="field"><label>Roth conversions — fill the bracket</label>
+                <select id="rothConv">
+                  <option value="off">Off</option>
+                  <option value="12">Fill up to top of 12% bracket</option>
+                  <option value="22">Fill up to top of 22% bracket</option>
+                  <option value="24">Fill up to top of 24% bracket</option>
+                </select>
+                <div class="hint">In low-income years, convert pre-tax → Roth up to the chosen bracket top. Builds Roth for later (tax-free, no RMDs, doesn't raise IRMAA when drawn). Conversion tax is paid from taxable savings.</div>
+              </div>
+              <div class="field"><label>&nbsp;</label>
+                <button class="btn" id="taxOptBtn" type="button">↺ Use optimal tax strategy</button>
+                <div class="hint">Re-applies the tax-minimizing combination.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" id="healthPanel">
+            <h3>Health care: premiums &amp; out-of-pocket</h3>
+            <div class="sub">Retiring before Medicare (65) means buying ACA coverage; we estimate an unsubsidized premium from your age(s) — early retirees with sizeable assets usually land above the subsidy cliff. From 65, Medicare carries its own premiums (modeled in the Taxes/IRMAA logic) plus real out-of-pocket costs. All of these grow at the medical trend you set, which runs well above general inflation.</div>
+            <div class="grid g3">
+              <div class="field"><label>Pre-65 annual household premium <span class="computed" id="hcAuto"></span></label>
+                <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="hcPrem" placeholder="auto"></div>
+                <div class="hint">ACA premium; computed from age &amp; household size, override for your plan. Cannot be paid from an HSA tax-free.</div>
+              </div>
+              <div class="field"><label>Pre-65 out-of-pocket, per person</label>
+                <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopPre" value="5,000"></div>
+                <div class="hint">Deductibles, copays &amp; coinsurance on a marketplace plan (avg. deductible ~$3,800, OOP max $10,600; KFF 2026). Paid from HSA first.</div>
+              </div>
+              <div class="field"><label>Out-of-pocket medical, per person (65+)</label>
+                <div class="inwrap"><span class="pre">$</span><input type="text" inputmode="numeric" class="money" id="oopMed" value="4,000"></div>
+                <div class="hint">Cost-sharing, dental/vision/hearing &amp; uncovered care beyond Part B/D premiums (KFF: ~$6,460/yr incl. premiums). Paid from HSA first.</div>
+              </div>
+              <div class="field"><label>Healthcare cost inflation</label>
+                <div class="inwrap"><input type="number" id="hcInfl" value="6.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+                <div class="hint">Drives ACA premiums &amp; out-of-pocket. Recent commercial trend ~7.5%/yr (PwC).</div>
+              </div>
+              <div class="field"><label>Medicare premium inflation</label>
+                <div class="inwrap"><input type="number" id="medPremInfl" value="5.5" step="0.5" min="0" max="15"><span class="suf">%</span></div>
+                <div class="hint">Drives Part B/D premiums. Part B has grown ~4.5%/yr over 20 yrs, ~5.8% recently (CMS); Trustees project ~5.5%.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="sec-label" id="results">Year-by-year results</div>
+      <p class="results-intro">The full projection lives in three views — switch between them with the tabs: <b>Accounts over time</b> (balances, withdrawals &amp; chart), the <b>Social Security summary</b> (each benefit, lifetime totals &amp; the claiming-age comparison), and the <b>Income &amp; tax ledger</b> (year-by-year income, tax, Medicare &amp; spendable).</p>
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-t="t1">Accounts over time</button>
+        <button class="tab" data-t="t2">Social Security summary</button>
+        <button class="tab" data-t="t3">Income &amp; tax ledger</button>
+      </div>
+
+      <div id="t1" class="tabpane on">
+        <div class="cards" id="cards1"></div>
+        <canvas id="chart1" height="320"></canvas>
+        <div id="estateBox" style="display:none;margin-top:22px;"></div>
+        <div class="toolbar"><button class="btn" id="csv1">Download CSV</button></div>
+        <div class="tablescroll"><table id="tbl1"></table></div>
+        <div class="legend">
+          <span class="chip"><span class="sw" style="background:var(--yellowbg)"></span> Rule of 55 (flexible 401k, 55–59½)</span>
+          <span class="chip"><span class="sw" style="background:var(--redbg)"></span> 72(t) SEPP (fixed, retire under 55)</span>
+          <span class="chip"><span class="sw" style="background:var(--paper)"></span> § = early-withdrawal rule · ‡ = forced RMD</span>
+        </div>
+      </div>
+
+      <div id="t2" class="tabpane">
+        <div class="cards" id="cards2"></div>
+        <div id="ssDetail"></div>
+        <div class="legend" style="margin-top:14px;"><span class="chip">Lifetime figures are summed across the plan. <b>Nominal</b> = future dollars actually received (with COLA); <b>today's $</b> = the same benefits expressed in today's purchasing power. Edit your earnings records under the Social Security step.</span></div>
+      </div>
+
+      <div id="t3" class="tabpane">
+        <div class="cards" id="cards3"></div>
+        <div class="toolbar"><button class="btn" id="csv3">Download CSV</button></div>
+        <div class="tablescroll"><table id="tbl3"></table></div>
+        <div class="legend"><span class="chip">All figures nominal (future dollars). Spendable = total income − federal tax − state tax − Medicare − out-of-pocket medical − pre-65 premiums.</span><span id="hsaLegend"></span></div>
+      </div>
+
+      <div class="wiz-nav"><button class="btn rwiz-back" type="button">← Summary</button><button class="btn btn-primary rwiz-next" type="button">Save / download →</button></div>
+    </section>
+
+    <!-- RESULTS STEP 3 — save / download -->
+    <section class="rstep" data-rstep="3">
+      <div class="rstep-kicker">Your results · 3 of 3 · Keep a copy</div>
+      <div class="save-panel">
+        <h3 class="save-h">💾 Save or download your results</h3>
+        <p class="save-sub">Nothing is stored automatically — close or refresh this page and your numbers are gone. <b>Download</b> a copy to keep it, reopen it later, or open it in Excel / Google&nbsp;Sheets.</p>
+        <div class="save-actions">
+          <button class="btn btn-primary btn-lg" id="exportBtn">↓ Download my results (CSV)</button>
+          <button class="btn btn-secondary" id="importBtn">↑ Import a different file</button>
+          <input type="file" id="importFile" accept=".csv,text/csv,.txt" style="display:none">
+        </div>
+        <p class="save-note">The file holds every input <b>and</b> all output tables (accounts, Social Security, the tax ledger). Re-import it here — or on the very first step — to restore a saved scenario exactly.</p>
+      </div>
+      <div class="wiz-nav"><button class="btn rwiz-back" type="button">← Full details</button><button class="btn wiz-edit" type="button">↻ Start over / edit answers</button></div>
+    </section>
   </div>
 
-  <!-- RESULTS -->
-  <div class="sec-label" id="results">3 · Year-by-year results</div>
-  <p class="results-intro">The verdict above is the summary; the full projection lives in three views — switch between them with the tabs: <b>Accounts over time</b> (balances, withdrawals &amp; chart), the <b>Social Security summary</b> (each benefit, lifetime totals &amp; the claiming-age comparison), and the <b>Income &amp; tax ledger</b> (year-by-year income, tax, Medicare &amp; spendable).</p>
-  <div class="tabs" id="tabs">
-    <button class="tab on" data-t="t1">Accounts over time</button>
-    <button class="tab" data-t="t2">Social Security summary</button>
-    <button class="tab" data-t="t3">Income &amp; tax ledger</button>
-  </div>
 
-  <div id="t1" class="tabpane on">
-    <div class="cards" id="cards1"></div>
-    <canvas id="chart1" height="320"></canvas>
-    <div id="estateBox" style="display:none;margin-top:22px;"></div>
-    <div class="toolbar"><button class="btn" id="csv1">Download CSV</button></div>
-    <div class="tablescroll"><table id="tbl1"></table></div>
-    <div class="legend">
-      <span class="chip"><span class="sw" style="background:var(--yellowbg)"></span> Rule of 55 (flexible 401k, 55–59½)</span>
-      <span class="chip"><span class="sw" style="background:var(--redbg)"></span> 72(t) SEPP (fixed, retire under 55)</span>
-      <span class="chip"><span class="sw" style="background:var(--paper)"></span> § = early-withdrawal rule · ‡ = forced RMD</span>
-    </div>
-  </div>
-
-  <div id="t2" class="tabpane">
-    <div class="cards" id="cards2"></div>
-    <div id="ssDetail"></div>
-    <div class="legend" style="margin-top:14px;"><span class="chip">Lifetime figures are summed across the plan. <b>Nominal</b> = future dollars actually received (with COLA); <b>today's $</b> = the same benefits expressed in today's purchasing power. Edit your earnings records under the Social Security input section above.</span></div>
-  </div>
-
-  <div id="t3" class="tabpane">
-    <div class="cards" id="cards3"></div>
-    <div class="toolbar"><button class="btn" id="csv3">Download CSV</button></div>
-    <div class="tablescroll"><table id="tbl3"></table></div>
-    <div class="legend"><span class="chip">All figures nominal (future dollars). Spendable = total income − federal tax − state tax − Medicare − out-of-pocket medical − pre-65 premiums.</span><span id="hsaLegend"></span></div>
-  </div>
 
   <!-- Full methodology lives in how_the_model_works.html (linked at the top) -->
 
@@ -750,7 +909,13 @@ const ACA_BASE_ANNUAL = 6000; // factor 1.0 => age 64 (3.0x) ≈ $18,000/yr; 60+
 
 /* ============================ HELPERS ============================ */
 const $ = id => document.getElementById(id);
-const num = id => { const v = parseFloat(($(id).value||'').replace(/,/g,'')); return isNaN(v)?0:v; };
+const num = id => {
+  const el=$(id); let raw=((el&&el.value)||'').replace(/,/g,'').trim();
+  // Wizard fields start blank with an example placeholder; fall back to that example so the
+  // model always has sensible numbers to compute (results stay hidden until the user finishes).
+  if(raw==='' && el && /^[\d,]+$/.test(el.placeholder||'')) raw=el.placeholder.replace(/,/g,'');
+  const v=parseFloat(raw); return isNaN(v)?0:v;
+};
 const blank = id => $(id).value.trim()==="";
 const fmt = n => (n<0?"-":"")+"$"+Math.round(Math.abs(n)).toLocaleString();
 const fmt0 = n => Math.round(n).toLocaleString();
@@ -2562,8 +2727,9 @@ $('claimOptBtn').onclick=()=>{ claimEdited=false; sclaimEdited=false; run(); };
 $('taxOptBtn').onclick=()=>{ smoothEdited=false; rothConvEdited=false; run(); };
 $('ssReset').onclick=()=>{ wagesEdited=false; swagesEdited=false; run(); };
 function toast(msg){ const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),3800); }
-$('exportBtn').onclick=()=>{ exportScenario(); toast('↓ Scenario exported as CSV'); };
+$('exportBtn').onclick=()=>{ exportScenario(); toast('↓ Results downloaded as CSV'); };
 $('importBtn').onclick=()=>$('importFile').click();
+if($('importBtnStart')) $('importBtnStart').onclick=()=>$('importFile').click();  // import-to-prefill at the wizard start
 $('importFile').onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const rd=new FileReader();
   rd.onload=()=>{ try{ const n=importScenario(rd.result); window.scrollTo({top:0,behavior:'smooth'}); toast('✓ Scenario imported — '+n+' inputs restored'); const b=$('importBtn'); const t=b.textContent; b.textContent='✓ Imported '+n+' inputs'; setTimeout(()=>b.textContent=t,2500); }
     catch(err){ alert('Could not import this file: '+err.message); } e.target.value=''; };
@@ -2572,11 +2738,52 @@ $('importFile').onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f
 // links and the in-callout pointers, so the detailed tabs are discoverable from the summary the user is reading.
 function showResultTab(id){
   const bar=document.getElementById('tabs'); if(!bar) return;
+  if(!$('resultsView').hidden && typeof showRStep==='function') showRStep(2);  // the tabs live in the "Full details" results step
   bar.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.dataset.t===id));
   ['t1','t2','t3'].forEach(p=>{ const el=document.getElementById(p); if(el) el.classList.toggle('on', p===id); });
   (document.getElementById('results')||bar).scrollIntoView({behavior:'smooth', block:'start'});
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t)); document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.t)); });
+
+/* ============================ GUIDED WIZARD NAVIGATION ============================ */
+// The inputs are collected one step at a time; the verdict, charts and tables stay hidden in #resultsView
+// until the user finishes. run() still executes on every input (and at boot) so the model is always current —
+// we just don't reveal the results panel until "See my results". Editing afterward returns to the same step.
+let wizStep=1; const WIZ_MAX=7;
+function showStep(n){
+  n=Math.max(1,Math.min(WIZ_MAX,n)); wizStep=n;
+  document.querySelectorAll('#wizard .step').forEach(s=>s.classList.toggle('on', +s.dataset.step===n));
+  document.querySelectorAll('#wizBar li').forEach(li=>{ const g=+li.dataset.go; li.classList.toggle('on',g===n); li.classList.toggle('done',g<n); });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showResults(){
+  document.querySelectorAll('#wizBar li').forEach(li=>li.classList.add('done'));
+  $('wizard').hidden=true; $('resultsView').hidden=false;
+  run();                       // re-render now that the results (and the chart canvas) are visible & properly sized
+  showRStep(1);                // always land on the summary first
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showWizard(){ $('resultsView').hidden=true; $('wizard').hidden=false; showStep(wizStep); }
+document.querySelectorAll('.wiz-next').forEach(b=>b.onclick=()=>showStep(wizStep+1));
+document.querySelectorAll('.wiz-back').forEach(b=>b.onclick=()=>showStep(wizStep-1));
+document.querySelectorAll('.wiz-see').forEach(b=>b.onclick=showResults);
+document.querySelectorAll('.wiz-edit').forEach(b=>b.onclick=showWizard);
+document.querySelectorAll('#wizBar li').forEach(li=>li.onclick=()=>showStep(+li.dataset.go));
+
+/* results sub-wizard: 1 Summary → 2 Full details → 3 Save / download */
+let rsStep=1; const RWIZ_MAX=3;
+function showRStep(n){
+  n=Math.max(1,Math.min(RWIZ_MAX,n)); rsStep=n;
+  document.querySelectorAll('#resultsView .rstep').forEach(s=>s.classList.toggle('on', +s.dataset.rstep===n));
+  document.querySelectorAll('#rwizBar li').forEach(li=>{ const g=+li.dataset.rgo; li.classList.toggle('on',g===n); li.classList.toggle('done',g<n); });
+  // The chart/table tab was display:none when first drawn (chart inits to 0 and resize() won't recover it),
+  // so re-render the accounts tab now that the details step is visible and properly laid out.
+  if(n===2 && typeof lastRun!=='undefined' && lastRun){ try{ renderTab1(lastRun.st, lastRun.rows); }catch(e){} }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.rwiz-next').forEach(b=>b.onclick=()=>showRStep(rsStep+1));
+document.querySelectorAll('.rwiz-back').forEach(b=>b.onclick=()=>showRStep(rsStep-1));
+document.querySelectorAll('#rwizBar li').forEach(li=>li.onclick=()=>showRStep(+li.dataset.rgo));
 
 run();
 </script>
