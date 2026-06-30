@@ -1236,6 +1236,21 @@ function applyPreset(name){
   $('presetHint').textContent = PRESET_HINTS[name] + ' Note: picking a preset overwrites these fields — including any you imported (return, inflation, volatility, medical trends, out-of-pocket and plan-to age).';
   run();
 }
+// Reconcile the preset chip + description with the actual assumption values. After an import (or a manual tweak)
+// the values may match a named preset, a different one, or none — so the highlighted button shouldn't stay stuck
+// on "Average" describing 6% return when the real numbers say otherwise.
+function syncPresetFromInputs(){
+  const seg=$('presetSeg'); if(!seg) return;
+  const eq=(a,b)=>Math.abs(a-b)<1e-6;
+  const cur={ret:num('ret'), infl:num('infl'), vol:num('vol'), hcInfl:num('hcInfl'), medPremInfl:num('medPremInfl'), oopPre:num('oopPre'), oopMed:num('oopMed')};
+  let match=null;
+  for(const name of Object.keys(PRESETS)){ const P=PRESETS[name];
+    if(eq(cur.ret,P.ret)&&eq(cur.infl,P.infl)&&eq(cur.vol,P.vol)&&eq(cur.hcInfl,P.hcInfl)&&eq(cur.medPremInfl,P.medPremInfl)&&eq(cur.oopPre,P.oopPre)&&eq(cur.oopMed,P.oopMed)){ match=name; break; }
+  }
+  seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on', match!=null && x.dataset.v===match));
+  if(match){ preset=match; $('presetHint').textContent = PRESET_HINTS[match] + ' Note: picking a preset overwrites these fields — including any you imported (return, inflation, volatility, medical trends, out-of-pocket and plan-to age).'; }
+  else { preset=null; $('presetHint').innerHTML = `<b>Custom assumptions</b> — ${cur.ret}% return, ${cur.infl}% inflation, ${cur.vol}% volatility (no preset matches these). Pick a preset above to overwrite them, or leave them as they are.`; }
+}
 
 function gather(){
   const ageNow=num('age'), sageRaw=$('sage').value.trim();
@@ -2685,6 +2700,7 @@ function importScenario(text){
   if(SWAGES) SWAGES.forEach(w=>{ if(swageOv[w.year]!=null){ w.earn=swageOv[w.year]; anyS=true; } });
   if(anyW) wagesEdited=true; if(anyS) swagesEdited=true;
   if(anyW||anyS) run();
+  syncPresetFromInputs();      // reflect imported assumptions on the preset chip (match a preset, or show "custom")
   return n;
 }
 $('csv1').onclick=()=>{ if(!lastRun) run(); const r=lastRun.rows; dl('accounts.csv',[['age','year','ret_draw','sav_draw','ss','spendable','pretax','roth','savings'],...r.map(x=>[x.age,x.year,Math.round(x.wRet),Math.round(x.wSav),Math.round(x.ss),Math.round(x.spendable),Math.round(x.endPretax),Math.round(x.endRoth),Math.round(x.endSav)])]); };
@@ -2715,6 +2731,8 @@ document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input
   if(el.id==='smooth') smoothEdited=true;  // overrides the optimized smoothing choice
   if(el.id==='rothConv') rothConvEdited=true; // overrides the optimized Roth-conversion choice
   if(el.id==='age'||el.id==='sage'||el.id==='sex'||el.id==='sexSpouse') refreshLEdefaults();
+  // editing an assumption field by hand may move it off (or onto) a named preset — keep the chip honest
+  if(['ret','infl','vol','hcInfl','medPremInfl','oopPre','oopMed'].includes(el.id)) syncPresetFromInputs();
   run();
 }));
 function updateStrategyNote(){ const el=$('stratNote'); if(!el) return; el.textContent = strategy==='target' ? 'Target income — solved each year to hit your target.' : 'Plain rule — '+($('wrate').value||'4')+'% of the starting balance, grown by inflation.'; }
