@@ -67,6 +67,18 @@ hr{border:0; border-top:1px solid var(--line); margin:2rem 0}
 .modelit p{margin:.2rem 0 .7rem}
 .modelit .tool-link{font-weight:600; font-family:"IBM Plex Mono",monospace; font-size:.85rem}
 
+/* formula / calculation box */
+.formula{background:var(--blue-tint); border:1px solid var(--line);
+  border-left:4px solid var(--blue); border-radius:10px; padding:1.05rem 1.3rem;
+  margin:.6rem 0 1.4rem}
+.formula h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:.95rem;
+  text-transform:uppercase; letter-spacing:.03em; color:var(--blue); margin:0 0 .55rem}
+.formula .frow{font-family:"IBM Plex Mono",monospace; font-size:.9rem; line-height:1.5;
+  padding:.28rem 0; border-bottom:1px solid rgba(56,89,122,.14)}
+.formula .frow:last-of-type{border-bottom:0}
+.formula .ftot{font-weight:700; color:var(--ink)}
+.formula .fnote{font-size:.86rem; line-height:1.55; color:var(--ink-soft); margin:.65rem 0 0}
+
 /* references */
 .references{margin:2.6rem 0 0; border-top:1px solid var(--line); padding-top:1.2rem}
 .references h2{margin:0 0 .5rem}
