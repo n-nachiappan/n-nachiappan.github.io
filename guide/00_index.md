@@ -1,9 +1,9 @@
-# The Retirement Drawdown
+# Retirement
 
-### A Field Guide to Spending Your Savings
+### A Field Guide to Building, Spending, and Passing On Your Savings
 
 *By Nachiappan, in collaboration with Claude.*
-*Companion to the free drawdown calculator at [nachi.short.gy/retirement_planner](https://nachi.short.gy/retirement_planner).*
+*A standalone field guide, paired with a free calculator to model your own numbers.*
 
 ---
 
