@@ -87,6 +87,7 @@ hr{border:0; border-top:1px solid var(--line); margin:2rem 0}
 .references a{word-break:break-word}
 
 /* tables */
+.mono{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.92em; white-space:nowrap}
 .tablewrap{overflow-x:auto; margin:0 0 1.2rem}
 table{border-collapse:collapse; width:100%; font-size:.9rem;
   font-variant-numeric:tabular-nums}
