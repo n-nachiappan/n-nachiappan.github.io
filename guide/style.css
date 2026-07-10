@@ -50,6 +50,8 @@ hr{border:0; border-top:1px solid var(--line); margin:2rem 0}
 .summary h2{margin:.1rem 0 .5rem}
 .summary ul{margin:0; padding-left:1.15rem}
 .summary li{margin:.35rem 0}
+.summary .xref{margin:.7rem 0 0; padding-top:.6rem; border-top:1px solid var(--line);
+  font-size:.9rem; color:var(--ink-soft)}
 
 /* action items */
 .actions{background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
