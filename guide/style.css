@@ -79,6 +79,41 @@ hr{border:0; border-top:1px solid var(--line); margin:2rem 0}
 .formula .ftot{font-weight:700; color:var(--ink)}
 .formula .fnote{font-size:.86rem; line-height:1.55; color:var(--ink-soft); margin:.65rem 0 0}
 
+/* worked-example / walkthrough box */
+.example{background:#fff; border:1px solid var(--line); border-left:4px solid var(--green);
+  border-radius:10px; padding:1.1rem 1.3rem 1.25rem; margin:.6rem 0 1.6rem;
+  box-shadow:0 1px 2px rgba(33,29,24,.05)}
+.example .ex-label{display:inline-block; font-family:"IBM Plex Mono",monospace;
+  font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--green);
+  background:var(--green-tint); border:1px solid #cfe0d8; border-radius:999px;
+  padding:.16rem .6rem; margin:0 0 .55rem}
+.example h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:1.12rem;
+  line-height:1.25; letter-spacing:-.01em; color:var(--ink); margin:.1rem 0 .3rem}
+.example>p{margin:.2rem 0 .8rem; font-size:.96rem}
+.example .step{font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:.74rem;
+  text-transform:uppercase; letter-spacing:.08em; color:var(--green);
+  margin:1.15rem 0 .5rem; padding-top:.9rem; border-top:1px solid var(--line)}
+.example .step:first-of-type{border-top:0; padding-top:0; margin-top:.6rem}
+.example .step .num{color:var(--brass); margin-right:.4rem}
+.example table td.n,.example table th.n{text-align:right;
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.example tfoot td{border-top:2px solid var(--green); font-weight:700; background:var(--green-tint)}
+.example .ex-total{background:var(--green-tint); border:1px solid #cfe0d8; border-radius:8px;
+  padding:.6rem .85rem; margin:.6rem 0 .3rem; font-size:.95rem}
+.example .ex-total strong{color:var(--ink)}
+.example caption{caption-side:bottom; text-align:left; color:var(--ink-soft);
+  font-size:.8rem; font-style:italic; line-height:1.5; margin-top:.45rem}
+
+/* calc chain + term list */
+.calc-chain{font-family:"IBM Plex Mono",monospace; font-size:.88rem; line-height:1.7;
+  background:var(--paper-2); border:1px solid var(--line); border-radius:8px;
+  padding:.7rem .9rem; margin:.3rem 0 1rem; text-align:center}
+.calc-chain .arw{color:var(--brass); white-space:nowrap}
+.calc-chain strong{color:var(--ink)}
+.terms{list-style:none; margin:0 0 1.1rem; padding:0}
+.terms li{margin:.45rem 0}
+.terms .t{font-weight:700; color:var(--ink)}
+
 /* references */
 .references{margin:2.6rem 0 0; border-top:1px solid var(--line); padding-top:1.2rem}
 .references h2{margin:0 0 .5rem}
