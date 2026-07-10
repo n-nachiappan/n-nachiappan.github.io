@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix E. Using the Calculator — Retirement</title>
+<meta name="description" content="A field manual for the drawdown calculator — what every input and output means, and which chapter explains each part.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <a class="brand" href="index.html">Retirement</a>
+  <nav class="topnav"><a href="index.html">Contents</a><a href="glossary.html">Glossary</a><a href="../retirement_model.html">Calculator</a><a href="https://nachi.short.gy/retirement_presentation" target="_blank" rel="noopener">Slides</a></nav>
+</div></div>
+<main>
+<p class="eyebrow">Reference · Appendix E</p>
+<h1>Using the Calculator</h1>
+<aside class="summary"><h2>The idea</h2><ul>
+<li>The <a href="../retirement_model.html">drawdown calculator</a> works backwards from the way real retirement feels: you name a <strong>target income</strong> you want to spend each year, and it projects whether your accounts, Social Security, and other income can fund it — net of tax, Medicare, and medical costs — all the way to your planning age.</li>
+<li>It's a <strong>seven-step wizard</strong> (about two minutes) followed by a <strong>three-part results view</strong>: a plain-language verdict, the full year-by-year projection, and a save/download step.</li>
+<li>This appendix is the field manual: what every input asks for, what every output number means, and — in the last table — <strong>which chapter explains each part</strong> in depth.</li>
+<li>Everything runs in your browser; nothing is uploaded or saved. Use <strong>Export scenario</strong> to keep a copy. For the math under the hood, see <a href="../how_the_model_works.html" target="_blank" rel="noopener">How the model works</a>.</li>
+</ul></aside>
+<article>
+
+<p>Open the tool and you'll answer seven short questions, one screen at a time, then land on your results. You can revisit any answer at any point with the <strong>← Edit my answers</strong> button, and results recompute instantly. Read this alongside the calculator — every <em>bold label</em> below is a control you'll see on screen.</p>
+
+<h2>Part 1 · The seven inputs</h2>
+<p>The wizard steps are numbered across the top. Here's what each one asks and what to type.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th style="width:8.5rem">Step</th><th>Field — what it means</th><th style="width:4.5rem">Chapters</th></tr></thead>
+<tbody>
+<tr><td><strong>1 · Income</strong></td><td><strong>Target annual income</strong> — the amount you want to spend each year in retirement, in <em>today's dollars</em>, <em>after</em> federal &amp; state tax, Medicare, and health costs. This is the number the whole model tries to deliver. A common rule of thumb is 70–85% of what you spend now.</td><td><a href="chapter7.html">7</a>, <a href="chapter8.html">8</a></td></tr>
+<tr><td><strong>2 · Retire age</strong></td><td><strong>Retirement age</strong> — when you stop working and start drawing. If it's your current age, the model checks whether you can retire <em>now</em>; if later, it computes how much more to save. This age also triggers the early-access rules: 55–59½ unlocks the Rule of 55, under 55 switches to a 72(t)/SEPP schedule.</td><td><a href="chapter20.html">20</a>, <a href="chapter21.html">21</a>, <a href="chapter22.html">22</a></td></tr>
+<tr><td><strong>3 · About you</strong></td><td><strong>Your age now</strong> sets your birth year, RMD start, and Social Security timing. <strong>Spouse age now</strong> — fill it in to switch the whole model to <em>married filing jointly</em> (taxes, Medicare, and Social Security all adjust); leave blank if single.</td><td><a href="chapter5.html">5</a>, <a href="chapter13.html">13</a></td></tr>
+<tr><td><strong>4 · Savings</strong></td><td>Your balances today, tracked in five buckets because each is taxed differently on the way out: <strong>Pre-tax retirement</strong> (401k / Traditional IRA — ordinary income, RMDs apply), <strong>Roth retirement</strong> (tax-free, no RMDs), <strong>Personal savings — principal</strong> (already taxed, spendable tax-free), <strong>Personal savings — unrealized capital gains</strong> (taxed at long-term rates as you sell), and <strong>HSA</strong> (pays medical costs tax-free). Leave anything you don't have blank.</td><td><a href="chapter1.html">1</a>–<a href="chapter4.html">4</a>, <a href="chapter6.html">6</a></td></tr>
+<tr><td><strong>5 · Other income</strong></td><td><strong>Other taxable income (per year)</strong> — pensions, annuity payouts, rental or part-time income, dividends; anything beyond Social Security and your accounts. <strong>…of which qualified dividends / LTCG</strong> — the slice taxed at preferential rates (the rest is ordinary income). The model spends this income <em>before</em> touching your portfolio.</td><td><a href="chapter14.html">14</a>, <a href="chapter15.html">15</a>, <a href="chapter16.html">16</a></td></tr>
+<tr><td><strong>6 · Social Security</strong></td><td><strong>Current / final salary</strong> and <strong>Career start age</strong> seed an earnings record that the model runs through the real benefit formula. <strong>Est. benefit at full retirement age</strong> lets you override the computed figure with the number from your SSA statement. Expand <strong>Enter my actual year-by-year earnings</strong> to type real wages for precision. Married? Each spouse gets their own record.</td><td><a href="chapter5.html">5</a>, <a href="chapter13.html">13</a></td></tr>
+<tr><td><strong>7 · Assumptions &amp; taxes</strong></td><td>The <strong>preset</strong> (Conservative / Average / Lenient) sets return, inflation, medical trends, volatility, and longevity together — a one-click starting point. Then set your <strong>State income tax</strong>, and fine-tune <strong>Expected annual return</strong>, <strong>General inflation</strong>, <strong>Real wage growth</strong>, <strong>Plan to age</strong> (how long the money must last), and <strong>Return volatility</strong> (which drives the stress test).</td><td><a href="chapter8.html">8</a>, <a href="chapter9.html">9</a>, <a href="chapter19.html">19</a>, <a href="chapter23.html">23</a>–<a href="chapter25.html">25</a></td></tr>
+</tbody>
+</table></div>
+
+<div class="formula">
+<h3>The one number that matters most</h3>
+<p style="margin:.1rem 0 .6rem"><strong>Target annual income</strong> (Step 1) is spendable, after-tax, in today's dollars. Everything the model does is in service of it:</p>
+<div class="frow">it grows your target by inflation each year, then <strong>funds it from a waterfall</strong> — other income &amp; Social Security first, then a retirement-account draw sized to hit the target, then savings</div>
+<div class="frow">it layers on federal &amp; state tax, Medicare/IRMAA, and out-of-pocket medical — the draw is solved so what's <em>left</em> equals your target</div>
+<p class="fnote">So if you enter <strong>$90,000</strong>, the model finds whatever gross withdrawal nets you $90,000 to spend — which is why the <strong>Ret. draw</strong> in the tables is always larger than your target. Full mechanics in <a href="../how_the_model_works.html" target="_blank" rel="noopener">How the model works</a>.</p>
+</div>
+
+<h2>Part 2 · Reading your results</h2>
+<p>Results open on the <strong>Summary</strong> screen — the verdict — with two more screens behind it (<strong>Full details</strong> and <strong>Save / download</strong>). Start with the verdict, then dig into the tabs.</p>
+
+<h3 style="font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink);text-transform:none;letter-spacing:-.01em;margin:1.6rem 0 .4rem">The verdict banner</h3>
+<p>A colored banner grades your plan — <strong style="color:var(--green)">green</strong> (on track), <strong style="color:var(--brass)">yellow</strong> (close — within ~10%), or <strong style="color:var(--red)">red</strong> (short) — and states the one-line reason. Below it sit the numbers that back the grade:</p>
+<div class="tablewrap"><table>
+<thead><tr><th style="width:12rem">Tile / callout</th><th>What it tells you</th></tr></thead>
+<tbody>
+<tr><td><strong>Sustainable income / yr</strong></td><td>The most you could safely spend every year and still last to your planning age. Compare it to your target.</td></tr>
+<tr><td><strong>% of your target</strong></td><td>That sustainable income as a share of what you asked for. 100%+ is green.</td></tr>
+<tr><td><strong>Savings depleted</strong></td><td>The age your money would run out — or "never." This is the headline you don't want to see early.</td></tr>
+<tr><td><strong>Extra saving needed / yr</strong> <span class="mono">(future retirement)</span></td><td>If you're retiring later, the model shows this plus <strong>Nest egg needed at [age]</strong> and a savings-plan table that fills your 401(k)/IRA to the limit first.</td></tr>
+<tr><td><strong>Volatility stress test</strong></td><td>Re-runs the plan 200 times with bumpy returns and reports a <strong>success rate</strong>, decile ending balances, and the typical depletion age when it fails. The banner is pulled down to the worse of the steady-return grade and this one.</td></tr>
+<tr><td><strong>How to pass</strong></td><td>When the stress test falls short, this box reverse-engineers the smallest fix: a <strong>cash reserve</strong>, a <strong>spending trim</strong>, <strong>working longer</strong>, or a balanced blend of all three.</td></tr>
+<tr><td><strong>Claiming / Tax / Estate callouts</strong></td><td>One-line summaries of the auto-optimized Social Security claiming ages, the tax-minimizing strategy (with its dollar advantage), and any estate-tax exposure — each expandable for detail.</td></tr>
+</tbody>
+</table></div>
+
+<h3 style="font-family:'Fraunces',serif;font-size:1.15rem;color:var(--ink);text-transform:none;letter-spacing:-.01em;margin:1.8rem 0 .4rem">The three detail tabs</h3>
+<p>On the <strong>Full details</strong> screen, three tabs hold the full projection. Each opens with summary tiles, then a year-by-year table (downloadable as CSV).</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th style="width:11rem">Tab</th><th>Key tiles &amp; columns — and how to read them</th><th style="width:4.5rem">Chapters</th></tr></thead>
+<tbody>
+<tr><td><strong>Accounts over time</strong></td><td>Tiles: <strong>Portfolio at retirement</strong>, <strong>Yr-1 retirement draw</strong>, <strong>Yr-1 savings draw</strong>, <strong>Balance at age [N]</strong> (what's left at the end — green if positive, red if depleted). The table tracks every account's balance and each year's draws. Watch the shading: <span class="mono" style="background:#f4ecd2;padding:0 .2rem">amber</span> rows are Rule-of-55 years, <span class="mono" style="background:#f3e2dc;padding:0 .2rem">red</span> rows are 72(t) SEPP years, and <strong>‡</strong> marks a forced RMD. An <strong>estate box</strong> at the bottom shows what heirs receive.</td><td><a href="chapter18.html">18</a>, <a href="chapter20.html">20</a>, <a href="chapter21.html">21</a>, <a href="chapter26.html">26</a></td></tr>
+<tr><td><strong>Social Security summary</strong></td><td>Tiles: <strong>Your PIA</strong> (benefit at full retirement age), <strong>Your benefit @ [claim age]</strong>, <strong>Spouse benefit @ [age]</strong>, <strong>Expected lifetime SS</strong> (survival-weighted, today's dollars). The <strong>claiming-age comparison matrix</strong> scores every claim-age combination and highlights the optimal cell — your current pick is outlined, so you can see what a different choice costs.</td><td><a href="chapter5.html">5</a>, <a href="chapter13.html">13</a></td></tr>
+<tr><td><strong>Income &amp; tax ledger</strong></td><td>Tiles: <strong>Lifetime federal+state tax</strong>, <strong>Lifetime Medicare + out-of-pocket</strong>, <strong>Lifetime pre-65 premiums</strong>, <strong>Lifetime SS collected</strong>. The table is your yearly paycheck: <strong>SS</strong>, <strong>Ret. draw</strong>, <strong>Sav. draw</strong>, <strong>Roth conv.</strong>, <strong>Taxable SS</strong>, <strong>Fed tax</strong>, <strong>State tax</strong>, <strong>Medicare</strong> (hover a cell for its IRMAA tier), <strong>OOP medical</strong>, <strong>Pre-65 health</strong>, and <strong>Spendable</strong> (which should match your target).</td><td><a href="chapter10.html">10</a>, <a href="chapter11.html">11</a>, <a href="chapter19.html">19</a></td></tr>
+</tbody>
+</table></div>
+
+<h2>Part 3 · Advanced — override the optimized strategy</h2>
+<p>By default the model <em>auto-optimizes</em> your Social Security claiming ages, tax strategy, and withdrawal order. On the <strong>Full details</strong> screen, expand <strong>Advanced</strong> to review or override any of it. Four panels:</p>
+<div class="tablewrap"><table>
+<thead><tr><th style="width:11rem">Panel</th><th>What you can change</th><th style="width:4.5rem">Chapters</th></tr></thead>
+<tbody>
+<tr><td><strong>Withdrawal strategy</strong></td><td>Switch from <strong>Target income</strong> (solve draws to hit your goal) to <strong>Plain rule</strong>, then set a fixed <strong>Plan withdrawal rate</strong> — the classic "4% rule" mode.</td><td><a href="chapter7.html">7</a>, <a href="chapter17.html">17</a></td></tr>
+<tr><td><strong>Social Security claiming ages</strong></td><td>Override <strong>Claiming age — you / spouse</strong> (62–70), tweak the <strong>Real discount rate</strong>, or hit <strong>Use optimal ages</strong> to restore the recommendation.</td><td><a href="chapter13.html">13</a></td></tr>
+<tr><td><strong>Tax strategy</strong></td><td><strong>Tax-bracket &amp; IRMAA smoothing</strong> (Off / On) caps pre-tax draws under the cliffs; <strong>Roth conversions — fill the bracket</strong> (Off / 12% / 22% / 24%) converts in low-income years. <strong>Use optimal tax strategy</strong> restores the lifetime-tax-minimizing combo.</td><td><a href="chapter10.html">10</a>, <a href="chapter11.html">11</a>, <a href="chapter12.html">12</a>, <a href="chapter18.html">18</a></td></tr>
+<tr><td><strong>Health care</strong></td><td><strong>Pre-65 annual household premium</strong>, <strong>Pre-65 out-of-pocket</strong>, <strong>Out-of-pocket medical (65+)</strong>, <strong>Healthcare cost inflation</strong>, and <strong>Medicare premium inflation</strong> — the levers behind every medical number in the plan.</td><td><a href="chapter4.html">4</a>, <a href="chapter9.html">9</a>, <a href="chapter22.html">22</a></td></tr>
+</tbody>
+</table></div>
+
+<div class="modelit"><h2>How to run a scenario comparison</h2>
+<p>The tool's real power is <em>comparison</em>. The pattern is always the same: run your base plan, change <strong>one</strong> input, and watch a specific number move. Try:</p>
+<p><b>Timing —</b> change <strong>Retirement age</strong> (Step 2) and watch the <strong>savings depleted</strong> age and stress <strong>success rate</strong>. <b>Taxes —</b> flip <strong>Advanced &rsaquo; Tax strategy</strong> between Off and the optimized combo and compare the <strong>Lifetime federal+state tax</strong> tile. <b>Risk —</b> raise <strong>Return volatility</strong> (Step 7) and read the stress test. <b>Legacy —</b> ladder <strong>Roth conversions</strong> and watch the <strong>Pre-tax bal</strong> column and <strong>Net to heirs</strong> shrink the future tax bill.</p>
+<p>Use <strong>Export scenario</strong> on the last screen to save each run, then re-import to compare side by side.</p>
+<p class="tool-link"><a href="../retirement_model.html" target="_blank" rel="noopener">Open the calculator &rarr;</a></p></div>
+
+<h2>Part 4 · Which chapter explains which part</h2>
+<p>Every part of the calculator has a chapter behind it. Use this as the two-way index — from a control you're unsure about to the chapter that explains it, and from a chapter to the place you can model it.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>If you want to understand…</th><th>…read</th></tr></thead>
+<tbody>
+<tr><td>The <strong>target-income</strong> approach &amp; safe withdrawal rates (Step 1, Plain-rule mode)</td><td><a href="chapter7.html">Ch 7 · The 4% Rule</a></td></tr>
+<tr><td>The <strong>inflation</strong> assumption and why the late years matter most (Step 7)</td><td><a href="chapter8.html">Ch 8 · Inflation</a></td></tr>
+<tr><td>The <strong>healthcare</strong> inflation, premium, and out-of-pocket fields (Advanced &rsaquo; Health care)</td><td><a href="chapter9.html">Ch 9 · Healthcare Costs</a>, <a href="chapter4.html">Ch 4 · HSA</a></td></tr>
+<tr><td>The <strong>five savings buckets</strong> and why each is taxed differently (Step 4)</td><td><a href="chapter1.html">Ch 1</a>–<a href="chapter4.html">4</a>, <a href="chapter6.html">Ch 6</a></td></tr>
+<tr><td>The <strong>tax-bracket &amp; IRMAA smoothing</strong> and withdrawal-order controls</td><td><a href="chapter10.html">Ch 10 · Tax Optimization</a>, <a href="chapter17.html">Ch 17 · Sequencing</a></td></tr>
+<tr><td>The <strong>Medicare</strong> column and its IRMAA tiers</td><td><a href="chapter11.html">Ch 11 · IRMAA</a></td></tr>
+<tr><td>The <strong>Roth conversions — fill the bracket</strong> control &amp; the <strong>Roth conv.</strong> column</td><td><a href="chapter12.html">Ch 12 · Roth Conversions</a></td></tr>
+<tr><td>The <strong>Social Security</strong> earnings record, PIA, and the claiming-age matrix</td><td><a href="chapter5.html">Ch 5 · SS Basics</a>, <a href="chapter13.html">Ch 13 · Claiming</a></td></tr>
+<tr><td>Entering a <strong>pension</strong>, <strong>annuity</strong>, or <strong>home equity</strong> as other income (Step 5)</td><td><a href="chapter14.html">Ch 14</a>, <a href="chapter15.html">Ch 15</a>, <a href="chapter16.html">Ch 16</a></td></tr>
+<tr><td>The <strong>amber Rule-of-55</strong> and <strong>red 72(t) SEPP</strong> rows &amp; the pre-65 bridge (Step 2)</td><td><a href="chapter20.html">Ch 20</a>, <a href="chapter21.html">Ch 21</a>, <a href="chapter22.html">Ch 22</a></td></tr>
+<tr><td>The <strong>volatility stress test</strong> and the "how to pass" fixes</td><td><a href="chapter23.html">Ch 23 · Sequence Risk</a>, <a href="chapter25.html">Ch 25 · Longevity</a></td></tr>
+<tr><td>The <strong>Expected annual return</strong> assumption and the balance chart (Step 7)</td><td><a href="chapter24.html">Ch 24 · Compounding</a></td></tr>
+<tr><td>The <strong>Plan to age</strong> setting and planning for a long life (Step 7)</td><td><a href="chapter25.html">Ch 25 · Longevity</a></td></tr>
+<tr><td>The <strong>‡ RMD</strong> marks in the Accounts table</td><td><a href="chapter18.html">Ch 18 · RMDs</a></td></tr>
+<tr><td>The <strong>State income tax</strong> dropdown &amp; the <strong>State tax</strong> column</td><td><a href="chapter19.html">Ch 19 · State Taxes</a></td></tr>
+<tr><td>The <strong>estate box</strong> — Gross estate, estate tax, heirs' income tax, Net to heirs</td><td><a href="chapter26.html">Ch 26 · Estate &amp; Inheritance</a></td></tr>
+</tbody>
+</table></div>
+
+<p class="disclaimer">This appendix describes the calculator as of the 2026 plan year; controls and defaults may change as the tool is updated. The model is a hypothetical, educational projection — not personalized financial, tax, or legal advice. For the full methodology and assumptions, see <a href="../how_the_model_works.html" target="_blank" rel="noopener">How the model works</a>.</p>
+</article>
+<section class="references"><h2>References &amp; sources</h2><ol><li><a href="../retirement_model.html" target="_blank" rel="noopener">The Retirement Drawdown — the calculator itself</a></li>
+<li><a href="../how_the_model_works.html" target="_blank" rel="noopener">How the model works — full methodology, FAQ &amp; glossary</a></li></ol></section>
+<nav class="pager"><a class="prev" href="appendix-life-tables.html"><span class="dir">&larr; Previous</span><span class="ttl">Appendix D · Life Expectancy Tables</span></a><a class="next" href="glossary.html"><span class="dir">Next &rarr;</span><span class="ttl">Glossary</span></a></nav>
+</main>
+</body>
+</html>
