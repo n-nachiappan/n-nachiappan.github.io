@@ -137,8 +137,25 @@ hr{border:0; border-top:1px solid var(--line); margin:2rem 0}
 .references li{margin:.4rem 0; color:var(--ink-soft)}
 .references a{word-break:break-word}
 
+/* highlight */
+mark{background:#f6e4b4; color:var(--ink); padding:.04em .18em; border-radius:3px;
+  box-shadow:0 0 0 1px rgba(156,123,46,.25)}
+
 /* tables */
 .mono{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.92em; white-space:nowrap}
+
+/* ages & deadlines — one row per age, milestones stacked & grouped */
+.ages td{vertical-align:top}
+.ages .sub{padding:.4rem 0; border-top:1px dashed var(--line)}
+.ages .sub:first-child{padding-top:0; border-top:0}
+.ages .sub:last-child{padding-bottom:0}
+.ages .ms{font-weight:700; color:var(--ink); display:block}
+.ages .dt{display:block; margin-top:.1rem}
+.ages .do{display:block; margin-top:.28rem; font-size:.86rem; color:var(--green)}
+.ages .do::before{content:"→ "; color:var(--brass); font-weight:700}
+.ages .ref{font-family:"IBM Plex Mono",monospace; font-size:.82rem; white-space:nowrap}
+.ages tr.flag{background:var(--brass-tint)!important}
+.ages tr.flag td:first-child{box-shadow:inset 3px 0 0 var(--brass)}
 .tablewrap{overflow-x:auto; margin:0 0 1.2rem}
 table{border-collapse:collapse; width:100%; font-size:.9rem;
   font-variant-numeric:tabular-nums}
