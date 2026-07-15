@@ -121,7 +121,7 @@ Every chapter body follows this exact order. Edit the block you need; leave the 
 
 **Edit action items:** stay inside `<section class="actions">`; keep `<li><strong>Verb…</strong> why.</li>`; every item must be something the reader *does*.
 
-**Edit "Model it":** keep the Try this / Look for structure; every bold control name must exist in Appendix F Part 1/3 (e.g. **Target annual income**, **Advanced › Withdrawal strategy › Plain rule**, **Plan withdrawal rate**, **Return volatility**, **Sustainable income / yr**, **success rate**). If you add/rename a calculator control, update App F too.
+**Edit "Model it":** keep the Try this / Look for structure; every bold control name must exist in Appendix F Part 1/3 (e.g. **Target annual income**, **Advanced › Withdrawal strategy › Plain rule**, **Plan withdrawal rate**, **Return volatility**, **Sustainable income / yr**, **success rate**). If you add/rename a calculator control, update App F too. The section is **not mandatory** — a chapter earns a Model-it block only if the calculator genuinely models the topic. Chapters that intentionally **omit** it: the non-financial coda (28–30) and **home-equity (Ch 17)** — the calculator doesn't model the house / reverse mortgages, so a forced block was removed in the Model-it audit. Don't re-add one there.
 
 **Add a new chapter:**
 1. Copy the nearest existing chapter as a template; update eyebrow, `h1`, `<title>`, meta description.
