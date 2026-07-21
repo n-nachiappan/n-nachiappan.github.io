@@ -541,6 +541,10 @@ canvas{max-width:100%;}
             <div class="inwrap"><input type="number" id="vol" value="12" step="1" min="0" max="30"><span class="suf">%</span></div>
             <div class="hint">Annual swing around the expected return — drives the <b>volatility stress test</b> in the results. ≈9% for a 30/70 portfolio, ≈12% for 60/40, ≈17% for all-stock; the <b>assumption preset</b> sets it to match its return (9% / 12% / 16%). Set 0 to disable.</div>
           </div>
+          <div class="field"><label>Spending flexibility</label>
+            <div class="inwrap"><input type="number" id="spendFlex" value="20" step="5" min="0" max="30"><span class="suf">%</span></div>
+            <div class="hint">A <b>guardrails</b> rule the <b>stress test</b> assumes: in any year the market falls, you trim spending by up to this much to avoid selling into the downturn — then resume the full target once markets recover. Most retirees flex like this. The headline success rate reflects it; set 0 to require the full target every year.</div>
+          </div>
         </div>
         <div id="spouseHorizon" class="field" style="display:none;margin-top:10px;max-width:360px;"><label>Plan to age — spouse</label>
           <div style="display:flex;gap:6px;align-items:center;">
@@ -1276,7 +1280,7 @@ function gather(){
     smooth: $('smooth').value==='on', rothConvIdx: ({'off':-1,'12':2,'22':3,'24':4})[$('rothConv').value]??-1,
     hcPremEdit: blank('hcPrem')? null : num('hcPrem'),
     hcInfl: num('hcInfl')/100, oopMed0: num('oopMed'), oopPre0: num('oopPre'), medPremInfl: num('medPremInfl')/100,
-    ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100, wageGrow: num('wageGrow')/100,
+    ret: num('ret')/100, infl: num('infl')/100, vol: num('vol')/100, spendFlex: Math.max(0, num('spendFlex'))/100, wageGrow: num('wageGrow')/100,
     realDisc: num('realDisc')/100, // real discount rate for the survival-weighted SS claiming valuation
 
     preRetMAGI: num('salary') + (married? num('sSalary') : 0), // household MAGI while working ≈ combined wages (today's $)
@@ -1588,7 +1592,12 @@ function simulateCore(st, startBalances, startAge, startSage, reserveByT){
     const hsaReserve = reserveByT? (reserveByT[t]||0) : undefined; // undefined => solveYear reserves all HSA
     const yRet=(st.retSeq && st.retSeq[t]!=null)? st.retSeq[t] : st.ret; // this year's market return (path or steady)
     let targetOverride=null;
-    if(cashReal>1e-6 && yRet<0){ const cover=Math.min(cashReal, st.target); cashReal-=cover; targetOverride=st.target-cover; }
+    // Guardrails: in a down-market year, flex spending down by up to st.spendFlex to avoid selling into the drop —
+    // then a cash reserve (if any) covers part of that already-reduced target. Steady-return years never trigger this
+    // (yRet = st.ret > 0), so the deterministic verdict is unaffected; only the volatility stress test feels it.
+    let effTarget = st.target;
+    if(st.spendFlex>0 && yRet<0){ effTarget = st.target*(1-st.spendFlex); targetOverride=effTarget; }
+    if(cashReal>1e-6 && yRet<0){ const cover=Math.min(cashReal, effTarget); cashReal-=cover; targetOverride=effTarget-cover; }
     const S = {age, sage, t, pretax, roth, savPrin, savGain, hsa, hsaReserve, magiHist, targetOverride};
     const y = solveYear(st, S);
     magiHist[t] = y.magi;
@@ -1716,7 +1725,12 @@ function scheduleStress(st, balances, startSage, note){
   const lr=lastRun;
   const t0=st.retireAge-st.ageNow;
   const mu=Math.log(1+st.ret)-st.vol*st.vol/2; // lognormal drift so E[1+r] = 1+expected return
-  const res={N:STRESS_N, success:0, ends:[], deps:[]};
+  // The headline runs the FLEXIBLE plan (st carries spendFlex): the retiree trims spending up to spendFlex in down
+  // years. When flexibility is on we also run a STRICT twin over the same market path (full target every year) so the
+  // panel can show what rigid spending would have cost — the strict figure is the pre-flexibility baseline.
+  const flexOn = st.spendFlex>0;
+  const strictSt = flexOn? {...st, spendFlex:0} : null;
+  const res={N:STRESS_N, success:0, strictSuccess:0, flexOn, ends:[], deps:[]};
   let i=0;
   (function batch(){
     if(token!==stressToken) return;
@@ -1724,13 +1738,16 @@ function scheduleStress(st, balances, startSage, note){
     for(; i<stop; i++){
       const rnd=mulberry32(0x51ab1e ^ Math.imul(i+1, 2654435761));
       const seq=[]; for(let t=t0; t<=t0+110; t++) seq[t]=Math.exp(mu+st.vol*gaussian(rnd))-1;
-      const s={...st, retSeq:seq};
-      const rows=simulate(s, balances, st.retireAge, startSage, 1);
+      const rows=simulate({...st, retSeq:seq}, balances, st.retireAge, startSage, 1); // flexible (headline) path
       const ok=rows.every(r=> r.shortfall < Math.max(50, r.target*0.005)); // same test as the verdict's sustainability
       if(ok) res.success++;
       else { let d=null; for(const r of rows){ if(r.endPretax+r.endRoth+r.endSav<1 && r.shortfall>1){ d=r.age; break; } } if(d!=null) res.deps.push(d); }
       const last=rows[rows.length-1];
       res.ends.push((last.endPretax+last.endRoth+last.endSav+(last.endHsa||0))/Math.pow(1+st.infl,last.t)); // today's $
+      if(flexOn){ // strict twin over the SAME path: full target every year, no down-year trim
+        const sRows=simulate({...strictSt, retSeq:seq}, balances, st.retireAge, startSage, 1);
+        if(sRows.every(r=> r.shortfall < Math.max(50, r.target*0.005))) res.strictSuccess++;
+      }
     }
     if(i<STRESS_N){ setTimeout(batch,0); }
     else if(token===stressToken){
@@ -1745,6 +1762,8 @@ function summarizeStress(res, st){
   const q=p=> ends.length? ends[Math.min(ends.length-1, Math.floor(p*ends.length))] : 0;
   const deps=res.deps.slice().sort((a,b)=>a-b);
   return {N:res.N, success:res.success, pct:Math.round(100*res.success/res.N),
+    flexOn:res.flexOn, spendFlex:st.spendFlex, strictSuccess:res.strictSuccess,
+    strictPct: res.flexOn? Math.round(100*res.strictSuccess/res.N) : null,
     p10:q(0.10), median:q(0.50), p90:q(0.90),
     medianDep: deps.length? deps[Math.floor(deps.length/2)] : null};
 }
@@ -1764,11 +1783,11 @@ function applyStressVerdict(s){
     if(overall==='red'){
       if(b) b.textContent='High sequence risk';
       if(t) t.textContent = lr.future? 'On plan — but volatile markets are the real risk' : 'Vulnerable to a bad market sequence';
-      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> once realistic market volatility is layered on, the plan funds the full target in only <b>${s.pct}%</b> of randomized paths — a poor run of early returns could break it. Read the steady-return result as conditional on calmer markets or a spending cushion.`;
+      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> once realistic market volatility is layered on, the plan holds up in only <b>${s.pct}%</b> of randomized paths${s.flexOn?` — even after trimming spending up to ${Math.round(s.spendFlex*100)}% in down years`:''} — a poor run of early returns could break it. Read the steady-return result as conditional on calmer markets or a spending cushion.`;
     } else {                                 // yellow
       if(b) b.textContent = lr.future? 'On track — volatility risk' : 'Doable — mind the sequence';
       if(t) t.textContent = lr.future? 'On plan — mind the market sequence' : 'On track, but mind the market sequence';
-      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> under market volatility the plan funds the full target in <b>${s.pct}%</b> of randomized paths — solid, but a modest cushion would firm it up against a bad sequence of early returns.`;
+      if(bd) bd.innerHTML = lr.detBody + ` <b>Stress-test caveat:</b> under market volatility the plan holds up in <b>${s.pct}%</b> of randomized paths${s.flexOn?` (with spending trimmed up to ${Math.round(s.spendFlex*100)}% in down years)`:''} — solid, but a modest cushion would firm it up against a bad sequence of early returns.`;
     }
   } else {                                   // stress confirms (or the plan was already short) — keep the clean body
     if(bd && lr.detBody) bd.innerHTML = lr.detBody;
@@ -1783,22 +1802,30 @@ function renderStress(s, st, note){
   el.className='v-estate'+(s.pct<75?' warn':''); el.style.display='block';
   const grade = s.pct>=90? 'robust' : s.pct>=80? 'reasonably resilient' : s.pct>=65? 'workable but exposed' : s.pct>=45? 'fragile under bad market sequences' : 'unlikely to survive volatile markets';
   const word={green:'a go',yellow:'borderline',red:'not yet'};
+  // "Fund" phrasing: with flexibility the plan funds a spending path that dips up to spendFlex in down years, not the
+  // rigid full target — so the headline says "fund the plan (spending flexed …)"; without it, "fund the full target".
+  const flexPct = Math.round((s.spendFlex||0)*100);
+  const fundS = s.flexOn? `fund the plan (spending trimmed up to ${flexPct}% in down years)` : 'fund the full target';
   // Summary line: the overall (volatility-adjusted) decision + headline success rate.
   let summary;
   if(lastRun && lastRun.detCls && overall!==lastRun.detCls){
-    summary = `<b>Overall decision (volatility-adjusted):</b> <b>${word[overall]}</b> — funds the full target in only <b>${s.pct}%</b> of volatile market paths.`;
+    summary = `<b>Overall decision (volatility-adjusted):</b> <b>${word[overall]}</b> — ${fundS} in only <b>${s.pct}%</b> of volatile market paths.`;
   } else if(lastRun && lastRun.detCls){
-    summary = `<b>Overall decision:</b> the stress test <b>confirms</b> the verdict above — <b>${s.pct}%</b> of volatile market paths fund the full target.`;
+    summary = `<b>Overall decision:</b> the stress test <b>confirms</b> the verdict above — <b>${s.pct}%</b> of volatile market paths ${fundS}.`;
   } else {
-    summary = `<b>Volatility stress test:</b> <b>${s.pct}%</b> of volatile market paths fund the full target — ${grade}.`;
+    summary = `<b>Volatility stress test:</b> <b>${s.pct}%</b> of volatile market paths ${fundS} — ${grade}.`;
   }
   // Detail: the calibration, distribution of outcomes, and how the bands map to the banner.
   let lead='';
   if(lastRun && lastRun.detCls && overall!==lastRun.detCls){
     lead = `The steady-return verdict above reads <b>${word[lastRun.detCls]}</b>, but at ${s.pct}% stress success the realistic call is <b>${word[overall]}</b> — the banner now reflects this. `;
   }
-  let d=lead+`With <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan funds the full target in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
+  let d=lead+`With <b>${(st.vol*100).toFixed(0)}%</b> annual volatility around the ${(st.ret*100).toFixed(1)}% expected return, the plan ${s.flexOn?'holds up':'funds the full target'} in <b>${s.success} of ${s.N}</b> randomized market paths (<b>${s.pct}%</b>) — ${grade}. Ending balance in today's dollars: median <b>${fmt(s.median)}</b>, worst decile ${fmt(s.p10)}, best decile ${fmt(s.p90)}.`;
   if(s.medianDep!=null) d+=` In the failing paths, savings typically run dry around age <b>${s.medianDep}</b>.`;
+  // Flexible-spending guardrail: state the assumption and quantify how much of the resilience it buys vs. rigid spending.
+  if(s.flexOn){
+    d+=` <span style="color:var(--ink2);">This headline assumes a <b>guardrails</b> rule: in any year the market falls you trim spending by up to <b>${flexPct}%</b>, then resume the full target once it recovers. Held rigidly at the full target every year, only <b>${s.strictPct}%</b> of the same paths survive — the flexibility lifts success by <b>${Math.max(0,s.pct-s.strictPct)} points</b>. Set spending flexibility to 0 under <b>Advanced &rsaquo; Market &amp; horizon</b> to see the rigid figure as the headline.</span>`;
+  }
   if(note) d+=` <span style="color:var(--ink2);">(${note}.)</span>`;
   d+=` <span style="color:var(--ink2);">The verdict above assumes the same return every year; this adds sequence-of-returns risk. Here ≥${STRESS_GREEN}% keeps the verdict, ${STRESS_YELLOW}–${STRESS_GREEN-1}% caps it at caution, and below ${STRESS_YELLOW}% downgrades it.</span>`;
   el.innerHTML=summaryBox(summary, d);
@@ -1885,7 +1912,10 @@ function renderFix(o, st){
       : `<li><span class="ic">💵</span><b>A cash buffer alone won't fix this plan.</b> Even ${fmt(o.cash.cap)} (~${o.cash.capYears} years of spending) doesn't reach ${STRESS_GREEN}% — the shortfall is structural (long horizon and/or thin real return), not a short market dip a buffer bridges. Beyond a few years of spending, "cash" stops being a buffer and just becomes a low-return slice of your portfolio. Lean on the levers below, or hold a less aggressive, <b>lower-volatility</b> portfolio.</li>`);
   }
   if(o.spend && o.spend.feasible){
-    items.push(`<li><span class="ic">✂️</span><b>Trim planned spending to about ${fmt(o.spend.newTarget)}/yr</b> (−${fmt(o.spend.cut)}, ${o.spend.cutPct}%). Even applying the cut only in down years — a "guardrails" rule — gets most of the way there while letting you spend more when markets cooperate.</li>`);
+    const flexNote = st.spendFlex>0
+      ? ` This is on top of the down-year flexibility already assumed above — a permanent, every-year cut to the base target, so it's a bigger lifestyle change than the guardrails trim.`
+      : ` Even applying the cut only in down years — a "guardrails" rule — gets most of the way there while letting you spend more when markets cooperate. (You can also model this directly by setting <b>spending flexibility</b> above.)`;
+    items.push(`<li><span class="ic">✂️</span><b>Trim planned spending to about ${fmt(o.spend.newTarget)}/yr</b> (−${fmt(o.spend.cut)}, ${o.spend.cutPct}%).${flexNote}</li>`);
   }
   if(o.work && o.work.feasible){
     items.push(`<li><span class="ic">🕒</span><b>Retire at ${o.work.age}</b> — about ${o.work.years} more year${o.work.years>1?'s':''}. The portfolio compounds longer and the drawdown is shorter; counting the extra saving you'd also do, the real cushion is bigger than this.</li>`);
@@ -1908,7 +1938,7 @@ function renderFix(o, st){
   if(comboParts.length>=2){ lead=('a balanced mix — '+andJoin(comboParts)).replace(/<\/?b>/g,''); }
   else { const hints=[]; if(o.cash&&o.cash.feasible) hints.push(`hold ${fmt(o.cash.amount)} in cash`); if(o.spend&&o.spend.feasible) hints.push(`trim to ${fmt(o.spend.newTarget)}/yr`); if(o.work&&o.work.feasible) hints.push(`retire at ${o.work.age}`); lead=hints.length? `e.g. ${hints.join(', ')}`:'see options'; }
   const summary=`<span class="fh" style="display:inline">How to pass the stress test:</span> at <b>${o.base}%</b> you're below the ${STRESS_GREEN}% line — ${lead}.`;
-  let detail=`Each item below independently lifts stress success to <b>${STRESS_GREEN}%+</b> using a single lever, fully; the last blends them so none is excessive:`;
+  let detail=`Each item below independently lifts stress success to <b>${STRESS_GREEN}%+</b> using a single lever, fully; the last blends them so none is excessive${st.spendFlex>0?` — all on top of the ${Math.round(st.spendFlex*100)}% down-year spending flexibility already baked into the ${o.base}% above`:''}:`;
   detail+=`<ul>${items.join('')}</ul>`;
   detail+=`<span class="note">Why these work: sequence-of-returns risk comes from selling assets while they're down early in retirement. A cash buffer, flexible spending, and a later start all reduce how much you must sell into a downturn. Delaying Social Security (toward 70) does the same by lifting your guaranteed, market-proof income floor. Amounts are reverse-engineered from the same ${STRESS_N} randomized market paths as the stress test above.</span>`;
   el.innerHTML=summaryBox(summary, detail); el.style.display='block';
@@ -2555,7 +2585,7 @@ const EXPORT_FIELDS = [
   ['claim','Social Security claim age (you)'],['sclaim','Social Security claim age (spouse)'],['piaOverride','PIA override (monthly, today $)'],
   ['hcPrem','Pre-65 annual premium override'],['oopPre','Out-of-pocket medical, pre-65 (per person)'],['oopMed','Out-of-pocket medical, Medicare (per person)'],
   ['hcInfl','Healthcare inflation %'],['medPremInfl','Medicare premium trend %'],
-  ['ret','Expected return %'],['infl','Inflation %'],['wageGrow','Real wage growth % (above inflation)'],['vol','Return volatility % (stress test)'],['realDisc','Real discount rate % (SS claiming)'],['wrate','Plain-rule withdrawal %'],
+  ['ret','Expected return %'],['infl','Inflation %'],['wageGrow','Real wage growth % (above inflation)'],['vol','Return volatility % (stress test)'],['spendFlex','Spending flexibility % (down-year guardrail)'],['realDisc','Real discount rate % (SS claiming)'],['wrate','Plain-rule withdrawal %'],
   ['endAge','Plan-to age — you'],['endAgeSpouse','Plan-to age — spouse'],
   ['sex','Your sex (m/f)'],['sexSpouse','Spouse sex (m/f)'],
   ['stateMode','State (code, e.g. none/ca/ny/flat)'],['stateRate','Custom flat state rate %'],

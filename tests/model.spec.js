@@ -531,6 +531,56 @@ test.describe('8b. "How to pass the stress test" recommendations', () => {
   });
 });
 
+test.describe('8c. Flexible spending (down-year guardrails)', () => {
+  // The headline stress test assumes the retiree trims spending up to `spendFlex` in down-market years. More
+  // flexibility can only help, so the headline must be monotonic in it — and the strict (0%) baseline is reported.
+  test('more flexibility raises the headline rate; the strict baseline is carried alongside', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000', vol: '12', spendFlex: '0' });   // fails strictly → room to help
+    const strict = await waitForStress(page);
+    expect(strict.flexOn).toBe(false);
+    expect(strict.strictPct).toBeNull();
+
+    await page.evaluate(() => { lastRun.stress = null; });
+    await setInputs(page, { spendFlex: '10' });
+    const flex10 = await waitForStress(page);
+    await page.evaluate(() => { lastRun.stress = null; });
+    await setInputs(page, { spendFlex: '20' });
+    const flex20 = await waitForStress(page);
+
+    expect(flex10.flexOn).toBe(true);
+    expect(flex10.pct).toBeGreaterThanOrEqual(strict.pct);   // flexibility never hurts
+    expect(flex20.pct).toBeGreaterThanOrEqual(flex10.pct);   // and is monotonic in the amount
+    expect(flex20.strictPct).toBe(strict.pct);               // the reported strict baseline matches the 0% run
+    expect(flex20.pct).toBeGreaterThan(flex20.strictPct);    // it genuinely lifts the headline here
+  });
+
+  // With flexibility off, the headline is the rigid full-target rate and no strict twin is reported.
+  test('spendFlex = 0 makes the headline the strict full-target rate', async ({ page }) => {
+    await load(page);
+    await setInputs(page, { target: '90,000', spendFlex: '0' });
+    const s = await waitForStress(page);
+    expect(s.flexOn).toBe(false);
+    const txt = await page.evaluate(() => document.getElementById('vStress').textContent);
+    expect(txt).toMatch(/fund the full target/);
+  });
+
+  // Guardrails only bite in down-market years. The steady-return plan has none, so flexibility must be byte-identical
+  // there — the deterministic verdict above the stress test cannot be moved by it. Guards the simulateCore change.
+  test('down-year flexibility is inert in the steady-return plan', async ({ page }) => {
+    await load(page);
+    const diff = await page.evaluate((balExpr) => {
+      const st = lastRun.st; const { bal, startSage } = eval(balExpr);
+      const a = simulate({ ...st, spendFlex: 0 },   bal, st.retireAge, startSage, 1);
+      const b = simulate({ ...st, spendFlex: 0.2 }, bal, st.retireAge, startSage, 1);
+      const end = (r) => r[r.length - 1];
+      return Math.abs((end(a).endPretax + end(a).endRoth + end(a).endSav)
+                    - (end(b).endPretax + end(b).endRoth + end(b).endSav));
+    }, BAL_AT_RET);
+    expect(diff).toBeLessThan(1); // identical to the dollar
+  });
+});
+
 test.describe('9. Estate, filing status', () => {
   test('a large estate triggers the federal estate-tax warning', async ({ page }) => {
     await load(page);
