@@ -18,9 +18,13 @@ Update the **Summary** below whenever we learn something durable — keep it sho
   - ⚠️ Naming note: in the original request "numbers→A, ages→B" was said, but the **files are the reverse** (A = ages, B = numbers). The mapping above is the real one — trust it.
 - **Files are title-based slugs — no chapter number in the filename** (`the-4-percent-rule.html`, `sequence-of-returns-risk.html`, `purpose-people-health.html`). This is deliberate: reordering/renumbering never renames a file. The `Chapter N` designation lives **only** in the `.eyebrow`, `<title>`, `index.html` `.ch-card` `.n`, and link text. Foundations use slugs too (`how-much-to-save.html` … `compounding-and-historical-returns.html`). Intro = `intro.html`; capstone = `putting-it-together.html`.
 - **Links:** chapter→chapter `href="<slug>.html"` (e.g. `href="sequence-of-returns-risk.html"`); guide→calculator `href="../retirement_model.html"`; guide→methodology `href="../how_the_model_works.html"` (guide is a subfolder of the site root).
-- **31 chapters + 4 foundations + intro + capstone + 7 appendices + glossary.** Editorial "read-if-nothing-else" four: Ch 9 (inflation), 10 (healthcare), 12 (IRMAA), 19 (sequencing) — the white-space topics.
-- **Ch 1–28 are financial; the capstone closes that arc; then Part V · Beyond the Money (Ch 29–31) is the non-financial coda** — purpose/health, housing & long-term care, directives/consolidation/legacy. Pager order: `passing-assets(28) → putting-it-together → purpose(29) → where-youll-live(30) → handing-over(31) → appendix-ages`. These three deliberately **omit the `.modelit` "Model it" block** (they don't map to calculator controls); they keep the rest of the chapter skeleton and cite external references only.
-- **Part structure (after the age-based reorg):** Foundations (F1–F4) · I Accumulation (1–6) · II Decumulation (7–22) · III Early access (23–26) · IV Inheritance (27–28) · Capstone · V Beyond the Money (29–31). The old "Part IV · Risk and the Long Run" was **dissolved**: compounding/returns became **Foundations F4** (`compounding-and-historical-returns.html`, keeps its Model-it block), sequence-of-returns risk became **Ch 8** (`sequence-of-returns-risk.html`), and longevity became **Ch 22** (`longevity-risk.html`) — so Part II now houses all four decumulation risks (sequence, inflation, healthcare, longevity).
+- **32 chapters + 4 foundations + intro + capstone + 7 appendices + glossary.** Editorial "read-if-nothing-else" four: Ch 9 (inflation), 10 (healthcare), 12 (IRMAA), 20 (sequencing) — the white-space topics.
+- **Ch 1–29 are financial; the capstone closes that arc; then Part V · Beyond the Money (Ch 30–32) is the non-financial coda** — purpose/health, housing & long-term care, directives/consolidation/legacy. Pager order: `passing-assets(29) → putting-it-together → purpose(30) → where-youll-live(31) → handing-over(32) → appendix-ages`. These three deliberately **omit the `.modelit` "Model it" block** (they don't map to calculator controls); they keep the rest of the chapter skeleton and cite external references only.
+- **Part structure (after the age-based reorg, then the strategic-debt insertion):** Foundations (F1–F4) · I Accumulation (1–6) · II Decumulation (7–23) · III Early access (24–27) · IV Inheritance (28–29) · Capstone · V Beyond the Money (30–32). The old "Part IV · Risk and the Long Run" was **dissolved**: compounding/returns became **Foundations F4** (`compounding-and-historical-returns.html`, keeps its Model-it block), sequence-of-returns risk became **Ch 8** (`sequence-of-returns-risk.html`), and longevity became **Ch 23** (`longevity-risk.html`) — so Part II now houses all four decumulation risks (sequence, inflation, healthcare, longevity).
+
+- **Strategic debt (Ch 18) was inserted after Home Equity (Ch 17)**, pushing every chapter from 18 onward up by one. Filenames did not change (slug rule). The insertion touched: each moved chapter's `.eyebrow` + `<title>`, every `.pager`, `index.html` `.ch-card .n`, the chapter-tag columns of App B / App D / App F, glossary `.see` links, and four bare prose "Chapter N" refs that lived outside anchors (glossary CCRC note, `passing-assets` summary, `rule-of-55` Model-it, `where-youll-live` taxes aside) — **those four are the ones a link-keyed script misses; grep for `Chapter \d+` outside `<a>` after any renumber.**
+- **Ch 18's numbers live in App B under "Borrowing against assets"** — SBLOC APR band, advance rates, minimum balance, maintenance-call cure period, the 15–35% debt-to-asset band. These are *market* figures, not statutory ones, and drift far faster than the IRS rows; the section header says so.
+- **Known, pre-existing drift:** twelve pages' `<meta name="description">` no longer matches their `index.html` `.ch-card .d` (the appendices, glossary, intro, capstone, `state-taxes`, `passing-assets`, `health-insurance-before-medicare`). Not introduced by the debt work — fix opportunistically, and keep new chapters in sync.
 
 ---
 
@@ -50,21 +54,22 @@ Update the **Summary** below whenever we learn something durable — keep it sho
 | `pensions.html` | 15 | Pensions | II |
 | `annuities.html` | 16 | Annuities (SPIAs, QLACs) | II |
 | `home-equity.html` | 17 | Home Equity as Retirement Income (HECM) | II |
-| `working-in-retirement.html` | 18 | Working in Retirement | II |
-| `withdrawal-sequencing.html` | 19 | Withdrawal Sequencing Across Account Types | II |
-| `rmds-and-secure-2.html` | 20 | RMDs & SECURE 2.0 | II |
-| `state-taxes.html` | 21 | State Taxes on Retirement Income | II |
-| `longevity-risk.html` | 22 | Longevity Risk & the Retiree Inflation Gap | II |
-| `rule-72t-sepp.html` | 23 | Rule of 72(t) / SEPP | III · Early access |
-| `rule-of-55.html` | 24 | The Rule of 55 | III |
-| `roth-early-access.html` | 25 | Accessing Roth Money Before 59½ (contributions + conversion ladder) | III |
-| `health-insurance-before-medicare.html` | 26 | Health Insurance Before Medicare (ACA bridge) | III |
-| `estate-taxes.html` | 27 | Estate Taxes & Per-Account Treatment | IV · Inheritance |
-| `passing-assets.html` | 28 | Passing Assets: Beneficiaries, TOD, Probate | IV |
+| `strategic-debt.html` | 18 | Strategic Debt in Retirement: Borrowing Instead of Selling | II |
+| `working-in-retirement.html` | 19 | Working in Retirement | II |
+| `withdrawal-sequencing.html` | 20 | Withdrawal Sequencing Across Account Types | II |
+| `rmds-and-secure-2.html` | 21 | RMDs & SECURE 2.0 | II |
+| `state-taxes.html` | 22 | State Taxes on Retirement Income | II |
+| `longevity-risk.html` | 23 | Longevity Risk & the Retiree Inflation Gap | II |
+| `rule-72t-sepp.html` | 24 | Rule of 72(t) / SEPP | III · Early access |
+| `rule-of-55.html` | 25 | The Rule of 55 | III |
+| `roth-early-access.html` | 26 | Accessing Roth Money Before 59½ (contributions + conversion ladder) | III |
+| `health-insurance-before-medicare.html` | 27 | Health Insurance Before Medicare (ACA bridge) | III |
+| `estate-taxes.html` | 28 | Estate Taxes & Per-Account Treatment | IV · Inheritance |
+| `passing-assets.html` | 29 | Passing Assets: Beneficiaries, TOD, Probate | IV |
 | `putting-it-together.html` | ✦ | Capstone synthesis | Capstone |
-| `purpose-people-health.html` | 29 | Purpose, People, and Health (retirement philosophy) | V · Beyond the Money |
-| `where-youll-live.html` | 30 | Where You'll Live: Aging in Place, Downsizing, CCRCs | V |
-| `handing-over-the-reins.html` | 31 | Handing Over the Reins: Directives, Simplification, Legacy | V |
+| `purpose-people-health.html` | 30 | Purpose, People, and Health (retirement philosophy) | V · Beyond the Money |
+| `where-youll-live.html` | 31 | Where You'll Live: Aging in Place, Downsizing, CCRCs | V |
+| `handing-over-the-reins.html` | 32 | Handing Over the Reins: Directives, Simplification, Legacy | V |
 | `appendix-ages.html` | A | Key Ages & Deadlines | Reference |
 | `appendix-numbers.html` | B | Key Numbers (2026) | Reference |
 | `appendix-tax-tables.html` | C | Federal Tax Tables (2026) | Reference |
@@ -124,7 +129,7 @@ Every chapter body follows this exact order. Edit the block you need; leave the 
 
 **Edit action items:** stay inside `<section class="actions">`; keep `<li><strong>Verb…</strong> why.</li>`; every item must be something the reader *does*.
 
-**Edit "Model it":** keep the Try this / Look for structure; every bold control name must exist in Appendix F Part 1/3 (e.g. **Target annual income**, **Advanced › Withdrawal strategy › Plain rule**, **Plan withdrawal rate**, **Return volatility**, **Sustainable income / yr**, **success rate**). If you add/rename a calculator control, update App F too. The section is **not mandatory** — a chapter earns a Model-it block only if the calculator genuinely models the topic. Chapters that intentionally **omit** it: the non-financial coda (28–30) and **home-equity (Ch 17)** — the calculator doesn't model the house / reverse mortgages, so a forced block was removed in the Model-it audit. Don't re-add one there.
+**Edit "Model it":** keep the Try this / Look for structure; every bold control name must exist in Appendix F Part 1/3 (e.g. **Target annual income**, **Advanced › Withdrawal strategy › Plain rule**, **Plan withdrawal rate**, **Return volatility**, **Sustainable income / yr**, **success rate**). If you add/rename a calculator control, update App F too. The section is **not mandatory** — a chapter earns a Model-it block only if the calculator genuinely models the topic. Chapters that intentionally **omit** it: the non-financial coda (30–32), **home-equity (Ch 17)**, and **strategic-debt (Ch 18)** — the calculator models neither the house/reverse mortgages nor debt, credit lines, or loan balances, so forced blocks were removed/never added. Don't add one to any of the three; App F Part 4 carries a row explaining the Ch 18 gap instead.
 
 **Add a new chapter:**
 1. Copy the nearest existing chapter as a template; update eyebrow, `h1`, `<title>`, meta description.
